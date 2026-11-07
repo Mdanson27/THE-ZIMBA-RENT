@@ -11,6 +11,32 @@
 <script defer src="./assets/app.js"></script>
 </head>
 <body>
+<div id="zimba-intro" class="zimba-intro" role="status" aria-label="Zimba Rent is opening">
+  <div class="intro-scene" aria-hidden="true">
+    <div class="intro-ground"></div>
+    <svg class="intro-house" viewBox="0 0 185 180" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 78 L92 16 L166 78" stroke="#D2E7B1" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M31 76 V158 H153 V76" stroke="#D2E7B1" stroke-width="9" fill="none" stroke-linejoin="round"/>
+      <path d="M75 158 V102 H113 V158" fill="#1B4A3A" stroke="#D2E7B1" stroke-width="6" stroke-linejoin="round"/>
+      <path class="intro-door" d="M75 158 V102 H113 V158" fill="#8CA98C" opacity=".45"/>
+      <rect x="41" y="92" width="23" height="22" rx="2" fill="#9ABF8F"/>
+      <rect x="125" y="92" width="18" height="22" rx="2" fill="#9ABF8F"/>
+    </svg>
+    <svg class="intro-man" viewBox="0 0 110 156" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="#F7FAF0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="53" cy="25" r="14" fill="#E3EAD7" stroke="#E3EAD7"/>
+        <path d="M53 40 L53 93"/>
+        <path class="intro-arm" d="M53 53 L31 70 L21 84"/>
+        <path d="M53 52 L77 71 L82 84"/>
+        <path class="intro-leg-left" d="M53 93 L33 129 L21 148"/>
+        <path class="intro-leg-right" d="M53 93 L75 127 L85 149"/>
+      </g>
+      <g class="intro-case"><rect x="5" y="82" width="33" height="28" rx="4" fill="#D3E6A7" stroke="#D3E6A7" stroke-width="3"/><path d="M15 82 V76 Q15 72 19 72 H26 Q30 72 30 76 V82" stroke="#D3E6A7" stroke-width="4" fill="none"/></g>
+    </svg>
+  </div>
+  <div class="intro-brand"><strong>ZIMBA RENT</strong><span>SPACE FOR WHAT'S NEXT</span></div>
+  <div class="intro-progress" aria-hidden="true"><span></span></div>
+</div>
 <div id="app"><div class="preload"><span class="wordmark">zimba<span>.</span></span><p>Finding your next chapter.</p></div></div>
 <div id="modal-root"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>

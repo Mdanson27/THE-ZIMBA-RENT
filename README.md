@@ -1,60 +1,79 @@
-# ZIMBA — Connected Real Estate Platform
+﻿# ZIMBA RENT â€” Production Foundation
 
-A premium, mobile-first prototype for discovering and managing property in Uganda. The interface combines an editorial real-estate marketplace with a private-style management workspace.
+Zimba Rent is a developing real-estate marketplace and property operations system for Uganda. The public experience is deployed on GitHub Pages, while backend and data services are being implemented separately.
 
-## Live experience
+## Current status (7 November 2026)
 
-GitHub Pages: https://mdanson27.github.io/THE-ZIMBA-RENT/
+- Public website prototype: deployed on GitHub Pages
+- Branded stick-figure house-entry loading sequence: implemented
+- Neon project: Zimba Rent â€” Development
+- Neon project ID: odd-snow-83079818
+- Neon database: zimba_rent_dev
+- Database schema: 18 initial PostgreSQL tables and indexes (confirmed through Neon)
+- Tenant isolation: Row-Level Security enabled on organisation-owned tables, but production authentication policies are **not implemented yet**
+- Public listings: protected database view and dedicated read-only role
+- API: Node.js PostgreSQL-backed, *read-only* API scaffold, **not deployed**
+- Payment, card scanning, login, lease administration: **not production-ready**
 
-## Public experience
+## Current architecture
 
-- Responsive homepage with property search
-- Explore rentals, property sales, commercial spaces and land
-- Search by area, property type, bedroom count and maximum price
-- Property listing pages with image galleries, details, feature summaries and enquiry forms
-- Saved properties persisted using browser storage
-- Services, insights and illustrative construction cost estimator
+GitHub Pages serves the public website and a browser-local demonstration management workspace.
 
-## Workspace
+Future secure runtime:
 
-Open **Management portal** in the top navigation.
+Browser â†’ HTTPS API â†’ restricted PostgreSQL role â†’ Neon PostgreSQL
 
-- Overview: portfolio metrics and demo activity
-- Properties: searchable portfolio and sample property creation
-- Enquiries: submissions from demo listing pages
-- Tenants & leases: future secure workflow outline
-- Maintenance: create, inspect and advance demo work requests
-- Finance: intentionally displays no invented financial metrics
-- Export: property portfolio in CSV format
+The browser never receives PostgreSQL connection credentials. The API runs as a separate service and is designed to expose only published properties.
 
-## Data and safety
+## Frontend
 
-**This is a frontend demonstration, not a production real-estate service.**
+Open index.html locally or visit:
+https://mdanson27.github.io/THE-ZIMBA-RENT/
 
-- All original sample listings, photos, prices, addresses and property details are **illustrative only**. They are not real, validated, available properties and must not be presented as such.
-- Data created through demo forms lives in browser localStorage; it is not transmitted to an agent, email service or backend and does not sync between devices.
-- Do not enter sensitive or real customer personal data in the demonstration.
-- The budget estimator uses illustrative assumptions, not market-validated rates; no legal, financial or construction decision should rely on it.
-- Authentication, roles, database, approval, storage, messaging, actual finance and payments are **not implemented**.
-- Sample analytics visualizations are labelled as illustrative.
+The stickman-with-briefcase loader animates toward a house before revealing the ZIMBA RENT brand and opening the site. It honors reduced-motion accessibility preferences.
 
-## Architecture
+## Backend
 
-- index.html: application entry point
-- assets/styles.css: responsive design system and layouts
-- assets/app.js: client-side routing, demo data and interactive workflows
-- .github/workflows/deploy.yml: GitHub Pages deployment
+The API lives in the api/ directory. Run:
 
-No build step required. Open index.html locally or publish the repository through GitHub Pages. Navigation uses hash-based routes to work under a project subpath.
+cd api
+npm install
+npm start
 
-## Planned production development
+Required server environment variable: DATABASE_URL (connection URL for the restricted **zimba_public_reader** role).
 
-1. Validate information architecture and visual direction with the actual ZIMBA team.
-2. Replace sample records with a validated property inventory and permissioned content management.
-3. Implement a secure API, PostgreSQL, object storage, audit logs and staff/landlord/tenant access controls.
-4. Build property, building, unit, tenant, lease, document, rent and maintenance data models.
-5. Integrate enquiries, inspections, viewing scheduling and agent assignment.
-6. Add professional valuation and building-budget services with qualified expert input.
-7. Complete operational, accessibility, security, data protection and end-to-end testing.
+Optional variables:
+- PORT (default 3000)
+- CORS_ORIGINS (comma-separated origins; defaults to https://mdanson27.github.io)
 
-The visual direction takes general inspiration from premium real-estate product design; it does not copy Knight Frank's copyrighted content or brand identity.
+Endpoints:
+- GET /health â€” runtime status
+- GET /ready â€” Postgres connectivity status
+- GET /api/v1/properties â€” published property listings
+- GET /api/v1/properties/:uuid â€” single published property
+
+The public API is read-only; do not use a database owner/admin connection string in its environment. API health will succeed even without a database; readiness requires DATABASE_URL and actual connectivity.
+
+## Security boundaries
+
+- Never put DATABASE_URL or payment/card credentials in frontend code, GitHub files, or screenshots.
+- RLS-enabled organisation tables default to denying access for non-privileged callers until tested role policies are created.
+- No tenant/admin API is exposed yet; implementing proper authentication and scoped authorization is a future task.
+- Card access and payment ledger structures are preparatory only, not a functioning access control or wallet system.
+- No verified property inventory was imported. Demo listings are fictional and remain labelled as such.
+- Do not use real resident/customer data in the browser-local demonstration.
+
+## Next milestones
+
+1. Deploy the API through an approved application-hosting connection and set the restricted DATABASE_URL as a server-only secret.
+2. Verify API database connectivity and independently audit read-only permissions.
+3. Implement proven identity/provider integration, role authorization and service-scoped tenant isolation.
+4. Build administration, organisations, units, leases, residents, invoice and receipting workflows.
+5. Establish migration from the existing Supabase dataset after auditing source ownership and schema.
+6. Establish AWS/Genese Solution PoC architecture and acceptance tests, including monitoring and restore testing.
+7. Demonstrate NFC card access only with test hardware/accounts, and payment workflows only with sandbox rails and authorized providers.
+
+## AWS PoC
+
+The expanded September 2026 AWS PoC questionnaire calls for a scalable AWS platform with secure resident identity, smart cards and property access, sandbox rent collection, monitoring, backups and audit trails. Neon is being used here for the development database as requested; the final AWS-managed database and migration strategy remain to be agreed with Genese Solution.
+
