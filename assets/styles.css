@@ -5,25 +5,48 @@
 @media(max-width:800px){.container{width:calc(100% - 34px)}.mainnav,.navtools>.btn,.navtools>.iconbtn.saved-trigger{display:none}.nav-compact{display:grid}.nav-inner{height:68px}.mobile-menu{display:flex;flex-direction:column;background:#fff;padding:5px 20px 20px;gap:0;border-top:1px solid var(--border)}.mobile-menu a{padding:13px 5px;border-bottom:1px solid #f0f3ef;font-weight:700;font-size:13px}.hero{min-height:560px}.hero-content{padding:85px 0 150px}.hero h1{font-size:54px}.search-floating{margin-top:-95px}.search-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search-grid .field:first-child{grid-column:span 2}.search-grid .btn{grid-column:span 2}.category-grid{grid-template-columns:1fr 1fr}.category:first-child{grid-column:span 2}.feature-text{padding:38px}.feature-text h2{font-size:37px}.editorial-text{padding:10px}.editorial-image{height:350px}.editorial-text h2{font-size:36px}.trust-items{grid-template-columns:repeat(2,1fr)}.footer-columns{grid-template-columns:repeat(3,1fr)}.footer-columns>div:first-child{grid-column:span 3}.detail-layout{grid-template-columns:1fr}.contact-panel{position:relative;top:auto}.workspace{grid-template-columns:1fr}.workspace-sidebar{display:flex;position:relative;top:auto;height:auto;overflow:auto;white-space:nowrap;padding:9px 15px;border-right:0;border-bottom:1px solid var(--border);gap:5px}.workspace-sidebar .side-title,.side-foot{display:none}.side-link{width:auto;flex-shrink:0;padding:10px 12px}.dashboard-grid{grid-template-columns:1fr}.service-grid,.insights-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:570px){.wordmark{font-size:27px}.alertbar{font-size:10px}.hero{min-height:530px}.hero h1{font-size:43px;letter-spacing:-1.4px}.hero p{font-size:13px}.hero-content{padding:83px 0 146px}.hero-micro{gap:14px}.hero-micro span{padding-left:13px}.hero-micro b{font-size:16px}.search-panel{padding:16px 14px}.search-tab{padding:0 13px 13px;font-size:11px}.search-grid{gap:9px}.search-grid .field label{font-size:9px}.search-grid .field input,.search-grid .field select{padding:0 9px;font-size:11px}.section{padding:68px 0}.heading{font-size:33px;letter-spacing:-1.3px}.section-head{align-items:start}.section-head .link{margin-top:13px;white-space:nowrap}.property-grid{grid-template-columns:1fr}.property-visual{height:240px}.trust-band{padding:25px 0}.trust-items{gap:16px}.trust-item{gap:8px}.trust-icon{width:34px;height:34px;font-size:16px}.trust-item b{font-size:10px}.trust-item p{font-size:9px}.category-grid{grid-template-columns:1fr}.category:first-child{grid-column:auto}.category{height:245px}.feature-split{grid-template-columns:1fr}.feature-text{padding:32px 24px}.feature-text h2{font-size:35px}.feature-split .feature-photo{min-height:220px}.editorial{grid-template-columns:1fr}.editorial-image{height:275px}.editorial-text{padding:5px}.cta-strip{padding:30px 25px;display:block;margin-bottom:65px}.cta-strip h2{font-size:30px}.cta-strip .btn{margin-top:22px}.footer-columns{grid-template-columns:1fr 1fr;gap:25px}.footer-columns>div:first-child{grid-column:span 2}.footer-bottom{line-height:1.8;display:block}.intro-hero{padding:46px 0 35px}.intro-hero h1{font-size:43px}.filterbar .field{min-width:calc(50% - 5px)}.resultsbar{align-items:start;gap:10px}.resultsbar h2{font-size:15px}.detail-gallery{grid-template-rows:180px 120px}.detail-top{display:block}.detail-top h1{font-size:33px}.detail-price{margin-top:12px}.service-grid,.insights-grid{grid-template-columns:1fr}.estimator{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr 1fr;gap:9px}.metric{padding:15px}.metric strong{font-size:21px}.workspace-main{padding:25px 15px 60px}.workspace-heading h1{font-size:24px}.workspace-heading{flex-wrap:wrap}.workspace-actions{width:100%}.workspace-actions .btn{flex:1}.workspace-search{flex-wrap:wrap}.workspace-search input{width:100%;flex-basis:100%}.workspace-search select{flex:1}.workspace-shortcuts{grid-template-columns:1fr}.panel{padding:17px}.chart-bars{gap:6px;padding:20px 2px 0}.chart-col small{font-size:8px}.modal{padding:22px}.mobile-only{display:block}}
 
-/* ZIMBA RENT animated arrival sequence */
-.zimba-intro{position:fixed;z-index:9999;inset:0;background:radial-gradient(circle at 50% 35%,#275543 0%,#163b30 50%,#0b271f 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:introExit .65s ease 4.4s forwards}
-.intro-scene{width:min(400px,88vw);height:260px;position:relative}
-.intro-ground{position:absolute;width:100%;height:2px;background:#ffffff2a;bottom:27px;left:0}
-.intro-house{position:absolute;width:185px;height:180px;bottom:24px;right:13px;filter:drop-shadow(0 18px 20px #071d1666);animation:houseReveal .8s ease-out both}
-.intro-man{position:absolute;width:90px;height:151px;bottom:25px;left:2px;transform-origin:center bottom;animation:manJourney 3.1s cubic-bezier(.4,0,.2,1) .4s both}
-.intro-leg-left{transform-origin:53px 93px;animation:walkLeft .38s ease-in-out 8 alternate}
-.intro-leg-right{transform-origin:53px 93px;animation:walkRight .38s ease-in-out 8 alternate}
-.intro-arm{transform-origin:53px 53px;animation:armSwing .48s ease-in-out 7 alternate}
-.intro-case{animation:caseSwing .36s ease-in-out 8 alternate;transform-origin:35px 78px}
-.intro-door{transform-origin:75px 130px;animation:openDoor .8s ease 2.45s forwards}
-.intro-brand{text-align:center;margin-top:12px;opacity:0;transform:translateY(16px);animation:brandRise .7s ease 3.1s forwards}
-.intro-brand strong{font:800 clamp(29px,5vw,47px)/1.2 'Manrope',sans-serif;letter-spacing:.18em}
-.intro-brand span{display:block;margin-top:12px;font-size:10px;letter-spacing:.4em;color:#c9e5ad;font-weight:700}
-.intro-progress{height:2px;width:175px;background:#ffffff2c;margin-top:32px;border-radius:4px;overflow:hidden}
-.intro-progress span{display:block;width:100%;height:100%;background:#d2e7b1;transform:scaleX(0);transform-origin:left;animation:progressAcross 4.2s ease-out forwards}
-@keyframes houseReveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes manJourney{0%{transform:translateX(-55px) scale(1);opacity:0}12%{opacity:1}72%{transform:translateX(190px) scale(.9);opacity:1}95%,100%{transform:translateX(222px) scale(.68);opacity:0}}
-@keyframes walkLeft{to{transform:rotate(24deg)}}@keyframes walkRight{to{transform:rotate(-25deg)}}@keyframes armSwing{to{transform:rotate(-14deg)}}@keyframes caseSwing{to{transform:rotate(-9deg)}}@keyframes openDoor{to{transform:scaleX(.25);opacity:.15}}
-@keyframes brandRise{to{opacity:1;transform:translateY(0)}}@keyframes progressAcross{to{transform:scaleX(1)}}
-@keyframes introExit{to{opacity:0;visibility:hidden;pointer-events:none}}
-@media(prefers-reduced-motion:reduce){.zimba-intro{animation:introExit .1s linear .4s forwards}.intro-brand{opacity:1;transform:none;animation:none}.intro-man,.intro-house,.intro-leg-left,.intro-leg-right,.intro-arm,.intro-case,.intro-door,.intro-progress span{animation:none}}
+
+/* Exclusive editorial type system */
+:root{--serif:'Bodoni Moda',Georgia,serif;--sans:'DM Sans',Arial,sans-serif;--head:'Manrope',Arial,sans-serif}
+.hero h1,.heading,.intro-hero h1,.detail-top h1,.editorial-text h2,.feature-text h2,.cta-strip h2,.category h3{font-family:var(--serif);font-weight:500;letter-spacing:-.035em}
+.hero h1{font-weight:500;line-height:1.12}
+.wordmark{font-family:var(--head);font-weight:800;letter-spacing:-.075em}
+.section-head .heading{letter-spacing:-.04em}
+.navbar,.btn,.mainnav,.field,.workspace{font-family:'Manrope',Arial,sans-serif}
+
+/* Animated arrival — independent transforms for gait and travel */
+.zimba-intro{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 34%,#2b5844 0%,#173b30 47%,#0b281f 100%);color:white;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
+.zimba-intro.intro-done{opacity:0;visibility:hidden;pointer-events:none}
+.intro-scene{width:min(460px,90vw);height:280px;position:relative}
+.intro-ground{position:absolute;left:0;right:0;bottom:36px;height:2px;background:#d7e9be38}
+.intro-house{position:absolute;width:220px;height:192px;right:12px;bottom:28px;filter:drop-shadow(0 16px 28px #071a144a);animation:houseReveal .75s ease-out both}
+.intro-door{transform-box:view-box;transform-origin:88px 137px;animation:doorOpen .62s ease 2.9s forwards}
+.walker-wrap{position:absolute;left:0;bottom:15px;width:140px;height:180px;will-change:transform,opacity;animation:walkerTravel 3.5s cubic-bezier(.4,.02,.2,1) .2s both}
+.intro-man{width:140px;height:180px;overflow:visible}
+.walker-bob{animation:walkerBob .48s ease-in-out 7 alternate;transform-box:view-box;transform-origin:72px 90px}
+.walker-leg,.walker-arm{transform-box:view-box}
+.front-leg,.back-leg{transform-origin:72px 91px;animation-duration:.7s;animation-timing-function:ease-in-out;animation-iteration-count:5;animation-direction:alternate}
+.front-leg{animation-name:frontStride}
+.back-leg{animation-name:backStride}
+.front-arm,.back-arm{transform-origin:72px 56px;animation-duration:.7s;animation-timing-function:ease-in-out;animation-iteration-count:5;animation-direction:alternate}
+.front-arm{animation-name:frontArmSwing}
+.back-arm{animation-name:backArmSwing}
+.suitcase-swing{transform-box:view-box;transform-origin:39px 90px;animation:suitcaseLag .7s ease-in-out 5 alternate}
+.intro-brand{text-align:center;margin-top:13px;opacity:0;transform:translateY(16px);animation:brandReveal .85s cubic-bezier(.2,.8,.2,1) 3.2s forwards}
+.intro-brand strong{display:block;font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(30px,5.8vw,52px);font-weight:600;letter-spacing:.09em;line-height:1.25;color:#f4f7ed;text-shadow:0 8px 25px #0002}
+.intro-brand span{display:block;margin-top:10px;font:700 10px/1.7 'Manrope',sans-serif;letter-spacing:.32em;color:#cfe3ad}
+.intro-progress{width:184px;height:2px;margin-top:31px;background:#ffffff30;overflow:hidden;border-radius:12px}
+.intro-progress span{display:block;height:100%;width:100%;background:#d4e8ad;transform:scaleX(0);transform-origin:left;animation:progressFill 4.55s linear forwards}
+@keyframes houseReveal{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes walkerTravel{0%{transform:translateX(-80px) scale(1);opacity:0}7%{opacity:1}76%{transform:translateX(244px) scale(.91);opacity:1}90%{transform:translateX(276px) scale(.8);opacity:.9}100%{transform:translateX(288px) scale(.67);opacity:0}}
+@keyframes walkerBob{from{transform:translateY(1px)}to{transform:translateY(-3px)}}
+@keyframes frontStride{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
+@keyframes backStride{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
+@keyframes frontArmSwing{from{transform:rotate(-16deg)}to{transform:rotate(14deg)}}
+@keyframes backArmSwing{from{transform:rotate(14deg)}to{transform:rotate(-16deg)}}
+@keyframes suitcaseLag{from{transform:rotate(-5deg) translateY(1px)}to{transform:rotate(7deg) translateY(-1px)}}
+@keyframes doorOpen{to{transform:scaleX(.14);opacity:.24}}
+@keyframes brandReveal{to{opacity:1;transform:translateY(0)}}
+@keyframes progressFill{to{transform:scaleX(1)}}
+@media(max-width:570px){.intro-scene{width:min(390px,92vw);transform:scale(.84);margin:-22px 0}.intro-brand span{font-size:9px;letter-spacing:.22em}.intro-brand strong{letter-spacing:.055em}}
+@media(prefers-reduced-motion:reduce){.intro-house,.intro-door,.walker-wrap,.walker-bob,.walker-leg,.walker-arm,.suitcase-swing,.intro-progress span{animation:none!important}.walker-wrap{opacity:1;transform:translateX(190px) scale(.8)}.intro-brand{animation:none!important;opacity:1;transform:none}}
