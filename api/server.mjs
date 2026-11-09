@@ -1,6 +1,7 @@
 import http from "node:http";
 import { URL } from "node:url";
 import pg from "pg";
+import {handleAdminAPI} from "./admin.mjs";
 
 const PORT = Number(process.env.PORT || 3000);
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -27,8 +28,8 @@ function respond(res, status, data, origin, method = "GET") {
   };
   if (origin && allowedOrigins.has(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
-    headers["Access-Control-Allow-Methods"] = "GET, OPTIONS";
-    headers["Access-Control-Allow-Headers"] = "Content-Type";
+    headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+    headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
   }
   res.writeHead(status, headers);
   res.end(JSON.stringify(data));
@@ -53,12 +54,17 @@ const server = http.createServer(async (req, res) => {
     }
     return respond(res, 204, {}, origin);
   }
-  if (req.method !== "GET") return respond(res, 405, { error: "Method not allowed" }, origin);
+  if (req.method !== "GET" && req.method !== "POST") return respond(res, 405, { error: "Method not allowed" }, origin);
   let url;
   try { url = new URL(req.url, "http://localhost"); }
   catch { return respond(res, 400, { error: "Invalid URL" }, origin); }
 
   if (url.pathname === "/health") return respond(res, 200, { status: "ok", service: "zimba-rent-api" }, origin);
+  if (url.pathname.startsWith("/api/v1/admin/") || url.pathname === "/api/v1/me/tier") {
+    if(!origin || !allowedOrigins.has(origin))return respond(res,403,{error:"Origin not allowed"},null);
+    return handleAdminAPI(req,res,url.pathname);
+  }
+  if (req.method !== "GET") return respond(res,405,{error:"Read-only public API"},origin);
   if (!pool) return respond(res, 503, { error: "Database not configured" }, origin);
   try {
     if (url.pathname === "/ready") {
