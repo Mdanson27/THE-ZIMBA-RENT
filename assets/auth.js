@@ -50,7 +50,7 @@ const api = {
     return jwt;
   },
   async rpc(name,params={}){
-    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin"].includes(name)) throw new Error("Unsupported API operation");
+    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property"].includes(name)) throw new Error("Unsupported API operation");
     const jwt=await api.token();
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
       method:"POST",
@@ -65,6 +65,10 @@ const api = {
   async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("admin_user_directory");},
   async assignPlan(userId,plan,reason){return api.rpc("admin_assign_plan",{p_target_user:userId,p_plan_code:plan,p_reason:reason});},
   async myPlan(){return api.rpc("my_subscription");},
+  async myOnboarding(){return api.rpc("my_onboarding");},
+  async completeOnboarding(values){return api.rpc("finish_my_onboarding",{p_role:values.role,p_area:values.area||null,p_budget:values.budget||null,p_first_property_name:values.property||null});},
+  async myProperties(){return api.rpc("my_properties");},
+  async createProperty(name,city,category="mixed"){return api.rpc("create_my_property",{p_title:name,p_city:city,p_category:category});},
   async google(){
     const r=await client.signIn.social({provider:"google",callbackURL:originReturn});
     if(r.error)throw new Error(r.error.message || "Google sign-in could not start");
