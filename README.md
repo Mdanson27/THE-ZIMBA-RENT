@@ -46,12 +46,14 @@ ZIMBA now has a redesigned, independent management experience rather than the pu
 - .github/workflows/deploy.yml — GitHub Pages deployment.
 
 ### Tiers (landlords / property managers only)
+
+Suggested launch pricing based on published Uganda competitor benchmarks (Unbound, RENTLAR, PropertyFlow UG). Paid fees are not yet approved or collectible.
 | Tier | Property cap | Pricing |
 | --- | ---: | --- |
 | Free | 1 | UGX 0 |
-| Starter | 5 | Not approved |
-| Growth | 50 | Not approved |
-| Business | 250 | Not approved |
+| Starter | 5 | Proposed UGX 49,000/month |
+| Growth | 50 | Proposed UGX 149,000/month |
+| Business | 250 | Proposed UGX 349,000/month |
 | Enterprise | Custom | Not approved |
 
 Tenants and buyers/rent seekers do not need paid management subscriptions. Free and paid plan authorizations are read from Neon and actual property caps are enforced server-side. The first-property onboarding flow provisions Free automatically, and all later upgrades require administrator authorization.
@@ -79,3 +81,20 @@ Important: This is an active **development deployment**, not a completed product
 4. Migrate genuine verified property records and professional photos.
 5. Implement genuine leases, invoices, maintenance and approved payment flows.
 6. Finalize legal policies, plan pricing, email delivery, backups and AWS/Genese Solution PoC acceptance.
+
+## Super Administrator control centre (November 9, 2026)
+
+- Super Admin route: `#/console/overview`
+- Verified designated identity: `automindsafrica@gmail.com`, linked to Google OAuth.
+- Platform administrator record provisioned for that verified account in Neon.
+- Dashboard has a separate executive navigation and design from landlord workspaces.
+- Sections: Command centre, User accounts, Organisations, Property inventory, Subscriptions, Audit activity, Platform health.
+- Live aggregate metrics are returned by secured PostgreSQL functions; no fabricated revenue figures.
+- Tier assignments are gated server-side through the existing audited administrator RPC.
+- Public "My Zimba space" and account navigation route the designated admin to the control centre.
+- SQL migration: `db/0007_superadmin_pricing.sql`. UI: `assets/super-admin.js` and `assets/super-admin.css`.
+- Neon Data API schema-cache refresh requested using `NOTIFY pgrst, 'reload schema'` to address possible stale RPC 404 responses.
+
+**Verification status:** source syntax and database privilege checks passed. Browser login-to-console, authenticated RPC calls, multi-device flows, and Pages completion still require independent end-to-end testing with the verified account; an HTTP 404 was reported in the prior deployment and should only be considered resolved after retesting.
+
+**Production policy:** Do not remove disclosures about unverified listings, unapproved policies, absent payments, or unavailable workflows. Prototype banners may be replaced by accurate operating-status language, but no live service capability should be misrepresented.
