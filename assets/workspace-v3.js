@@ -8,7 +8,7 @@ const plans=[["free","Free","One property • Simple management"],["starter","St
 const me=()=>window.ZimbaAuth?.state?.user||null;
 const storeKey=()=>("zimba-workspace-v3:"+me()?.id);
 const first=()=>String(me()?.name||me()?.email?.split("@")[0]||"Member").trim().split(/\s+/)[0];
-let step=0,draft={},record=null;
+let step=0,draft={},record=null,serverTier=null,tierLookupStarted=false;
 const read=()=>{try{return JSON.parse(localStorage.getItem(storeKey())||"null")}catch{return null}};
 const save=()=>localStorage.setItem(storeKey(),JSON.stringify(record));
 const managed=()=>["landlord","manager"].includes(record?.role);
@@ -78,6 +78,17 @@ function other(section){
 function render(section){
  if(failClosed())return;
  record=read();
+ if(record && ["landlord","manager"].includes(record.role)){
+   record.plan=serverTier||"free";
+   if(!tierLookupStarted && window.ZimbaAuth?.myPlan){
+     tierLookupStarted=true;
+     window.ZimbaAuth.myPlan().then(result=>{
+       const tier=String(result?.code||"free").toLowerCase();
+       serverTier=Object.prototype.hasOwnProperty.call(caps,tier)?tier:"free";
+       if(location.hash.startsWith("#/workspace/"))render(String(location.hash.slice(2)).split("/").slice(1).join("/")||"home");
+     }).catch(()=>{serverTier="free"});
+   }
+ }
  if(!record||record.version!==3){step=0;draft={};onboard();return}
  if(section==="overview")section="home";
  if(["properties","residents","finance","plans"].includes(section)&&!managed())section="home";
@@ -89,5 +100,8 @@ function render(section){
  $("#zv-restart")?.addEventListener("click",()=>{step=0;draft={};onboard()});
 }
 window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home").split("/").slice(1).join("/")||"home")},clear:function(){document.body.classList.remove("zv-workspace-on")}};
-window.addEventListener("zimba-auth-change",()=>{if(location.hash.startsWith("#/workspace/"))window.ZimbaWorkspace.render(location.hash.slice(2))});
+window.addEventListener("zimba-auth-change",()=>{
+ serverTier=null;tierLookupStarted=false;
+ if(location.hash.startsWith("#/workspace/"))window.ZimbaWorkspace.render(location.hash.slice(2))
+});
 })();
