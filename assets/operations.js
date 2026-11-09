@@ -48,7 +48,7 @@ function maintenance(data,record){
  card("✓","Completed",num(data.filter(x=>x.status==="completed").length),"Resolved records")+'</div>'+
  '<div class="zo-two"><section class="zo-panel"><div class="zo-panel-title"><h2>New maintenance request</h2><span>CREATE RECORD</span></div><form id="zo-create-maintenance" class="zo-form"><label>Property<select name="property" required>'+props.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")+'</select></label><label>Issue description<textarea name="issue" required minlength="8" maxlength="1200" rows="4" placeholder="Describe what needs attention…"></textarea></label><label>Priority<select name="priority"><option value="medium">Medium</option><option value="low">Low</option><option value="high">High</option><option value="urgent">Urgent</option></select></label><button class="zo-btn" type="submit" '+(props.length?"":"disabled")+'>Create request ↗</button></form><div id="zo-feedback" hidden></div></section>'+
  panel("Maintenance workflow",'<div class="zo-steps"><p><strong>01 · Open</strong><span>Record the issue and its priority</span></p><p><strong>02 · In progress</strong><span>Track what is being done</span></p><p><strong>03 · Completed</strong><span>Close the request when resolved</span></p></div>',"WORKFLOW")+'</div>'+
- panel("Request register",data.length?'<div class="zo-table-wrap"><table class="zo-table"><thead><tr><th>Request</th><th>Property</th><th>Priority</th><th>Status</th><th>Updated status</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+esc(x.issue)+'</strong><small>'+dt(x.created_at)+'</small></td><td>'+esc(x.property_title)+'</td><td><span class="zo-chip zo-'+esc(x.priority)+'">'+esc(x.priority)+'</span></td><td>'+esc(x.status.replaceAll("_"," "))+'</td><td><select data-zo-status="'+esc(x.id)+'">'+["open","in_progress","completed","cancelled"].map(y=>'<option value="'+y+'" '+(y===x.status?"selected":"")+'>'+y.replaceAll("_"," ")+'</option>').join("")+'</select><button data-zo-save="'+esc(x.id)+'" class="zo-mini-btn">Update</button></td></tr>').join("")+'</tbody></table></div>':statNote("No requests yet. Create the first one above."),"ORGANISATION RECORDS");
+ panel("Repair progress & updates",data.length?'<div class="zo-repair-list">'+data.map(x=>'<article class="zo-repair-card"><div class="zo-repair-intro"><div><strong>'+esc(x.issue)+'</strong><small>'+esc(x.property)+' · '+esc(x.priority)+' · '+dt(x.date)+'</small></div><span>'+esc(x.status.replaceAll("_"," "))+'</span></div><div class="zo-repair-progress"><span style="width:'+Number(x.progress||0)+'%"></span></div><small>'+Number(x.progress||0)+'% complete'+(x.eta?' · Expected '+dt(x.eta):'')+'</small><form class="zo-progress-form" data-zo-progress="'+esc(x.id)+'"><label>Status<select name="status">'+["open","in_progress","completed","cancelled"].map(s=>'<option value="'+s+'" '+(s===x.status?'selected':'')+'>'+s.replaceAll("_"," ")+'</option>').join("")+'</select></label><label>Progress (%)<input type="number" name="progress" min="0" max="100" required value="'+Number(x.progress||0)+'"></label><label>Expected completion<input name="eta" type="date" value="'+esc(x.eta||"")+'"></label><label class="zo-note-input">Update for tenant<textarea name="note" rows="2" maxlength="1000" minlength="3" required placeholder="Describe the work completed or next steps"></textarea></label><button type="submit" class="zo-btn">Post progress update ↗</button><div role="status" class="zo-progress-error"></div></form></article>').join("")+'</div>':statNote("No requests yet. Create the first one above."),"LIVE REPAIR TRACKING");
 }
 function financial(data,record){
  const expenses=data.expenses||[],charges=data.charges||[],props=(record.properties||[]).filter(x=>x.id);
@@ -70,7 +70,7 @@ function settings(data){
 }
 function activate(section,record){
  const host=$("#zo-body"),id=++version;
- const map={home:()=>auth().managerOverview(),maintenance:()=>auth().maintenance(),finance:()=>auth().financials(),settings:()=>auth().settings()};
+ const map={home:()=>auth().managerOverview(),maintenance:()=>auth().managerMaintenanceList(),finance:()=>auth().financials(),settings:()=>auth().settings()};
  const loader=map[section]||map.home;
  loader().then(data=>{
   if(id!==version||!host.isConnected)return;
@@ -87,10 +87,13 @@ function bindMaintenance(record){
   try{await auth().createMaintenance(f.get("property"),f.get("issue"),f.get("priority"));activate("maintenance",record)}
   catch(err){feedback(err.message,true);button.disabled=false}
  });
- document.querySelectorAll("[data-zo-save]").forEach(b=>b.onclick=async()=>{
-  b.disabled=true;
-  try{await auth().updateMaintenance(b.dataset.zoSave,$('[data-zo-status="'+b.dataset.zoSave+'"]').value);activate("maintenance",record)}
-  catch(err){alert(err.message);b.disabled=false}
+ document.querySelectorAll("[data-zo-progress]").forEach(form=>{
+  const status=form.querySelector('[name="status"]'),progress=form.querySelector('[name="progress"]');
+  status.addEventListener("change",()=>{if(status.value==="completed")progress.value=100;else if(status.value==="open")progress.value=0;else if(status.value==="in_progress"&&(Number(progress.value)===0||Number(progress.value)===100))progress.value=25;else if(status.value==="cancelled"&&Number(progress.value)===100)progress.value=99});
+  form.onsubmit=async e=>{e.preventDefault();const d=new FormData(form),btn=form.querySelector('button[type="submit"]');btn.disabled=true;
+   try{await auth().managerMaintenanceProgress(form.dataset.zoProgress,String(d.get("status")),Number(d.get("progress")),String(d.get("note")).trim(),d.get("eta")||null);activate("maintenance",record);window.ZimbaNotify?.refresh();}
+   catch(err){form.querySelector(".zo-progress-error").textContent=err.message;btn.disabled=false}
+  };
  });
 }
 function bindFinancial(record){
