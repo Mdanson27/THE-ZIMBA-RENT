@@ -1,4 +1,4 @@
-import { createAuthClient } from "https://esm.sh/@neondatabase/auth?bundle";
+import { createAuthClient } from "https://esm.sh/@neondatabase/auth@0.7.0-beta?bundle";
 const AUTH_URL = "https://ep-misty-frost-ber91fca.neonauth.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/auth";
 const originReturn = location.origin + location.pathname + "#/workspace/overview";
 const DATA_API_URL = "https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1"; // public service URL, not a database credential
