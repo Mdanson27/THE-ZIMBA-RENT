@@ -11,8 +11,9 @@ const api = {
       state.user = result?.data?.user && result.data.user.emailVerified ? result.data.user : null;
       state.error = result?.error?.message || null;
     } catch(err) {
-      state.user = null;
-      state.error = "Authentication service temporarily unavailable";
+      // A temporary network/Auth service failure is NOT evidence that the
+      // current cookie-backed session has expired.
+      state.error = "Unable to refresh your account right now. Your existing session is preserved.";
     } finally {
       state.ready=true;
       dispatchEvent(new Event("zimba-auth-change"));
@@ -51,7 +52,8 @@ const api = {
     const session=await client.getSession();
     const user=session?.data?.user;
     if(!user?.id || user.emailVerified!==true){
-      throw new Error("Your verified sign-in session has expired. Sign in again.");
+      const error=new Error("Unable to verify the current account session. Please sign in again if the session has expired.");
+      error.requiresLogin=true;throw error;
     }
     const isJwt=value=>typeof value==="string" && value.split(".").length===3;
     const sessionJwt=session?.data?.session?.access_token;
@@ -75,28 +77,25 @@ const api = {
     if(!isJwt(jwt))throw new Error("Neon returned an invalid access token.");
     return jwt;
   },
-  async relogin(reason="Your secure session needs to be renewed."){
-    try{await client.signOut()}catch(_){}
-    state.user=null;state.ready=true;state.error=reason;
+  async relogin(reason="Your account needs verification."){
+    // Redirect for interactive authentication without revoking a still-live
+    // seven-day Neon session. Only an explicit user sign-out revokes it.
     window.ZimbaLoginNotice=reason;
-    dispatchEvent(new Event("zimba-auth-change"));
+    state.error=reason;
     location.hash="#/auth";
   },
   async recover(error){
-    const status=error?.httpStatus;
-    if(error?.requiresLogin||status===401||status===403){
-      await api.relogin("Your sign-in session expired. Please sign in to continue.");
-      return true;
-    }
-    // An RPC 404 is usually missing backend configuration, not lost identity.
-    // Offer a single fresh-login attempt per failing operation, never a loop.
-    if(status===404){
-      const key="zimba-relogin-once:"+String(error?.operation||"service");
-      if(!sessionStorage.getItem(key)){
-        sessionStorage.setItem(key,"attempted");
-        await api.relogin("The service could not load "+String(error?.operation||"this feature")+". Please sign in again once.");
-        return true;
+    // Database API errors are not Auth errors. Neither 403 nor 404, including
+    // PGRST202 schema-cache failures, may call signOut or clear the user.
+    // A 401 from one API is also not proof that the Auth session is invalid.
+    if(error?.requiresLogin){
+      const session=await client.getSession().catch(()=>null);
+      if(session?.data?.user?.id && session.data.user.emailVerified===true){
+        state.user=session.data.user;state.ready=true;
+        return false; // identity survives, report API problem instead
       }
+      await api.relogin("Your session could not be verified. Sign in to continue.");
+      return true;
     }
     return false;
   },
@@ -104,7 +103,7 @@ const api = {
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units","zimba_resident_profiles"].includes(name)) throw new Error("Unsupported API operation");
     let jwt;
     try{jwt=await api.token()}catch(error){
-      if(/expired|sign in again|needs to be renewed/i.test(error.message))error.requiresLogin=true;
+      if(error.requiresLogin===true)error.requiresLogin=true;
       throw error;
     }
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
@@ -115,21 +114,20 @@ const api = {
     const contentType=response.headers.get("content-type")||"";
     const data=contentType.includes("json")?await response.json():null;
     if(response.status===401){
-      const error=new Error("Your sign-in session expired. Please sign in again.");
-      error.requiresLogin=true;error.httpStatus=401;throw error;
+      const error=new Error("The Zimba Data API rejected this access token (HTTP 401). Your account session has not been signed out.");
+      error.httpStatus=401;error.code=data?.code;throw error;
     }
     if(!response.ok){
       const detail=data?.message||data?.error||"Database request failed";
       if(response.status===404){
-        const error=new Error("Zimba couldn't load "+name+". "+detail+" (HTTP 404).");
+        const error=new Error("The "+name+" database operation is not exposed by Neon yet (HTTP 404). Your account remains signed in.");
         error.httpStatus=404;
         error.operation=name;
         error.code=data?.code||"ROUTE_NOT_FOUND";
         throw error;
       }
-      const error=new Error(detail);error.httpStatus=response.status;error.code=data?.code;throw error;
+      const error=new Error(response.status===403?"Zimba cannot access "+name+" (HTTP 403). The backend permissions or JWT roles need repair; your account remains signed in.":detail);error.httpStatus=response.status;error.code=data?.code;error.operation=name;throw error;
     }
-    if(typeof sessionStorage!=="undefined")sessionStorage.removeItem("zimba-relogin-once:"+name);
     return data;
   },
   async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("zimba_admin_accounts");},
