@@ -181,6 +181,10 @@ AS $function$
    PERFORM public.zimba_security_throttle('maintenance_create',10,3600);
  ELSIF TG_TABLE_NAME='zimba_resident_messages' THEN
    PERFORM public.zimba_security_throttle('message_send',12,60);
+ ELSIF TG_TABLE_NAME='units' THEN
+   PERFORM public.zimba_security_throttle('unit_create',500,86400);
+ ELSIF TG_TABLE_NAME='zimba_maintenance_updates' THEN
+   PERFORM public.zimba_security_throttle('maintenance_progress',120,86400);
  END IF;
  RETURN NEW;
  END $function$
@@ -215,4 +219,10 @@ REVOKE ALL ON FUNCTION public.zimba_resident_profiles_v3(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_resident_profiles_v3(uuid) TO authenticated;
 REVOKE ALL ON FUNCTION public.zimba_security_throttle(text,integer,integer) FROM PUBLIC,anonymous,authenticated;
 REVOKE ALL ON TABLE zimba_security_audit,zimba_security_rate_buckets FROM PUBLIC,anonymous,authenticated;
+DROP TRIGGER IF EXISTS zimba_limit_units ON units;
+CREATE TRIGGER zimba_limit_units BEFORE INSERT ON units FOR EACH ROW EXECUTE FUNCTION public.zimba_security_write_limit();
+DROP TRIGGER IF EXISTS zimba_limit_maintenance_updates ON zimba_maintenance_updates;
+CREATE TRIGGER zimba_limit_maintenance_updates BEFORE INSERT ON zimba_maintenance_updates FOR EACH ROW EXECUTE FUNCTION public.zimba_security_write_limit();
+CREATE INDEX IF NOT EXISTS zimba_audit_actor_idx ON zimba_security_audit(actor_auth_id,occurred_at DESC);
+CREATE INDEX IF NOT EXISTS zimba_rate_bucket_time_idx ON zimba_security_rate_buckets(bucket_start);
 NOTIFY pgrst, 'reload schema';
