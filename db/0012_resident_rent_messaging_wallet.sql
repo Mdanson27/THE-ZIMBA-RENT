@@ -220,4 +220,23 @@ REVOKE ALL ON FUNCTION public.zimba_tenant_service_requests() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_service_requests() TO authenticated;
 REVOKE ALL ON FUNCTION public.zimba_tenant_wallet() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_wallet() TO authenticated;
+CREATE OR REPLACE FUNCTION public.zimba_resident_profiles_v2(p_property uuid)
+ RETURNS TABLE(resident_name text, resident_email text, resident_reference text, unit_number text, monthly_rent_ugx bigint, rent_start_date date, linked_at timestamp with time zone)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_org uuid:=public.zimba_my_manager_org();
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM properties WHERE id=p_property AND organization_id=v_org) THEN RAISE EXCEPTION 'Property access denied' USING ERRCODE='42501'; END IF;
+ RETURN QUERY SELECT u.name,u.email,r.reference,un.unit_number,un.monthly_rent_ugx,c.rent_start_date,c.linked_at
+ FROM resident_connections c JOIN neon_auth."user" u ON u.id=c.resident_auth_user_id
+ JOIN resident_public_references r ON r.auth_user_id=u.id
+ LEFT JOIN units un ON un.id=c.unit_id AND un.property_id=c.property_id AND un.organization_id=c.organization_id
+ WHERE c.organization_id=v_org AND c.property_id=p_property AND c.status='active'
+ ORDER BY c.linked_at DESC LIMIT 200;
+END $function$
+
+REVOKE ALL ON FUNCTION public.zimba_resident_profiles_v2(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.zimba_resident_profiles_v2(uuid) TO authenticated;
 NOTIFY pgrst, 'reload schema';
