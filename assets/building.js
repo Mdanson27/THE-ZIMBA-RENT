@@ -11,7 +11,7 @@ function page(record){
  const query=new URLSearchParams((location.hash.split("?")[1]||""));
  selectedProperty=properties.some(p=>p.id===query.get("property"))?query.get("property"):(selectedProperty&&properties.some(p=>p.id===selectedProperty)?selectedProperty:properties[0]?.id||null);
  return '<div class="zb-page"><div class="zb-title"><div><span class="zb-eyebrow">ZIMBA / PROPERTY INTELLIGENCE</span><h1>Building studio</h1><p>Shape every floor, set prices and see availability at a glance.</p></div><div class="zb-layout-switch"><button class="'+(mode==="2d"?"active":"")+'" data-zb-mode="2d">▦ 2D layout</button><button class="'+(mode==="1d"?"active":"")+'" data-zb-mode="1d">☰ 1D list</button></div></div>'+
- '<div class="zb-toolbar"><label>Property <select id="zb-property">'+properties.map(p=>'<option value="'+esc(p.id)+'" '+(p.id===selectedProperty?"selected":"")+'>'+esc(p.name)+'</option>').join("")+'</select></label><div class="zb-toolbar-actions"><button id="zb-new-unit" class="zb-btn" '+(!selectedProperty?"disabled":"")+'>＋ Add room / unit</button></div></div>'+
+ '<div class="zb-toolbar"><label>Property <select id="zb-property">'+properties.map(p=>'<option value="'+esc(p.id)+'" '+(p.id===selectedProperty?"selected":"")+'>'+esc(p.name)+'</option>').join("")+'</select></label><div class="zb-toolbar-actions"><button id="zb-bulk-units" class="zb-btn secondary" '+(!selectedProperty?"disabled":"")+' >▦ Generate floor</button><button id="zb-new-unit" class="zb-btn" '+(!selectedProperty?"disabled":"")+'>＋ Add room / unit</button></div></div>'+
  '<div id="zb-display"><div class="zb-loading">Loading verified property details…</div></div><div id="zb-modal"></div></div>';
 }
 function layout(){
@@ -38,6 +38,10 @@ function unitEditor(unit){
  modal(unit?"Edit room details":"Add a new room",'<label>Room / unit number<input name="number" required maxlength="30" placeholder="e.g. A-101" value="'+esc(unit?.unit_number||"")+'"></label><label>Floor name<input name="floor" maxlength="50" placeholder="Ground floor, Level 1…" value="'+esc(unit?.floor_label||"Ground floor")+'"></label><label>Monthly rent (UGX)<input name="rent" type="number" required min="0" max="100000000000" step="1" value="'+esc(unit?.monthly_rent_ugx??0)+'"></label><label>Availability<select name="status">'+["vacant","occupied","reserved","maintenance"].map(s=>'<option value="'+s+'" '+(s===(unit?.status||"vacant")?"selected":"")+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>').join("")+'</select></label>',
  f=>auth().saveUnit(selectedProperty,unit?.id||null,String(f.get("number")).trim(),String(f.get("floor")).trim(),Number(f.get("rent")),String(f.get("status"))));
 }
+function bulkEditor(){
+ modal("Generate a floor of rooms",'<p class="zb-modal-help">Add several rooms at once, with sequential room numbers and a shared starting rent. You can customise each room afterwards.</p><label>Floor label<input name="floor" maxlength="50" required placeholder="Level 1" value="Ground floor"></label><label>Room number prefix<input name="prefix" maxlength="15" placeholder="A-" value="A-"></label><label>Starting number<input type="number" name="start" min="0" max="9999" value="1" required></label><label>How many rooms? (maximum 100)<input type="number" name="count" min="1" max="100" value="6" required></label><label>Monthly rent per room (UGX)<input type="number" name="rent" min="0" max="100000000000" value="0" required></label>',
+ f=>auth().generateUnits(selectedProperty,String(f.get("floor")),String(f.get("prefix")),Number(f.get("start")),Number(f.get("count")),Number(f.get("rent"))));
+}
 function editProperty(){
  modal("Property information",'<label>Property name<input name="title" required maxlength="100" value="'+esc(detail?.name||"")+'"></label><label>Address<input name="address" maxlength="240" placeholder="Building address" value="'+esc(detail?.address||"")+'"></label><label>Description<textarea name="description" rows="4" maxlength="5000" placeholder="Describe your building">'+esc(detail?.description||"")+'</textarea></label><label>Asking price (UGX; optional)<input name="price" type="number" min="0" max="100000000000000" value="'+esc(detail?.askingPrice??"")+'"></label>',
  f=>auth().updateProperty(selectedProperty,String(f.get("title")).trim(),String(f.get("description")),String(f.get("address")),f.get("price")===""?null:Number(f.get("price"))));
@@ -59,6 +63,7 @@ function bind(record){
  $("#zb-property")?.addEventListener("change",e=>{selectedProperty=e.target.value;refresh()});
  document.querySelectorAll("[data-zb-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.zbMode;document.querySelectorAll("[data-zb-mode]").forEach(x=>x.classList.toggle("active",x.dataset.zbMode===mode));if($("#zb-display")){$("#zb-display").innerHTML=layout();wireUnits()}});
  $("#zb-new-unit")?.addEventListener("click",()=>unitEditor(null));
+ $("#zb-bulk-units")?.addEventListener("click",bulkEditor);
  if(selectedProperty)refresh();
  else $("#zb-display").innerHTML='<div class="zb-empty"><h2>No property selected</h2><p>Create your first property to set up a floor-by-floor layout.</p><a class="zb-btn" href="#/workspace/properties">Add a property ↗</a></div>';
 }
