@@ -292,7 +292,9 @@ function render(section){
 }
 window.addEventListener("online",()=>{const el=$(".zv-live");if(el)el.innerHTML="<i></i> Online · Signed in"});
 window.addEventListener("offline",()=>{const el=$(".zv-live");if(el)el.innerHTML="<i></i> Offline · Signed in"});
-window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home").split("/").slice(1).join("/")||"home")},clear:function(){document.body.classList.remove("zv-workspace-on")}};
+window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home").split("/").slice(1).join("/")||"home")},
+ refreshResidents:async function(){if(managed()&&$("#zv-manager-requests"))await Promise.all([loadManagerRequests(),loadConnectedResidentProfiles()])},
+ clear:function(){document.body.classList.remove("zv-workspace-on")}};
 window.addEventListener("zimba-auth-change",()=>{
  serverTier=null;tierLookupStarted=false;accountStatus="idle";propertyStatus="idle";syncError="";
  if(location.hash.startsWith("#/workspace/"))window.ZimbaWorkspace.render(location.hash.slice(2))
