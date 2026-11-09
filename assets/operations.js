@@ -94,7 +94,7 @@ function bindFinancial(record){
 function bindSettings(record){
  $("#zo-settings-form")?.addEventListener("submit",async e=>{
   e.preventDefault();const f=new FormData(e.target),button=e.target.querySelector("[type=submit]");button.disabled=true;
-  try{await auth().updateSettings(f.get("organization"),f.get("area"),{maintenance:f.has("maintenance"),financial:f.has("financial"),property:f.has("property")});feedback("Settings saved securely.","false");button.disabled=false}
+  try{await auth().updateSettings(f.get("organization"),f.get("area"),{maintenance:f.has("maintenance"),financial:f.has("financial"),property:f.has("property")});feedback("Settings saved securely.",false);button.disabled=false}
   catch(err){feedback(err.message,true);button.disabled=false}
  });
 }
