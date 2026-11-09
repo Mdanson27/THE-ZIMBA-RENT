@@ -16,6 +16,7 @@ async function refresh(){
   if(path.startsWith("#/workspace/")){
    const section=path.split("/").pop();
    if(section==="residents")await window.ZimbaWorkspace?.refreshResidents?.();
+   else if(section==="building"&&document.querySelector("#zb-display"))await window.ZimbaBuilding?.refresh?.();
    else if(section==="security")document.querySelector("#zv-security-refresh")?.click();
    else if(["home","maintenance","finance","settings"].includes(section)&&document.querySelector("#zo-reload"))document.querySelector("#zo-reload").click();
    else if(["home","maintenance","payments"].includes(section)&&document.querySelector("#zt-content")&&!document.querySelector(".zt-panel:has(#zt-retry)"))await window.ZimbaTenantPortal?.load?.(section);
