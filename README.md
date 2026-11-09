@@ -128,3 +128,33 @@ SQL sources: `db/0009_policies_and_pending_tiers.sql` and `db/0010_operational_w
 **Security:** Anonymous calls are denied, and authenticated browser users do not receive direct write grants to maintenance or expense tables. Database functions resolve their own organisation from `auth.uid()` and a validated manager membership.
 
 **Testing caveat:** SQL function creation, privilege checks and JavaScript syntax have passed. Browser OAuth, full subscription assignment, policy acceptance, expense creation, maintenance updates and Pages deployment must be tested in a signed-in browser before calling the release production-ready.
+
+## Resident onboarding and Building Studio — November 9, 2026
+
+**Resident onboarding is no longer based on a pasted invitation URL or a 48-character input.**
+
+1. Tenant creates a verified Zimba account with a short, public reference `ZR-XXXXXXXXXXXX`.
+2. Landlord/manager opens **Residents**, selects an authorized property and optionally an available room.
+3. They paste the **tenant reference** (15 characters including `ZR-`) and submit.
+4. Neon validates the reference and creates an in-app, account-bound invitation. The landlord's directory displays the tenant's name and a grey **Pending approval** state; the room remains unoccupied.
+5. On **My home** and **Connect to a home**, the intended tenant can review the landlord, property and room, then **Approve & connect** or **Decline**.
+6. On approval, the tenant is linked to the property in `resident_connections`, and the selected room is marked `occupied`. Approval is one-time, and expired invitations cannot be accepted. Declining removes pending status.
+7. No private tenancy records are accessible to the invited tenant until approval. No physical entry, legal lease execution or payments are implied.
+
+The pending inbox is currently refreshed when a tenant opens the corresponding page or presses Refresh. Real-time cross-device push notifications and email alerts are future enhancements.
+
+**Building Studio** is available from the landlord sidebar and property portfolio:
+- A responsive interactive floor-by-floor **2D occupancy grid** (not a measured architectural drawing).
+- A compact **1D list** alternative.
+- Add/edit room number, floor name, per-room monthly rent in UGX and availability.
+- Availability states: `vacant`, `occupied`, `reserved`, `maintenance`. An outstanding invitation overlays the room as **grey pending approval**.
+- Edit building name, address, description and asking price.
+- Generate up to 100 sequentially numbered rooms for a floor in one operation, then edit them individually.
+- Counts of available, occupied and pending rooms come directly from Neon.
+- An existing verified resident prevents casually changing their assigned room back to vacant.
+
+Backend migration: `db/0011_room_inventory_resident_approvals.sql`. Frontend: `assets/building.js`, `assets/building.css` and the upgraded `assets/workspace-v3.js`.
+
+Security: All new functions are granted only to `authenticated`; manager operations verify the user's managed organisation using `auth.uid()`, and tenant approvals check the intended account, expiry and room availability under row locks. Direct browser INSERT grants on units and resident invitations remain disabled.
+
+**Release qualification:** Database functions are installed, anonymous access checks and static JS syntax checks passed. The complete two-account flow, frontend UI, and GitHub Pages deployment still need signed-in browser end-to-end tests before commercial release.
