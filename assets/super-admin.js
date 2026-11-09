@@ -102,13 +102,14 @@ function paintUsers(users){
  const el=$("#zc-user-table");if(!el)return;
  if(!users.length){el.innerHTML=empty("No accounts match your search.");return}
  const plans=["free","starter","growth","business","enterprise"];
- el.innerHTML=table(["Member","Identity","Current plan","New tier","Reason","Action"],users.map(u=>row([
+ el.innerHTML=table(["Member","Identity","Role","Current plan","New tier","Reason","Action"],users.map(u=>row([
  '<strong>'+esc(u.display_name||"Member")+'</strong><small>'+esc(u.email)+'</small>',
  badge(u.email_verified?"Verified":"Pending"),
+ badge(u.account_role||"Not onboarded"),
  badge(u.plan_code||"Unassigned"),
  '<select data-tier="'+esc(u.user_id)+'">'+plans.map(p=>'<option value="'+p+'" '+(p===u.plan_code?"selected":"")+'>'+p.toUpperCase()+'</option>').join("")+'</select>',
  '<input data-reason="'+esc(u.user_id)+'" placeholder="Audit reason" maxlength="300">',
- '<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Assign ↗</button>'
+ (['landlord','manager'].includes(u.account_role)?'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Assign ↗</button>':'<span class="zc-badge">No management subscription</span>')
  ])));
  el.querySelectorAll("[data-assign]").forEach(btn=>btn.addEventListener("click",async()=>{
   const id=btn.dataset.assign,plan=el.querySelector('[data-tier="'+id+'"]').value,reason=el.querySelector('[data-reason="'+id+'"]').value.trim();
