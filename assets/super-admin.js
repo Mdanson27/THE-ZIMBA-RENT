@@ -16,8 +16,8 @@ function clear(){document.body.classList.remove("zimba-control-mode")}
 function status(text,kind=""){const msg=$("#zc-notify");if(!msg)return;msg.textContent=text;msg.className="zc-notify "+kind;msg.hidden=false;clearTimeout(window._zcn);window._zcn=setTimeout(()=>msg.hidden=true,5500)}
 function loading(message){paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">ZIMBA PLATFORM OPERATIONS</span><h1>Opening your control centre.</h1><p>'+esc(message||"Verifying administrative access…")+'</p><div class="zc-loader"></div></div></main>')}
 function connectionError(message){
- paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">SECURE CONNECTION</span><h1>We couldn’t connect to Zimba Auth.</h1><p>'+esc(message||"The service could not verify your current session.")+'</p><button id="zc-retry-connection" class="zc-btn">Retry secure connection ↗</button><a class="zc-btn secondary" href="#/auth">Sign in again</a></div></main>');
- $("#zc-retry-connection").onclick=()=>{verifyState="idle";render(activeSection)};
+ paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">SECURE CONNECTION</span><h1>We couldn’t connect to Zimba Auth.</h1><p>'+esc(message||"The service could not verify your current session.")+'</p><button id="zc-retry-connection" class="zc-btn">Sign in again ↗</button></div></main>');
+ $("#zc-retry-connection").onclick=()=>auth().relogin("Sign in again to access Zimba Control.");
 }
 function forbidden(message){
  paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">PRIVATE ADMINISTRATION</span><h1>Restricted access.</h1><p>'+esc(message||"Only the verified Zimba platform administrator can access this console.")+'</p><a class="zc-btn" href="#/workspace/home">Return to my space ↗</a><button id="zc-retry" class="zc-btn secondary">Check again</button></div></main>');
@@ -133,7 +133,12 @@ async function load(section,force=false){
  const body=$("#zc-body");if(!body)return;
  body.innerHTML=heading("PLATFORM INTELLIGENCE",nav.find(x=>x[0]===section)?.[1]||"Control centre","Retrieving verified information from Neon…")+'<div class="zc-skeleton"><span></span><span></span><span></span></div>';
  try{const response=await fetchSection(section);if(token!==loadingVersion||activeSection!==section)return;cache[section]=response;renderData(section,response)}
- catch(err){if(token!==loadingVersion)return;body.innerHTML=heading("SERVICE CONNECTION","Unable to load this section","The requested information could not be loaded securely.")+'<div class="zc-error"><p>'+esc(err.message)+'</p><button class="zc-btn" id="zc-retry-section">Retry secure connection</button></div>';$("#zc-retry-section").onclick=()=>load(section,true)}
+ catch(err){
+  if(token!==loadingVersion)return;
+  if(await auth().recover(err))return;
+  body.innerHTML=heading("SERVICE CONNECTION","This service is unavailable","The database operation could not be loaded.")+'<div class="zc-error"><p>'+esc(err.message)+'</p><button class="zc-btn" id="zc-retry-section">Sign in again ↗</button></div>';
+  $("#zc-retry-section").onclick=()=>auth().relogin("Please sign in again to restore your Zimba Control session.");
+ }
 }
 function render(section="overview"){
  activeSection=categories.includes(section)?section:"overview";
@@ -147,7 +152,7 @@ function render(section="overview"){
   a.isSuperAdmin().then(isAdmin=>{
    verified=isAdmin===true;verifyState=verified?"ready":"denied";
    render(activeSection);
-  }).catch(err=>{verifyState="error";currentUser=err.message;render(activeSection)});
+  }).catch(async err=>{if(await a.recover(err))return;verifyState="error";currentUser=err.message;render(activeSection)});
   return
  }
  if(verifyState==="checking"){loading("Completing administrator verification…");return}
