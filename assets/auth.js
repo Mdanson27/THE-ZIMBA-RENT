@@ -58,7 +58,7 @@ const api = {
     if(isJwt(sessionJwt))return sessionJwt;
     let response;
     try{
-      response=await fetch(AUTH_URL.replace(/\\/$/,"")+"/token",{
+      response=await fetch(AUTH_URL.replace(/\/$/,"")+"/token",{
         method:"GET",credentials:"include",headers:{"Accept":"application/json"},
         cache:"no-store"
       });
