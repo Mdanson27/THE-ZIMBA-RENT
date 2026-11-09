@@ -45,9 +45,9 @@ const api = {
     return "A new verification code has been requested.";
   },
   async token(){
-    const result=await client.token();
-    if(result.error || !result.data?.token)throw new Error("Sign in to continue");
-    return result.data.token;
+    const jwt=await client.getJWTToken();
+    if(!jwt || typeof jwt!=="string")throw new Error("Sign in to continue");
+    return jwt;
   },
   async rpc(name,params={}){
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin"].includes(name)) throw new Error("Unsupported API operation");
