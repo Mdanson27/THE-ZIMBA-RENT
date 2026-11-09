@@ -8,45 +8,38 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/styles.css">
+<link rel="stylesheet" href="./assets/workspace-v3.css">
+<link rel="stylesheet" href="./assets/arrival-v4.css">
+<script defer src="./assets/workspace-v3.js"></script>
 <script defer src="./assets/app.js"></script>
 <script type="module" src="./assets/auth.js"></script>
 </head>
 <body>
-<div id="zimba-intro" class="zimba-intro" role="status" aria-live="polite" aria-label="Opening Zimba Rent">
-  <div class="intro-scene" aria-hidden="true">
-    <div class="intro-ground"></div>
-    <svg class="intro-house" viewBox="0 0 220 192" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23 88 110 16 197 88" stroke="#D9E7B5" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M40 87V165H180V87" stroke="#D9E7B5" stroke-width="8" fill="none" stroke-linejoin="round"/>
-      <path d="M84 165V106H136V165" fill="#103528" stroke="#D9E7B5" stroke-width="5"/>
-      <g class="intro-door"><rect x="87" y="109" width="46" height="54" rx="2" fill="#A2BC8F"/><circle cx="126" cy="138" r="2.4" fill="#244938"/></g>
-      <rect x="56" y="101" width="22" height="23" rx="2" fill="#B6D1A1"/>
-      <rect x="144" y="101" width="21" height="23" rx="2" fill="#B6D1A1"/>
+<div id="zimba-intro" class="zimba-intro zv-arrival" role="status" aria-label="Opening Zimba Rent">
+  <div class="zv-night-sky" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="zv-house-stage" aria-hidden="true">
+    <svg class="zv-house-illustration" viewBox="0 0 700 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#344739"/><stop offset="100%" stop-color="#172b25"/></linearGradient>
+        <linearGradient id="frontGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#243d32"/><stop offset="100%" stop-color="#11281f"/></linearGradient>
+        <linearGradient id="glowGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffebac"/><stop offset="100%" stop-color="#ddac59"/></linearGradient>
+        <filter id="windowGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="18"/></filter>
+      </defs>
+      <ellipse cx="353" cy="425" rx="260" ry="23" fill="#000" opacity=".23"/>
+      <path d="M96 221 352 49 605 221 578 252 353 100 124 253Z" fill="url(#roofGrad)" stroke="#7c9988" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M141 226 352 84 562 226V416H141Z" fill="url(#frontGrad)" stroke="#486a58" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M352 84 562 226V416H351Z" fill="#0c211a" opacity=".25"/>
+      <path d="M124 413H580" stroke="#6f8d73" stroke-width="7" stroke-linecap="round"/>
+      <g class="zv-window zv-window-one"><rect x="192" y="242" width="90" height="93" rx="6" fill="#ffd982" opacity=".32" filter="url(#windowGlow)"/><rect x="188" y="234" width="90" height="94" rx="5" fill="url(#glowGrad)"/><path d="M233 234V328M188 281H278" stroke="#3e4934" stroke-width="9"/></g>
+      <g class="zv-window zv-window-two"><rect x="421" y="239" width="91" height="92" rx="6" fill="#ffd982" opacity=".3" filter="url(#windowGlow)"/><rect x="417" y="232" width="90" height="94" rx="5" fill="url(#glowGrad)"/><path d="M462 232V326M417 279H507" stroke="#3e4934" stroke-width="9"/></g>
+      <g class="zv-door-frame"><path d="M314 416V292Q314 282 325 282H378Q389 282 389 292V416" stroke="#6e8b72" stroke-width="7" fill="#172c22"/><rect class="zv-door-light" x="321" y="290" width="61" height="125" rx="3" fill="url(#glowGrad)"/><circle cx="371" cy="354" r="4" fill="#8c6037"/></g>
+      <g class="zv-porch"><path d="M298 418H406" stroke="#607c69" stroke-width="8"/><path d="M280 431H425" stroke="#435c4c" stroke-width="10"/></g>
+      <g class="zv-house-detail"><path d="M346 149H357" stroke="#8da88a" stroke-width="6" stroke-linecap="round"/><path d="M140 365H183M511 365H556" stroke="#749279" stroke-width="5"/></g>
     </svg>
-    <div class="walker-wrap">
-      <svg class="intro-man" viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="72" cy="165" rx="29" ry="3" fill="#B3CEAA" opacity=".21"/>
-        <g class="walker-bob" fill="none" stroke="#F6FAF0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-          <g class="walker-leg back-leg"><path d="M72 91L62 125L56 158"/><path d="M56 158L69 158"/></g>
-          <g class="walker-arm back-arm"><path d="M72 56L94 78L102 90"/></g>
-          <path d="M72 44L72 91"/>
-          <circle cx="72" cy="29" r="13" fill="#EAF2DE" stroke="none"/>
-          <g class="walker-leg front-leg"><path d="M72 91L87 122L93 158"/><path d="M93 158L105 158"/></g>
-          <g class="walker-arm front-arm">
-            <path d="M72 56L53 75L39 90"/>
-            <g class="suitcase-swing">
-              <path d="M39 90L39 97" stroke-width="4"/>
-              <rect x="20" y="97" width="38" height="30" rx="5" fill="#CFE4A8" stroke="#BFD69A" stroke-width="2"/>
-              <path d="M30 97V92Q30 88 34 88H44Q48 88 48 92V97" stroke="#CFE4A8" stroke-width="3.5"/>
-              <path d="M23 112H55" stroke="#8CA978" opacity=".45" stroke-width="2"/>
-            </g>
-          </g>
-        </g>
-      </svg>
-    </div>
+    <div class="zv-ground-light"></div>
   </div>
-  <div class="intro-brand"><strong>ZIMBA RENT</strong><span>SPACES FOR WHAT’S NEXT</span></div>
-  <div class="intro-progress" aria-hidden="true"><span></span></div>
+  <div class="zv-light-wordmark" aria-hidden="true"><strong>ZIMBA <em>RENT</em></strong><span>SPACES FOR WHAT'S NEXT</span></div>
+  <div class="zv-arrival-progress" aria-hidden="true"><i></i></div>
 </div>
 <script>
 (function() {
@@ -63,14 +56,14 @@
     window.setTimeout(() => loader.remove(), 700);
   }
   // The intro is intentionally short and never blocks interaction indefinitely.
-  const target = reduced ? 350 : 4700;
+  const target = reduced ? 350 : 5100;
   function scheduleExit() {
     const left = Math.max(0, target - (performance.now() - started));
     window.setTimeout(closeLoader, left);
   }
   if (document.readyState === 'complete') scheduleExit();
   else window.addEventListener('load', scheduleExit, {once:true});
-  window.setTimeout(closeLoader, reduced ? 900 : 5800);
+  window.setTimeout(closeLoader, reduced ? 900 : 6300);
 })();
 </script>
 <div id="app"><div class="preload"><span class="wordmark">zimba<span>.</span></span><p>Finding your next chapter.</p></div></div>
