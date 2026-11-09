@@ -61,7 +61,7 @@ function onboard(){
  };
 }
 function shell(section,body){
- let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"],["notifications","Notifications","♧"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
+ let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"],["notifications","Notifications","♧"],["security","Security & activity","♢"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
  if(adminCandidate())nav=[...nav,["admin","Platform administration","✧"]];
  paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+'"><aside class="zv-sidebar"><div class="zv-brand-section"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+nav.map(([k,v,icon])=>'<a href="#/workspace/'+k+'" class="'+(k===section?"selected":"")+'"><span>'+icon+'</span>'+v+'</a>').join("")+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout">⇥ Sign out</button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" aria-label="Open navigation">☰</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> '+(navigator.onLine?'Online · Signed in':'Offline · Signed in')+'</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
  $("#zv-logout").onclick=()=>window.ZimbaAuth.logout();
@@ -102,6 +102,18 @@ function other(section){
  return head(a[0],a[1])+'<section class="zv-panel"><h2>Built around your needs.</h2><p>'+a[2]+'</p>'+(section==="connection"?'<div class="zv-reference">'+esc(record.tenantRef||"Pending")+'</div><small>Display reference, not a secure invitation token.</small>':"")+'</section>'+warning("Secure Neon backend integration is required before real resident, lease or financial operations can be enabled.")
 }
 
+function securityPage(){
+ return head("Security & activity","A verified, organisation-scoped trail of important actions and changes.")+
+ '<section class="zv-panel"><div class="zv-panel-head"><h2>Recent account and property activity</h2><button id="zv-security-refresh" class="zv-button secondary">↻ Refresh trail</button></div><div id="zv-security-feed">Loading your audit trail…</div></section>'+
+ warning("This audit view never reveals another property organisation’s records. Security events are read-only and stored on the server.");
+}
+async function loadSecurityFeed(){
+ const host=$("#zv-security-feed");if(!host)return;
+ try{
+  const list=await window.ZimbaAuth.managerSecurityAudit(75);if(!host.isConnected)return;
+  host.innerHTML=Array.isArray(list)&&list.length?'<div class="zv-request-table"><table><thead><tr><th>Time</th><th>Action</th><th>Resource</th><th>Audit metadata</th></tr></thead><tbody>'+list.map(e=>'<tr><td>'+new Date(e.at).toLocaleString("en-UG")+'</td><td>'+esc(e.action)+'</td><td>'+esc(e.resource)+'</td><td>'+esc(JSON.stringify(e.details||{}))+'</td></tr>').join("")+'</tbody></table></div>':'<p>No organisation activity has been recorded yet.</p>';
+ }catch(err){host.textContent="Audit history unavailable: "+err.message}
+}
 function residentsPage(){
  const properties=(record.properties||[]).filter(p=>p.id);
  return head("Residents & invitations","Bring your residents into Zimba without codes or complicated setup.")+
@@ -252,17 +264,17 @@ function render(section){
   if(propertyStatus==='error'){syncBlocked();return}
  }
  if(section==="overview")section="home";
- if(["properties","building","residents","finance","plans"].includes(section)&&!managed())section="home";
+ if(["properties","building","residents","finance","plans","security"].includes(section)&&!managed())section="home";
  if(section==="messages"&&!managed()&&record.role!=="tenant")section="home";
  if(["connection","payments"].includes(section)&&record.role!=="tenant")section="home";
  if(section==="admin"&&!adminCandidate())section="home";
  section=section.split("?")[0];
- if(!["home","properties","building","plans","settings","residents","maintenance","finance","payments","connection","messages","notifications","preferences","admin"].includes(section))section="home";
+ if(!["home","properties","building","plans","settings","residents","maintenance","finance","payments","connection","messages","notifications","security","preferences","admin"].includes(section))section="home";
  const ops=window.ZimbaOperations;
  const operational=managed()&&["home","maintenance","finance","settings"].includes(section)&&!!ops;
  const residentFeature=record.role==="tenant"&&["home","messages","maintenance","payments"].includes(section)&&!!window.ZimbaTenantPortal;
  const managerMessages=managed()&&section==="messages"&&!!window.ZimbaTenantPortal;
- shell(section,managerMessages?window.ZimbaTenantPortal.managerEntry():residentFeature?window.ZimbaTenantPortal.entry(section):operational?ops.shell(section):section==="notifications"?window.ZimbaNotify?.page():section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
+ shell(section,managerMessages?window.ZimbaTenantPortal.managerEntry():residentFeature?window.ZimbaTenantPortal.entry(section):operational?ops.shell(section):section==="notifications"?window.ZimbaNotify?.page():section==="security"?securityPage():section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
  window.ZimbaNotify?.mount();
  if(section==="notifications")window.ZimbaNotify?.activatePage();
  if(operational)ops.activate(section,record);
@@ -271,6 +283,7 @@ function render(section){
  $("#zv-add")?.addEventListener("click",openProperty);
  $("#zv-first")?.addEventListener("click",openProperty);
  if(section==="building")window.ZimbaBuilding?.bind(record);
+ if(section==="security"){loadSecurityFeed();$("#zv-security-refresh")?.addEventListener("click",loadSecurityFeed)}
  if(section==="residents")bindResidents();
  if(section==="connection")bindConnection();
  if(section==="home"&&record.role==="tenant"&&!residentFeature)loadTenantInvitations();
