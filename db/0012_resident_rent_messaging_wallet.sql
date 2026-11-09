@@ -4,6 +4,7 @@
 -- cannot be credited from the browser. Sample deposits are frontend-only.
 ALTER TABLE resident_invites ADD COLUMN IF NOT EXISTS rent_start_date date;
 ALTER TABLE resident_connections ADD COLUMN IF NOT EXISTS rent_start_date date;
+ALTER TABLE maintenance_requests ADD COLUMN IF NOT EXISTS requested_by_auth_id uuid REFERENCES neon_auth."user"(id);
 CREATE TABLE IF NOT EXISTS zimba_resident_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   connection_id uuid NOT NULL REFERENCES resident_connections(id),
@@ -85,7 +86,7 @@ BEGIN
  SELECT * INTO c FROM resident_connections WHERE id=p_connection AND resident_auth_user_id=uid AND status='active';
  IF NOT FOUND THEN RAISE EXCEPTION 'Active tenant home required' USING ERRCODE='42501'; END IF;
  IF length(btrim(coalesce(p_issue,''))) NOT BETWEEN 8 AND 1200 OR p_priority NOT IN ('low','medium','high','urgent') THEN RAISE EXCEPTION 'Provide a valid issue and priority' USING ERRCODE='22023'; END IF;
- INSERT INTO maintenance_requests(organization_id,property_id,unit_id,issue,priority,status) VALUES(c.organization_id,c.property_id,c.unit_id,btrim(p_issue),p_priority,'open') RETURNING id INTO rid;
+ INSERT INTO maintenance_requests(organization_id,property_id,unit_id,issue,priority,status,requested_by_auth_id) VALUES(c.organization_id,c.property_id,c.unit_id,btrim(p_issue),p_priority,'open',uid) RETURNING id INTO rid;
  RETURN jsonb_build_object('success',true,'id',rid);
 END $function$
 
@@ -179,7 +180,7 @@ AS $function$
 DECLARE uid uuid:=auth.uid();j jsonb;
 BEGIN
  IF uid IS NULL THEN RAISE EXCEPTION 'Authentication required' USING ERRCODE='42501'; END IF;
- SELECT coalesce(jsonb_agg(jsonb_build_object('issue',m.issue,'status',m.status,'priority',m.priority,'property',p.title,'date',m.created_at) ORDER BY m.created_at DESC),'[]'::jsonb) INTO j FROM (SELECT m.* FROM maintenance_requests m JOIN resident_connections c ON c.organization_id=m.organization_id AND c.property_id=m.property_id AND (m.unit_id=c.unit_id OR (m.unit_id IS NULL AND c.unit_id IS NULL)) WHERE c.resident_auth_user_id=uid AND c.status='active' ORDER BY m.created_at DESC LIMIT 100) m JOIN properties p ON p.id=m.property_id;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('issue',m.issue,'status',m.status,'priority',m.priority,'property',p.title,'date',m.created_at) ORDER BY m.created_at DESC),'[]'::jsonb) INTO j FROM (SELECT m.* FROM maintenance_requests m JOIN resident_connections c ON c.organization_id=m.organization_id AND c.property_id=m.property_id AND (m.unit_id=c.unit_id OR (m.unit_id IS NULL AND c.unit_id IS NULL)) WHERE c.resident_auth_user_id=uid AND c.status='active' AND m.requested_by_auth_id=uid ORDER BY m.created_at DESC LIMIT 100) m JOIN properties p ON p.id=m.property_id;
  RETURN j;
 END $function$
 
