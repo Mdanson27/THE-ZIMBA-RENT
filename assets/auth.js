@@ -1,7 +1,7 @@
 import { createAuthClient } from "https://esm.sh/@neondatabase/auth?bundle";
 const AUTH_URL = "https://ep-misty-frost-ber91fca.neonauth.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/auth";
 const originReturn = location.origin + location.pathname + "#/workspace/overview";
-const apiOrigin = ""; // Add only after private API deployment; never place database secrets here.
+const DATA_API_URL = "https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1"; // public service URL, not a database credential
 const state = { ready:false, user:null, error:null };
 const api = {
   state,
@@ -49,14 +49,22 @@ const api = {
     if(result.error || !result.data?.token)throw new Error("Sign in to continue");
     return result.data.token;
   },
-  async adminRequest(path,body){
-    if(!apiOrigin)throw new Error("Tier administration requires the hosted authenticated API, which is not connected yet.");
+  async rpc(name,params={}){
+    if(!["my_subscription","admin_user_directory","admin_assign_plan"].includes(name)) throw new Error("Unsupported API operation");
     const jwt=await api.token();
-    const response=await fetch(apiOrigin+path,{method:body?"POST":"GET",headers:{"Authorization":"Bearer "+jwt,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
-    const data=await response.json();
-    if(!response.ok)throw new Error(data.error || "Request failed");
+    const response=await fetch(DATA_API_URL+"/rpc/"+name,{
+      method:"POST",
+      headers:{"Authorization":"Bearer "+jwt,"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(params)
+    });
+    const contentType=response.headers.get("content-type")||"";
+    const data=contentType.includes("json")?await response.json():null;
+    if(!response.ok)throw new Error(data?.message||data?.error||"Database request failed");
     return data;
   },
+  async listUsers(){return api.rpc("admin_user_directory");},
+  async assignPlan(userId,plan,reason){return api.rpc("admin_assign_plan",{p_target_user:userId,p_plan_code:plan,p_reason:reason});},
+  async myPlan(){return api.rpc("my_subscription");},
   async google(){
     const r=await client.signIn.social({provider:"google",callbackURL:originReturn});
     if(r.error)throw new Error(r.error.message || "Google sign-in could not start");
