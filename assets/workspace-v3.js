@@ -61,7 +61,7 @@ function onboard(){
  };
 }
 function shell(section,body){
- let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["building","Building studio","▦"],["residents","Residents","♙"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["settings","Settings","⚙"]];
+ let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["settings","Settings","⚙"]];
  if(adminCandidate())nav=[...nav,["admin","Platform administration","✧"]];
  paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+'"><aside class="zv-sidebar"><div class="zv-brand-section"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+nav.map(([k,v,icon])=>'<a href="#/workspace/'+k+'" class="'+(k===section?"selected":"")+'"><span>'+icon+'</span>'+v+'</a>').join("")+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout">⇥ Sign out</button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" aria-label="Open navigation">☰</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> '+(navigator.onLine?'Online · Signed in':'Offline · Signed in')+'</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
  $("#zv-logout").onclick=()=>window.ZimbaAuth.logout();
@@ -106,8 +106,8 @@ function residentsPage(){
  const properties=(record.properties||[]).filter(p=>p.id);
  return head("Residents & invitations","Bring your residents into Zimba without codes or complicated setup.")+
  '<div class="zv-panels"><section class="zv-panel"><span class="zv-overline">INVITE BY ZIMBA REFERENCE</span><h2>Connect a resident.</h2><p>Ask for their short Zimba resident reference. They will receive a request directly in their account and can approve or decline.</p>'+
- (properties.length?'<form id="zv-invite-form" class="zv-form-stack"><label>Choose property<select name="property" id="zv-resident-property" required>'+properties.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join("")+'</select></label><label>Assign room / unit (optional)<select name="unit" id="zv-resident-unit"><option value="">Connect to property only</option></select></label><label>Tenant reference<input name="reference" required placeholder="ZR-4AB9AF6518A5" maxlength="15" pattern="ZR-[A-Fa-f0-9]{12}" autocomplete="off" style="text-transform:uppercase"></label><button class="zv-button" type="submit">Invite resident ↗</button></form><div id="zv-invite-result" role="status"></div>':'<p>Add a property to invite residents.</p><a class="zv-button" href="#/workspace/properties">Add property ↗</a>')+
- '</section><section class="zv-panel"><span class="zv-overline">PROPERTY CONNECTIONS</span><h2>Approval-based onboarding.</h2><div class="zv-ticks">01 · Tenant shares their short Zimba reference<br>02 · Select the property and optional room<br>03 · Resident appears as **Pending** in your dashboard<br>04 · Tenant receives an in-app notification<br>05 · Approval connects the tenant and updates room occupancy</div><a class="zv-inline-link" href="#/workspace/building">Open building layout ↗</a></section></div>'+
+ (properties.length?'<form id="zv-invite-form" class="zv-form-stack"><label>Choose property<select name="property" id="zv-resident-property" required>'+properties.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join("")+'</select></label><label>Assign room / unit (optional)<select name="unit" id="zv-resident-unit"><option value="">Connect to property only</option></select></label><label>Rent start date<input type="date" name="rentStart" required value="2026-11-09"></label><label>Tenant reference<input name="reference" required placeholder="ZR-4AB9AF6518A5" maxlength="15" pattern="ZR-[A-Fa-f0-9]{12}" autocomplete="off" style="text-transform:uppercase"></label><button class="zv-button" type="submit">Invite resident ↗</button></form><div id="zv-invite-result" role="status"></div>':'<p>Add a property to invite residents.</p><a class="zv-button" href="#/workspace/properties">Add property ↗</a>')+
+ '</section><section class="zv-panel"><span class="zv-overline">PROPERTY CONNECTIONS</span><h2>Approval-based onboarding.</h2><div class="zv-ticks">01 · Tenant shares their short Zimba reference<br>02 · Select the property and optional room<br>03 · Set the rent start date and monthly room price<br>04 · Tenant appears as Pending and receives an invitation<br>05 · Approval connects the tenant and updates room occupancy</div><a class="zv-inline-link" href="#/workspace/building">Open building layout ↗</a></section></div>'+
  '<section class="zv-panel"><div class="zv-panel-head"><h2>Resident directory</h2><span class="zv-overline">PENDING & APPROVED</span></div><div id="zv-manager-requests">Loading resident invitations…</div></section><section class="zv-panel"><div class="zv-panel-head"><h2>Connected resident profiles</h2><span class="zv-overline">APPROVED CONNECTIONS ONLY</span></div><div id="zv-connected-residents">Loading verified connections…</div></section>'+
  warning("Pending residents are not granted access to tenant records. A verified tenant must approve the request before the residence becomes active.");
 }
@@ -143,7 +143,7 @@ function bindResidents(){
  f.onsubmit=async e=>{
   e.preventDefault();const d=new FormData(f),btn=f.querySelector('[type=submit]');btn.disabled=true;btn.textContent="Sending invitation…";
   try{
-   const result=await window.ZimbaAuth.inviteByReference(String(d.get("property")),String(d.get("reference")).trim().toUpperCase(),String(d.get("unit")||"")||null);
+   const result=await window.ZimbaAuth.inviteWithRentStart(String(d.get("property")),String(d.get("reference")).trim().toUpperCase(),String(d.get("unit")||"")||null,String(d.get("rentStart")));
    $("#zv-invite-result").textContent="Invitation sent to "+(result.tenantName||"your tenant")+". Their connection is now pending approval.";
    f.querySelector('[name=reference]').value="";
    await Promise.all([loadManagerRequests(),loadManagerUnitOptions(),loadConnectedResidentProfiles()]);
@@ -154,12 +154,12 @@ function bindResidents(){
 async function loadTenantInvitations(){
  const t=$("#zv-tenant-inbox");if(!t)return;
  try{const items=await window.ZimbaAuth.tenantInbox();if(!t.isConnected)return;
- t.innerHTML=items.length?items.map(x=>'<article class="zv-tenant-invitation"><span class="zv-overline">NEW HOME INVITATION</span><h3>'+esc(x.property_title)+'</h3><p>'+esc(x.organization_name)+' · '+esc(x.unit_number||"Property connection")+'</p><small>Expires '+new Date(x.expires_at).toLocaleDateString("en-UG")+'</small><div class="zv-invitation-actions"><button class="zv-button" data-zv-respond="'+esc(x.id)+'" data-approve="yes">Approve & connect ✓</button><button class="zv-button secondary" data-zv-respond="'+esc(x.id)+'" data-approve="no">Decline</button></div></article>').join(""):'<div class="zv-empty-inline">No pending invitations. Give your Zimba reference to your landlord to receive one here.</div>';
+ t.innerHTML=items.length?items.map(x=>'<article class="zv-tenant-invitation"><span class="zv-overline">NEW HOME INVITATION</span><h3>'+esc(x.property_title)+'</h3><p>'+esc(x.organization_name)+' · '+esc(x.unit_number||"Property connection")+'</p><small>Rent starts '+esc(x.rent_start_date||"Not set")+' · '+(x.monthly_rent_ugx==null?"Monthly rent not set":"UGX "+Number(x.monthly_rent_ugx).toLocaleString("en-UG"))+' per month · Expires '+new Date(x.expires_at).toLocaleDateString("en-UG")+'</small><div class="zv-invitation-actions"><button class="zv-button" data-zv-respond="'+esc(x.id)+'" data-approve="yes">Approve & connect ✓</button><button class="zv-button secondary" data-zv-respond="'+esc(x.id)+'" data-approve="no">Decline</button></div></article>').join(""):'<div class="zv-empty-inline">No pending invitations. Give your Zimba reference to your landlord to receive one here.</div>';
  t.querySelectorAll("[data-zv-respond]").forEach(b=>b.onclick=async()=>{
   const yes=b.dataset.approve==="yes";if(!window.confirm(yes?"Approve this landlord's invitation and link your account?":"Decline this invitation?"))return;
   t.querySelectorAll("button").forEach(btn=>btn.disabled=true);
-  try{await window.ZimbaAuth.respondResidentInvite(b.dataset.zvRespond,yes);$("#zv-connection-result").textContent=yes?"Home connection approved successfully.":"Invitation declined.";await Promise.all([loadTenantInvitations(),loadConnections()]);}
-  catch(e){$("#zv-connection-result").textContent="Unable to complete response: "+e.message;await loadTenantInvitations();}
+  try{await window.ZimbaAuth.respondResidentInvite(b.dataset.zvRespond,yes);if($("#zv-connection-result"))$("#zv-connection-result").textContent=yes?"Home connection approved successfully.":"Invitation declined.";await Promise.all([loadTenantInvitations(),loadConnections()]);}
+  catch(e){if($("#zv-connection-result"))$("#zv-connection-result").textContent="Unable to complete response: "+e.message;await loadTenantInvitations();}
  });
  }catch(e){t.textContent="Unable to load invitations: "+e.message}
 }
@@ -240,20 +240,25 @@ function render(section){
  }
  if(section==="overview")section="home";
  if(["properties","building","residents","finance","plans"].includes(section)&&!managed())section="home";
+ if(section==="messages"&&!managed()&&record.role!=="tenant")section="home";
  if(["connection","payments"].includes(section)&&record.role!=="tenant")section="home";
  if(section==="admin"&&!adminCandidate())section="home";
  section=section.split("?")[0];
- if(!["home","properties","building","plans","settings","residents","maintenance","finance","payments","connection","preferences","admin"].includes(section))section="home";
+ if(!["home","properties","building","plans","settings","residents","maintenance","finance","payments","connection","messages","preferences","admin"].includes(section))section="home";
  const ops=window.ZimbaOperations;
  const operational=managed()&&["home","maintenance","finance","settings"].includes(section)&&!!ops;
- shell(section,operational?ops.shell(section):section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
+ const residentFeature=record.role==="tenant"&&["home","messages","maintenance","payments"].includes(section)&&!!window.ZimbaTenantPortal;
+ const managerMessages=managed()&&section==="messages"&&!!window.ZimbaTenantPortal;
+ shell(section,managerMessages?window.ZimbaTenantPortal.managerEntry():residentFeature?window.ZimbaTenantPortal.entry(section):operational?ops.shell(section):section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
  if(operational)ops.activate(section,record);
+ if(residentFeature)window.ZimbaTenantPortal.load(section);
+ if(managerMessages)window.ZimbaTenantPortal.managerLoad();
  $("#zv-add")?.addEventListener("click",openProperty);
  $("#zv-first")?.addEventListener("click",openProperty);
  if(section==="building")window.ZimbaBuilding?.bind(record);
  if(section==="residents")bindResidents();
  if(section==="connection")bindConnection();
- if(section==="home"&&record.role==="tenant")loadTenantInvitations();
+ if(section==="home"&&record.role==="tenant"&&!residentFeature)loadTenantInvitations();
  $("#zv-load-users")?.addEventListener("click",()=>{const t=$("#zv-admin-users");t.textContent="Verifying your administrator identity…";window.ZimbaAuth.listUsers().then(showAdminUsers).catch(err=>{t.textContent="Access unavailable: "+err.message})});
  $("#zv-restart")?.addEventListener("click",()=>{step=0;draft={role:record.role};onboard()});
 }
