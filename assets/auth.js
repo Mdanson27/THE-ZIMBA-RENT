@@ -61,8 +61,8 @@ const api = {
       error.requiresLogin=true;throw error;
     }
     const isJwt=value=>typeof value==="string" && value.split(".").length===3;
-    const sessionJwt=session?.data?.session?.access_token;
-    if(isJwt(sessionJwt))return sessionJwt;
+    // A Better Auth session token is not necessarily a Neon Data API JWT.
+    // Always request a fresh, server-signed JWT from the Auth /token endpoint.
     let response;
     try{
       response=await fetch(AUTH_URL.replace(/\/$/,"")+"/token",{
@@ -80,7 +80,21 @@ const api = {
     }
     const payload=await response.json();
     const jwt=payload?.token||payload?.data?.token||payload?.access_token||payload?.data?.access_token;
-    if(!isJwt(jwt))throw new Error("Neon returned an invalid access token.");
+    if(!isJwt(jwt))throw new Error("Neon returned an invalid database access token.");
+    // This is a client-side format check, not signature verification. The
+    // Data API verifies the signed JWT before authorising any SQL operation.
+    let claims;
+    try{
+      const part=jwt.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
+      claims=JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,"=")));
+    }catch(_){throw new Error("The database token has an unreadable payload.");}
+    if(String(claims.sub||"")!==String(user.id||"")){
+      throw new Error("Neon returned a token for a different account. Your session is preserved; contact Zimba support.");
+    }
+    if(claims.role!=="authenticated"){
+      const error=new Error("Neon returned a token without the authenticated database role. The JWT role mapping requires correction.");
+      error.code="NEON_JWT_ROLE_MISMATCH";error.httpStatus=403;throw error;
+    }
     return jwt;
   },
   async relogin(reason="Your account needs verification."){
@@ -125,10 +139,13 @@ const api = {
     if(!response.ok){
       const detail=data?.message||data?.error||"Database request failed";
       if(response.status===404){
-        const error=new Error("The "+name+" database operation is not exposed by Neon yet (HTTP 404). Your account remains signed in.");
+        const serviceCode=String(data?.code||"");
+        const error=new Error(serviceCode==="PGRST202"?"Neon has not refreshed the "+name+" function signature in its API schema cache (PGRST202). Your login remains active.":"The "+name+" API operation returned HTTP 404 ("+(serviceCode||"unknown code")+"). Your account remains signed in.");
         error.httpStatus=404;
         error.operation=name;
         error.code=data?.code||"ROUTE_NOT_FOUND";
+        error.details=data?.details||null;
+        error.hint=data?.hint||null;
         throw error;
       }
       const error=new Error(response.status===403?"Zimba cannot access "+name+" (HTTP 403). The backend permissions or JWT roles need repair; your account remains signed in.":detail);error.httpStatus=response.status;error.code=data?.code;error.operation=name;throw error;
