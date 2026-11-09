@@ -98,3 +98,15 @@ Important: This is an active **development deployment**, not a completed product
 **Verification status:** source syntax and database privilege checks passed. Browser login-to-console, authenticated RPC calls, multi-device flows, and Pages completion still require independent end-to-end testing with the verified account; an HTTP 404 was reported in the prior deployment and should only be considered resolved after retesting.
 
 **Production policy:** Do not remove disclosures about unverified listings, unapproved policies, absent payments, or unavailable workflows. Prototype banners may be replaced by accurate operating-status language, but no live service capability should be misrepresented.
+
+## November 9: JWT 404 repair and welcome animation
+
+User browser evidence showed `/auth/get-jwt-token` returning HTTP 404 during both private workspace and Super Admin API calls. The browser SDK was using `getJWTToken()`, which requested a route unavailable on the configured Managed Better Auth instance. The browser auth client now prefers the signed session `access_token` when available, then requests `GET /auth/token` with session cookies and no-store caching. JWTs remain browser-memory values and are sent to the Neon Data API only as Authorization Bearer tokens; opaque session tokens must not be substituted for JWTs.
+
+Additional improvements:
+- Clearer recovery screens for Auth connection failures versus actual permission denial.
+- Removed the arrow in the non-clickable Welcome to ZIMBA banner.
+- Added subtle moving green-light background animation, respecting reduced-motion preferences.
+- Versioned static assets to discourage stale GitHub Pages browser caches.
+- Verified JavaScript syntax, browser token-request mocks, permission gate tests and exact source integration.
+- Actual end-to-end OAuth browser verification remains pending while the Desktop Commander device is offline; do not claim the HTTP 404 is resolved on a real signed-in browser until tested.
