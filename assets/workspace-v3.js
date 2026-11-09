@@ -101,6 +101,59 @@ function other(section){
  let a=labels[section]||labels.preferences;
  return head(a[0],a[1])+'<section class="zv-panel"><h2>Built around your needs.</h2><p>'+a[2]+'</p>'+(section==="connection"?'<div class="zv-reference">'+esc(record.tenantRef||"Pending")+'</div><small>Display reference, not a secure invitation token.</small>':"")+'</section>'+warning("Secure Neon backend integration is required before real resident, lease or financial operations can be enabled.")
 }
+
+function residentsPage(){
+ const properties=record.properties||[];
+ return head("Residents","A secure and simple way to invite people into your property.")+
+ '<div class="zv-panels"><section class="zv-panel"><span class="zv-overline">VERIFIED RESIDENT INVITATIONS</span><h2>Invite a resident.</h2><p>Ask your tenant for their unique Zimba reference, then select the property they should join. They must approve the invitation from their own verified account.</p>'+
+ (properties.length?'<form id="zv-invite-form" class="zv-form-stack"><label>Select your property<select name="property" required>'+properties.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join("")+'</select></label><label>Tenant Zimba reference<input name="reference" required placeholder="ZR-XXXXXXXXXXXX" maxlength="15" pattern="ZR-[A-Fa-f0-9]{12}"></label><button class="zv-button" type="submit">Generate secure invitation ↗</button></form><div id="zv-invite-result" class="zv-invite-result"></div>':'<p>Add a property before inviting a resident.</p><a class="zv-button" href="#/workspace/properties">Add property ↗</a>')+
+ '</section><section class="zv-panel"><h2>How invitations work.</h2><div class="zv-ticks">01 · Resident creates a verified Zimba tenant account<br>02 · Resident shares their Zimba reference<br>03 · You generate a private invitation<br>04 · Resident accepts it while signed in<br>05 · Zimba links the resident to your property</div></section></div>'+
+ warning("Only a verified intended tenant can redeem the single-use invitation. The link expires after seven days; it does not authorize building entry or payments.")
+}
+function connectPage(){
+ const token=new URLSearchParams((location.hash.split("?")[1]||"")).get("invite")||"";
+ return head("Connect to your home","Your new home, linked safely to your verified account.")+
+ '<div class="zv-panels"><section class="zv-panel"><span class="zv-overline">YOUR ZIMBA RESIDENT REFERENCE</span><div class="zv-reference">'+esc(record.tenantRef||"Pending")+'</div><p>Share this reference with your landlord so they can issue your invitation. It does not grant entry or access on its own.</p><hr style="border:0;border-top:1px solid #e8eee8;margin:25px 0"><h2>Have an invitation?</h2><form id="zv-accept-form" class="zv-form-stack"><label>Paste the secure invitation code<input name="token" required minlength="48" maxlength="48" autocomplete="off" value="'+esc(token)+'" placeholder="Your private 48-character invitation token"></label><button class="zv-button" type="submit">Accept invitation ↗</button></form><div id="zv-connection-result"></div></section><section class="zv-panel"><h2>Your connected homes</h2><div id="zv-linked-homes"><p>Checking your verified property connections…</p></div></section></div>'+
+ warning("Invitations are bound to the intended tenant’s verified account and are valid only once. Connecting to a home does not activate payments or physical access.")
+}
+function bindResidents(){
+ const form=$("#zv-invite-form");if(!form)return;
+ form.onsubmit=e=>{
+ e.preventDefault();const data=new FormData(form),btn=form.querySelector('[type=submit]');
+ btn.disabled=true;btn.textContent="Creating secure invite…";
+ window.ZimbaAuth.createResidentInvite(String(data.get("property")),String(data.get("reference")).trim().toUpperCase())
+ .then(result=>{
+  if(!result?.token)throw new Error("No invitation token was returned");
+  const link=location.origin+location.pathname+"#/workspace/connection?invite="+encodeURIComponent(result.token);
+  const target=$("#zv-invite-result");target.textContent="";
+  const title=document.createElement("strong");title.textContent="Invitation ready · expires in 7 days";
+  const textarea=document.createElement("textarea");textarea.value=link;textarea.readOnly=true;textarea.rows=3;
+  const copy=document.createElement("button");copy.type="button";copy.className="zv-button";copy.textContent="Copy invitation link";
+  copy.onclick=()=>navigator.clipboard.writeText(link).then(()=>{copy.textContent="Copied ✓"}).catch(()=>{textarea.select();document.execCommand("copy")});
+  target.append(title,textarea,copy);
+ }).catch(err=>{alert("Could not invite resident: "+err.message)})
+ .finally(()=>{btn.disabled=false;btn.textContent="Generate secure invitation ↗"});
+ };
+}
+function bindConnection(){
+ const f=$("#zv-accept-form");f.onsubmit=e=>{
+ e.preventDefault();const token=String(new FormData(f).get("token")||"").trim(),btn=f.querySelector('[type=submit]');
+ btn.disabled=true;btn.textContent="Verifying invitation…";
+ window.ZimbaAuth.acceptResidentInvite(token).then(result=>{
+  $("#zv-connection-result").textContent="Connected to "+(result.property||"your home")+" successfully.";
+  f.reset();loadConnections();
+ }).catch(err=>{$("#zv-connection-result").textContent="Invitation not accepted: "+err.message})
+ .finally(()=>{btn.disabled=false;btn.textContent="Accept invitation ↗"});
+ };
+ loadConnections();
+}
+function loadConnections(){
+ window.ZimbaAuth.myResidences().then(rows=>{
+  const target=$("#zv-linked-homes");if(!target)return;
+  if(!rows?.length){target.textContent="No connected properties yet. Your landlord can invite you using your reference.";return}
+  target.innerHTML=rows.map(p=>'<div class="zv-connected-home"><strong>⌂ '+esc(p.property_title)+'</strong><small>'+esc(p.city||"Uganda")+' · '+esc(p.status)+'</small></div>').join("");
+ }).catch(err=>{const t=$("#zv-linked-homes");if(t)t.textContent="Connection check unavailable: "+err.message});
+}
 function adminPage(){
  if(!adminCandidate())return head("Access restricted","Platform administration requires a verified AutoMinds account.");
  return head("Subscription administration","Manage every member's tier with full audit accountability.")+
@@ -162,9 +215,11 @@ function render(section){
  if(["connection","payments"].includes(section)&&record.role!=="tenant")section="home";
  if(section==="admin"&&!adminCandidate())section="home";
  if(!["home","properties","plans","settings","residents","maintenance","finance","payments","connection","preferences","admin"].includes(section))section="home";
- shell(section,section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="admin"?adminPage():other(section));
+ shell(section,section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
  $("#zv-add")?.addEventListener("click",openProperty);
  $("#zv-first")?.addEventListener("click",openProperty);
+ if(section==="residents")bindResidents();
+ if(section==="connection")bindConnection();
  $("#zv-load-users")?.addEventListener("click",()=>{const t=$("#zv-admin-users");t.textContent="Verifying your administrator identity…";window.ZimbaAuth.listUsers().then(showAdminUsers).catch(err=>{t.textContent="Access unavailable: "+err.message})});
  $("#zv-restart")?.addEventListener("click",()=>{step=0;draft={role:record.role};onboard()});
 }
