@@ -127,7 +127,7 @@ async function loadConnectedResidentProfiles(){
  const p=$("#zv-resident-property"),t=$("#zv-connected-residents");if(!t||!p)return;
  try{
   const rows=await window.ZimbaAuth.residentProfiles(p.value);if(!t.isConnected)return;
-  t.innerHTML=rows.length?'<div class="zv-request-table"><table><thead><tr><th>Resident</th><th>Verified email</th><th>Room</th><th>Connected</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+esc(x.resident_name||"Resident")+'</strong><small>'+esc(x.resident_reference)+'</small></td><td>'+esc(x.resident_email)+'</td><td>'+esc(x.unit_number||"Property-wide")+'</td><td>'+new Date(x.linked_at).toLocaleDateString("en-UG")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="zv-empty-inline">Tenant profile details will appear after they approve a connection.</div>';
+  t.innerHTML=rows.length?'<div class="zv-request-table"><table><thead><tr><th>Resident</th><th>Verified email</th><th>Room</th><th>Monthly rent</th><th>Rent start</th><th>Connected</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+esc(x.resident_name||"Resident")+'</strong><small>'+esc(x.resident_reference)+'</small></td><td>'+esc(x.resident_email)+'</td><td>'+esc(x.unit_number||"Property-wide")+'</td><td>'+(x.monthly_rent_ugx==null?"Not set":"UGX "+Number(x.monthly_rent_ugx).toLocaleString("en-UG"))+'</td><td>'+esc(x.rent_start_date||"Not set")+'</td><td>'+new Date(x.linked_at).toLocaleDateString("en-UG")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="zv-empty-inline">Tenant profile details will appear after they approve a connection.</div>';
  }catch(e){t.textContent="Could not load approved residents: "+e.message}
 }
 async function loadManagerRequests(){
