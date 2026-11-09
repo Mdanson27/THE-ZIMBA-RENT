@@ -175,6 +175,11 @@ function showAdminUsers(rows){
 }
 function render(section){
  if(failClosed())return;
+ if(String(me()?.email||"").toLowerCase()==="automindsafrica@gmail.com"){
+   if(location.hash!=="#/console/overview")location.hash="#/console/overview";
+   else if(window.ZimbaConsole)window.ZimbaConsole.render("console/overview");
+   return;
+ }
  if(accountStatus==='idle'){
   accountStatus='loading';loadScreen("Loading your account and first-time setup…");
   window.ZimbaAuth.myOnboarding().then(data=>{
