@@ -108,7 +108,7 @@ function residentsPage(){
  '<div class="zv-panels"><section class="zv-panel"><span class="zv-overline">INVITE BY ZIMBA REFERENCE</span><h2>Connect a resident.</h2><p>Ask for their short Zimba resident reference. They will receive a request directly in their account and can approve or decline.</p>'+
  (properties.length?'<form id="zv-invite-form" class="zv-form-stack"><label>Choose property<select name="property" id="zv-resident-property" required>'+properties.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join("")+'</select></label><label>Assign room / unit (optional)<select name="unit" id="zv-resident-unit"><option value="">Connect to property only</option></select></label><label>Tenant reference<input name="reference" required placeholder="ZR-4AB9AF6518A5" maxlength="15" pattern="ZR-[A-Fa-f0-9]{12}" autocomplete="off" style="text-transform:uppercase"></label><button class="zv-button" type="submit">Invite resident ↗</button></form><div id="zv-invite-result" role="status"></div>':'<p>Add a property to invite residents.</p><a class="zv-button" href="#/workspace/properties">Add property ↗</a>')+
  '</section><section class="zv-panel"><span class="zv-overline">PROPERTY CONNECTIONS</span><h2>Approval-based onboarding.</h2><div class="zv-ticks">01 · Tenant shares their short Zimba reference<br>02 · Select the property and optional room<br>03 · Resident appears as **Pending** in your dashboard<br>04 · Tenant receives an in-app notification<br>05 · Approval connects the tenant and updates room occupancy</div><a class="zv-inline-link" href="#/workspace/building">Open building layout ↗</a></section></div>'+
- '<section class="zv-panel"><div class="zv-panel-head"><h2>Resident directory</h2><span class="zv-overline">PENDING & APPROVED</span></div><div id="zv-manager-requests">Loading resident invitations…</div></section>'+
+ '<section class="zv-panel"><div class="zv-panel-head"><h2>Resident directory</h2><span class="zv-overline">PENDING & APPROVED</span></div><div id="zv-manager-requests">Loading resident invitations…</div></section><section class="zv-panel"><div class="zv-panel-head"><h2>Connected resident profiles</h2><span class="zv-overline">APPROVED CONNECTIONS ONLY</span></div><div id="zv-connected-residents">Loading verified connections…</div></section>'+
  warning("Pending residents are not granted access to tenant records. A verified tenant must approve the request before the residence becomes active.");
 }
 function connectPage(){
@@ -123,6 +123,13 @@ async function loadManagerUnitOptions(){
  s.innerHTML='<option value="">Connect to property only</option>'+rows.filter(u=>["vacant","reserved"].includes(u.status)&&!Number(u.pending_count)).map(u=>'<option value="'+esc(u.id)+'">'+esc(u.unit_number)+' · '+esc(u.floor_label||"Ground floor")+'</option>').join("");
  }catch(e){s.innerHTML='<option value="">Room selection unavailable</option>'}
 }
+async function loadConnectedResidentProfiles(){
+ const p=$("#zv-resident-property"),t=$("#zv-connected-residents");if(!t||!p)return;
+ try{
+  const rows=await window.ZimbaAuth.residentProfiles(p.value);if(!t.isConnected)return;
+  t.innerHTML=rows.length?'<div class="zv-request-table"><table><thead><tr><th>Resident</th><th>Verified email</th><th>Room</th><th>Connected</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+esc(x.resident_name||"Resident")+'</strong><small>'+esc(x.resident_reference)+'</small></td><td>'+esc(x.resident_email)+'</td><td>'+esc(x.unit_number||"Property-wide")+'</td><td>'+new Date(x.linked_at).toLocaleDateString("en-UG")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="zv-empty-inline">Tenant profile details will appear after they approve a connection.</div>';
+ }catch(e){t.textContent="Could not load approved residents: "+e.message}
+}
 async function loadManagerRequests(){
  const p=$("#zv-resident-property"),t=$("#zv-manager-requests");if(!t||!p)return;
  try{const items=await window.ZimbaAuth.managerRequests(p.value);if(!t.isConnected)return;
@@ -131,15 +138,15 @@ async function loadManagerRequests(){
 }
 function bindResidents(){
  const f=$("#zv-invite-form");if(!f)return;
- $("#zv-resident-property").onchange=()=>{loadManagerUnitOptions();loadManagerRequests()};
- loadManagerUnitOptions();loadManagerRequests();
+ $("#zv-resident-property").onchange=()=>{loadManagerUnitOptions();loadManagerRequests();loadConnectedResidentProfiles()};
+ loadManagerUnitOptions();loadManagerRequests();loadConnectedResidentProfiles();
  f.onsubmit=async e=>{
   e.preventDefault();const d=new FormData(f),btn=f.querySelector('[type=submit]');btn.disabled=true;btn.textContent="Sending invitation…";
   try{
    const result=await window.ZimbaAuth.inviteByReference(String(d.get("property")),String(d.get("reference")).trim().toUpperCase(),String(d.get("unit")||"")||null);
    $("#zv-invite-result").textContent="Invitation sent to "+(result.tenantName||"your tenant")+". Their connection is now pending approval.";
    f.querySelector('[name=reference]').value="";
-   await Promise.all([loadManagerRequests(),loadManagerUnitOptions()]);
+   await Promise.all([loadManagerRequests(),loadManagerUnitOptions(),loadConnectedResidentProfiles()]);
   }catch(err){$("#zv-invite-result").textContent="Invitation not sent: "+err.message}
   finally{btn.disabled=false;btn.textContent="Invite resident ↗"}
  };
