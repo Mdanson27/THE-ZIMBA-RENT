@@ -88,6 +88,11 @@ Please contact automindsafrica@gmail.com with platform complaints. Property disp
 
 12. CONTACT AND RECORDS
 For account, privacy or policy questions write to automindsafrica@gmail.com. Information about the responsible legal entity, registration details, physical address and transaction-specific commercial terms must be made available before any paid consumer transaction is offered.','2026-11-08T21:00:00.000Z',true) ON CONFLICT(policy_type,version) DO UPDATE SET title=EXCLUDED.title,body=EXCLUDED.body,published=true;
+-- Unonboarded, verified users get status=pending (no active subscription).
+-- This prevents conflating pending invitations with administratively suspended accounts.
+ALTER TABLE user_plan_assignments DROP CONSTRAINT IF EXISTS user_plan_assignments_status_check;
+ALTER TABLE user_plan_assignments ADD CONSTRAINT user_plan_assignments_status_check CHECK(status IN ('pending','trial','active','suspended','cancelled'));
+
 CREATE OR REPLACE FUNCTION public.admin_assign_plan(p_target_user uuid, p_plan_code text, p_reason text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -99,6 +104,9 @@ BEGIN
  IF NOT public.zimba_is_super_admin() THEN RAISE EXCEPTION 'Super administrator access denied' USING ERRCODE='42501'; END IF;
  IF p_target_user IS NULL OR NOT EXISTS(SELECT 1 FROM neon_auth."user" WHERE id=p_target_user AND "emailVerified" IS TRUE)
  THEN RAISE EXCEPTION 'Verified user not found' USING ERRCODE='22023'; END IF;
+ IF EXISTS(SELECT 1 FROM neon_auth."user" WHERE id=p_target_user AND lower(email)='automindsafrica@gmail.com') THEN
+  RAISE EXCEPTION 'The platform administrator is not a landlord subscription account' USING ERRCODE='42501';
+ END IF;
  SELECT account_role INTO v_role FROM account_onboarding WHERE auth_user_id=p_target_user;
  IF v_role IN ('tenant','renter','buyer') THEN
   RAISE EXCEPTION 'Management plans cannot be assigned to tenant or property seeker accounts' USING ERRCODE='42501';
@@ -109,7 +117,7 @@ BEGIN
   RAISE EXCEPTION 'Provide an audit reason of 5 to 300 characters' USING ERRCODE='22023'; END IF;
  -- An unonboarded user has no role yet: stage the assignment as suspended.
  -- This is not an active entitlement until landlord/manager onboarding is verified.
- v_status=CASE WHEN v_role IN ('landlord','manager') THEN 'active' ELSE 'suspended' END;
+ v_status=CASE WHEN v_role IN ('landlord','manager') THEN 'active' ELSE 'pending' END;
  SELECT plan_code INTO v_previous FROM user_plan_assignments WHERE auth_user_id=p_target_user FOR UPDATE;
  INSERT INTO user_plan_assignments(auth_user_id,plan_code,status,assigned_by,assigned_at,notes)
  VALUES(p_target_user,p_plan_code,v_status,v_actor,now(),btrim(p_reason))
@@ -191,7 +199,7 @@ BEGIN
   END IF;
   INSERT INTO user_plan_assignments(auth_user_id,plan_code,status)
    VALUES(v_auth,'free','active') ON CONFLICT(auth_user_id) DO UPDATE
-   SET status='active' WHERE user_plan_assignments.status='suspended';
+   SET status='active' WHERE user_plan_assignments.status='pending';
    -- Pre-approved tier assignments become active only after landlord/manager setup.
   INSERT INTO organization_subscriptions(organization_id,plan_code,status,assigned_by)
    VALUES(v_org,(SELECT plan_code FROM user_plan_assignments WHERE auth_user_id=v_auth),'active',v_auth)
@@ -228,6 +236,7 @@ CREATE OR REPLACE FUNCTION public.zimba_policy_status()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$ DECLARE v_auth uuid:=auth.uid(); result jsonb; BEGIN IF v_auth IS NULL THEN RAISE EXCEPTION 'Authentication required' USING ERRCODE='42501'; END IF; SELECT jsonb_build_object('terms',coalesce(bool_or(p.policy_type='terms' AND a.id IS NOT NULL),false),'privacy',coalesce(bool_or(p.policy_type='privacy' AND a.id IS NOT NULL),false)) INTO result FROM public.zimba_current_policies() p LEFT JOIN legal_policies l ON l.policy_type=p.policy_type AND l.version=p.version LEFT JOIN policy_acceptances a ON a.policy_id=l.id AND a.auth_user_id=v_auth; RETURN result; END $function$
+
 
 REVOKE ALL ON FUNCTION public.zimba_current_policies() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_current_policies() TO authenticated,anonymous;
