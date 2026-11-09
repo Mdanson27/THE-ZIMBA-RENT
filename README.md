@@ -110,3 +110,21 @@ Additional improvements:
 - Versioned static assets to discourage stale GitHub Pages browser caches.
 - Verified JavaScript syntax, browser token-request mocks, permission gate tests and exact source integration.
 - Actual end-to-end OAuth browser verification remains pending while the Desktop Commander device is offline; do not claim the HTTP 404 is resolved on a real signed-in browser until tested.
+
+## November 9 — Subscriber controls, policies, operations
+
+**Super Admin subscriptions:** Verified users who have not yet completed onboarding can receive a plan in `pending` status. Pending is not an active entitlement; after verified landlord/manager onboarding it activates. Tenant, renter, buyer and the platform admin identity are excluded. The administrator selects a tier, adds a 5–300 character reason, presses **Confirm tier**, and confirms the decision. Changes are logged, including previous and new plan.
+
+**Policies:** Published policy versions 1.0 (Terms of Use and Privacy Policy) are shown via a full-screen two-tab modal with explicit separate checkboxes. Authenticated acceptance is written to `policy_acceptances`. The onboarding RPC requires current versions of both documents to have been accepted. Public pages display the full current policy text. The text is an operational starting policy requiring legal review, correct verified operator identity/physical address, retention schedule and any registration disclosures before commercial launch.
+
+**Manager modules now backed by real Neon data:**
+- Overview: organisation, property and connected-resident counts; urgent/open maintenance; rent receivables and recorded expenses; recent issues.
+- Maintenance: create property-scoped requests (low/medium/high/urgent), view all records, update open/in-progress/completed/cancelled status.
+- Financials: view rent-charge ledger and receivables; create/read categorised expense records. No customer payments or bank reconciliation are active.
+- Settings: organisation name, preferred area and notification preferences, protected by membership and role.
+
+SQL sources: `db/0009_policies_and_pending_tiers.sql` and `db/0010_operational_workspaces.sql`. Frontend: `assets/legal.js`, `assets/legal.css`, `assets/operations.js`, `assets/operations.css`.
+
+**Security:** Anonymous calls are denied, and authenticated browser users do not receive direct write grants to maintenance or expense tables. Database functions resolve their own organisation from `auth.uid()` and a validated manager membership.
+
+**Testing caveat:** SQL function creation, privilege checks and JavaScript syntax have passed. Browser OAuth, full subscription assignment, policy acceptance, expense creation, maintenance updates and Pages deployment must be tested in a signed-in browser before calling the release production-ready.
