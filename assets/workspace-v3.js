@@ -25,6 +25,7 @@ function syncBlocked(){
 }
 
 const managed=()=>["landlord","manager"].includes(record?.role);
+const adminCandidate=()=>String(me()?.email||"").toLowerCase()==="automindsafrica@gmail.com";
 const copy=(label,value)=>'<div class="zv-detail"><span>'+label+'</span><strong>'+esc(value||"Not yet set")+'</strong></div>';
 const note=message=>'<div class="zv-note">ⓘ '+message+'</div>';
 function paint(html){document.body.classList.add("zv-workspace-on");$("#app").innerHTML=html;window.scrollTo(0,0)}
@@ -60,7 +61,8 @@ function onboard(){
  };
 }
 function shell(section,body){
- const nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["residents","Residents","♙"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["settings","Settings","⚙"]];
+ let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["residents","Residents","♙"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["plans","Plans & billing","✧"],["settings","Settings","⚙"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["settings","Settings","⚙"]];
+ if(adminCandidate())nav=[...nav,["admin","Platform administration","✧"]];
  paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+'"><aside class="zv-sidebar"><div class="zv-brand-section"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+nav.map(([k,v,icon])=>'<a href="#/workspace/'+k+'" class="'+(k===section?"selected":"")+'"><span>'+icon+'</span>'+v+'</a>').join("")+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout">⇥ Sign out</button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" aria-label="Open navigation">☰</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> Signed in</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
  $("#zv-logout").onclick=()=>window.ZimbaAuth.logout();
  $("#zv-toggle").onclick=()=>$(".zv-layout").classList.toggle("nav-open");
@@ -98,6 +100,25 @@ function other(section){
  let labels={residents:["Residents","A better way to keep everyone connected.","Verified invitations and resident records will be connected through Neon."],maintenance:["Maintenance","Resolve issues without the endless messages.","Create requests, assign work and follow progress when secure synchronization is ready."],finance:["Financials","A clearer view of your portfolio.","Live statements, bills and reconciliations will appear once the secure ledger is activated."],payments:["My payments","Your payments in one trusted place.","Real transactions and receipts require the approved payment backend."],connection:["Connect to a home","Your landlord, your home, one simple connection.","A server-generated invitation will link your verified account with your property and unit."],preferences:["My preferences","A home for everything you're looking for.","Preferences will synchronize between devices after backend activation."]};
  let a=labels[section]||labels.preferences;
  return head(a[0],a[1])+'<section class="zv-panel"><h2>Built around your needs.</h2><p>'+a[2]+'</p>'+(section==="connection"?'<div class="zv-reference">'+esc(record.tenantRef||"Pending")+'</div><small>Display reference, not a secure invitation token.</small>':"")+'</section>'+warning("Secure Neon backend integration is required before real resident, lease or financial operations can be enabled.")
+}
+function adminPage(){
+ if(!adminCandidate())return head("Access restricted","Platform administration requires a verified AutoMinds account.");
+ return head("Subscription administration","Manage every member's tier with full audit accountability.")+
+ '<div class="zv-panel"><div class="zv-toolbar"><div><strong>Registered Zimba accounts</strong><p class="zv-muted">Only the verified AutoMinds Google administrator can approve tier assignments.</p></div><button class="zv-button" id="zv-load-users">Load users ↗</button></div><div id="zv-admin-users"><p>Load verified accounts to assign Starter, Growth, Business or Enterprise access.</p></div></div>'+
+ warning("Tier changes are executed in Neon through a role-checked, audited function. Changing this screen or local storage cannot grant a subscription.");
+}
+function showAdminUsers(rows){
+ const target=$("#zv-admin-users");if(!target)return;
+ if(!Array.isArray(rows)||!rows.length){target.innerHTML='<p>No registered accounts yet.</p>';return}
+ target.innerHTML='<div class="data-table-wrap"><table class="data-table"><thead><tr><th>Account</th><th>Current plan</th><th>New tier</th><th>Reason</th><th>Action</th></tr></thead><tbody>'+
+ rows.map(u=>'<tr><td><strong>'+esc(u.display_name||"Member")+'</strong><div>'+esc(u.email)+'</div></td><td>'+esc(u.plan_code||"Unassigned")+'</td><td><select data-zv-plan="'+esc(u.user_id)+'">'+["free","starter","growth","business","enterprise"].map(k=>'<option value="'+k+'" '+(k===u.plan_code?"selected":"")+'>'+k+'</option>').join("")+'</select></td><td><input data-zv-reason="'+esc(u.user_id)+'" maxlength="300" placeholder="Why is the tier changing?"></td><td><button class="zv-button" data-zv-save="'+esc(u.user_id)+'">Assign</button></td></tr>').join("")+'</tbody></table></div>';
+ target.querySelectorAll("[data-zv-save]").forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.zvSave,plan=target.querySelector('[data-zv-plan="'+id+'"]').value,reason=target.querySelector('[data-zv-reason="'+id+'"]').value.trim();
+  if(reason.length<5){alert("Enter an audit reason of at least five characters.");return}
+  btn.disabled=true;btn.textContent="Saving…";
+  window.ZimbaAuth.assignPlan(id,plan,reason).then(()=>window.ZimbaAuth.listUsers()).then(data=>showAdminUsers(data))
+   .catch(err=>{alert("Assignment denied: "+err.message);btn.disabled=false;btn.textContent="Assign"});
+ });
 }
 function render(section){
  if(failClosed())return;
@@ -139,10 +160,12 @@ function render(section){
  if(section==="overview")section="home";
  if(["properties","residents","finance","plans"].includes(section)&&!managed())section="home";
  if(["connection","payments"].includes(section)&&record.role!=="tenant")section="home";
- if(!["home","properties","plans","settings","residents","maintenance","finance","payments","connection","preferences"].includes(section))section="home";
- shell(section,section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():other(section));
+ if(section==="admin"&&!adminCandidate())section="home";
+ if(!["home","properties","plans","settings","residents","maintenance","finance","payments","connection","preferences","admin"].includes(section))section="home";
+ shell(section,section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="admin"?adminPage():other(section));
  $("#zv-add")?.addEventListener("click",openProperty);
  $("#zv-first")?.addEventListener("click",openProperty);
+ $("#zv-load-users")?.addEventListener("click",()=>{const t=$("#zv-admin-users");t.textContent="Verifying your administrator identity…";window.ZimbaAuth.listUsers().then(showAdminUsers).catch(err=>{t.textContent="Access unavailable: "+err.message})});
  $("#zv-restart")?.addEventListener("click",()=>{step=0;draft={role:record.role};onboard()});
 }
 window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home").split("/").slice(1).join("/")||"home")},clear:function(){document.body.classList.remove("zv-workspace-on")}};
