@@ -1,79 +1,70 @@
-﻿# ZIMBA RENT â€” Production Foundation
+# ZIMBA RENT — Neon Auth and subscriptions
 
-Zimba Rent is a developing real-estate marketplace and property operations system for Uganda. The public experience is deployed on GitHub Pages, while backend and data services are being implemented separately.
+Public site: https://mdanson27.github.io/THE-ZIMBA-RENT/
 
-## Current status (7 November 2026)
+## Development status (9 November 2026)
 
-- Public website prototype: deployed on GitHub Pages
-- Branded stick-figure house-entry loading sequence: implemented
-- Neon project: Zimba Rent â€” Development
-- Neon project ID: odd-snow-83079818
-- Neon database: zimba_rent_dev
-- Database schema: 18 initial PostgreSQL tables and indexes (confirmed through Neon)
-- Tenant isolation: Row-Level Security enabled on organisation-owned tables, but production authentication policies are **not implemented yet**
-- Public listings: protected database view and dedicated read-only role
-- API: Node.js PostgreSQL-backed, *read-only* API scaffold, **not deployed**
-- Payment, card scanning, login, lease administration: **not production-ready**
+ZIMBA has a public real-estate frontend hosted on GitHub Pages, a property-management demo, and a Neon development database with property and subscription schemas.
 
-## Current architecture
+Neon Managed Better Auth is enabled for the zimba_rent_dev database, including:
+- Email/password signup and sign-in
+- Email OTP verification
+- Google OAuth via Neon shared development provider
+- Session revocation on password reset
+- GitHub Pages trusted origin
 
-GitHub Pages serves the public website and a browser-local demonstration management workspace.
+Site routes:
+- #/auth — sign in
+- #/signup — create account
+- #/verify-email — enter OTP
+- #/account — view account and current tier
+- #/workspace/overview — session-gated management demo
+- #/workspace/admin — administrator tier assignments
+- #/plans — provisional subscription tiers
+- #/legal/terms and #/legal/privacy — policy drafts
 
-Future secure runtime:
+## Subscription tiers
 
-Browser â†’ HTTPS API â†’ restricted PostgreSQL role â†’ Neon PostgreSQL
+Starter (5 properties, 1 team member), Growth (50, 10), Business (250, 50), Enterprise (custom).
+These are provisional entitlement definitions. Pricing, payment collection, renewals and cancellation rules are not yet active.
 
-The browser never receives PostgreSQL connection credentials. The API runs as a separate service and is designed to expose only published properties.
+The plan tables, role controls and audited RPCs are versioned in db/0003_auth_subscriptions.sql.
 
-## Frontend
+## Administrator activation
 
-Open index.html locally or visit:
-https://mdanson27.github.io/THE-ZIMBA-RENT/
+The designated platform administrator is automindsafrica@gmail.com.
 
-The stickman-with-briefcase loader animates toward a house before revealing the ZIMBA RENT brand and opening the site. It honors reduced-motion accessibility preferences.
+The administrator must authenticate with that exact verified Google account. The Neon claim_zimba_admin RPC checks the verified identity and linked Google OAuth account before creating an admin record. Revoked admin records cannot be reclaimed.
 
-## Backend
+The admin directory RPC and audited plan assignment RPC enforce privileges in the database, not merely the public frontend. Every tier assignment requires an audit reason.
 
-The API lives in the api/ directory. Run:
+## Neon APIs
 
-cd api
-npm install
-npm start
+Auth base URL:
+https://ep-misty-frost-ber91fca.neonauth.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/auth
 
-Required server environment variable: DATABASE_URL (connection URL for the restricted **zimba_public_reader** role).
+Data API URL:
+https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1
 
-Optional variables:
-- PORT (default 3000)
-- CORS_ORIGINS (comma-separated origins; defaults to https://mdanson27.github.io)
+These are public endpoint addresses, not secrets. Keep database credentials out of GitHub Pages.
 
-Endpoints:
-- GET /health â€” runtime status
-- GET /ready â€” Postgres connectivity status
-- GET /api/v1/properties â€” published property listings
-- GET /api/v1/properties/:uuid â€” single published property
+Authenticated RPCs: my_subscription, claim_zimba_admin, admin_user_directory and admin_assign_plan. Neon Data API was enabled with broad default table grants disabled.
 
-The public API is read-only; do not use a database owner/admin connection string in its environment. API health will succeed even without a database; readiness requires DATABASE_URL and actual connectivity.
+## Security and production limitations
 
-## Security boundaries
+The management workspace currently contains browser-local demonstration data. The route is session-gated but does not yet handle genuine tenant or financial records securely.
 
-- Never put DATABASE_URL or payment/card credentials in frontend code, GitHub files, or screenshots.
-- RLS-enabled organisation tables default to denying access for non-privileged callers until tested role policies are created.
-- No tenant/admin API is exposed yet; implementing proper authentication and scoped authorization is a future task.
-- Card access and payment ledger structures are preparatory only, not a functioning access control or wallet system.
-- No verified property inventory was imported. Demo listings are fictional and remain labelled as such.
-- Do not use real resident/customer data in the browser-local demonstration.
+Policy screens are drafts requiring legal review. Signup agreement acknowledgements are not yet persistent legally binding consent records.
 
-## Next milestones
+Google shared OAuth and SMTP are for development, not a final branded production configuration. The login, signup, OTP, Google and browser session flows still require end-to-end verification with test accounts.
 
-1. Deploy the API through an approved application-hosting connection and set the restricted DATABASE_URL as a server-only secret.
-2. Verify API database connectivity and independently audit read-only permissions.
-3. Implement proven identity/provider integration, role authorization and service-scoped tenant isolation.
-4. Build administration, organisations, units, leases, residents, invoice and receipting workflows.
-5. Establish migration from the existing Supabase dataset after auditing source ownership and schema.
-6. Establish AWS/Genese Solution PoC architecture and acceptance tests, including monitoring and restore testing.
-7. Demonstrate NFC card access only with test hardware/accounts, and payment workflows only with sandbox rails and authorized providers.
+The separate Node API scaffold in api/ has not been deployed. Tier assignment can instead use the secured Neon Data API RPCs directly.
 
-## AWS PoC
+Remaining work:
+1. End-to-end test account creation, Google sign-in, OTP, logout and session persistence.
+2. Move actual property operations from browser storage into authenticated org-scoped database services.
+3. Enforce tier entitlements on the server and create properly licensed payment and billing workflows.
+4. Finalise legal terms, privacy policy, policy acceptance records, production Google OAuth and email sending.
+5. Complete role isolation, security testing, backups and AWS/Genese PoC gates.
 
-The expanded September 2026 AWS PoC questionnaire calls for a scalable AWS platform with secure resident identity, smart cards and property access, sandbox rent collection, monitoring, backups and audit trails. Neon is being used here for the development database as requested; the final AWS-managed database and migration strategy remain to be agreed with Genese Solution.
-
+Never use the current prototype for live customer funds or confidential tenant records.
