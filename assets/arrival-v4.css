@@ -1,0 +1,27 @@
+/* ZIMBA RENT — The house comes alive. SVG shapes remain resolution-independent. */
+.zimba-intro.zv-arrival{background:radial-gradient(ellipse at 50% 50%,#1e3c30,#102c22 57%,#081e18 100%);color:#f3f4eb;overflow:hidden;isolation:isolate;animation:none;opacity:1;visibility:visible;transition:opacity .72s ease,visibility .72s ease}
+.zv-arrival.intro-done{opacity:0;visibility:hidden;pointer-events:none}
+.zv-night-sky{position:absolute;inset:0;opacity:.5;pointer-events:none}
+.zv-night-sky span{position:absolute;height:3px;width:3px;background:#c1d9bb;border-radius:50%;box-shadow:0 0 13px #deefbc}
+.zv-night-sky span:nth-child(1){top:20%;left:19%}.zv-night-sky span:nth-child(2){top:34%;right:26%}.zv-night-sky span:nth-child(3){top:19%;right:18%}.zv-night-sky span:nth-child(4){bottom:24%;left:26%}
+.zv-house-stage{position:relative;width:min(730px,94vw);height:clamp(230px,43vw,435px);display:grid;place-items:center;transform:translateY(-11px)}
+.zv-house-illustration{width:min(700px,95vw);height:100%;overflow:visible;filter:drop-shadow(0 25px 30px #0005);animation:zvHouseAppear 1s cubic-bezier(.16,.8,.2,1) both}
+.zv-window-one,.zv-window-two{opacity:.05;filter:brightness(.35);transform-origin:center;transition:none}
+.zv-window-one{animation:zvWindowOn .65s ease-out 1.25s forwards}
+.zv-window-two{animation:zvWindowOn .7s ease-out 2.1s forwards}
+.zv-door-light{opacity:.06;animation:zvDoorOn .7s ease 2.88s forwards}
+.zv-ground-light{position:absolute;width:47%;height:17px;bottom:3%;left:27%;background:#e0c17b;border-radius:100%;filter:blur(26px);opacity:0;animation:zvGroundOn 1s ease 3.1s forwards}
+.zv-light-wordmark{position:relative;z-index:2;text-align:center;margin-top:-12px;opacity:0;transform:translateY(13px);animation:zvNameReveal 1.05s cubic-bezier(.19,.79,.23,1) 3.4s forwards}
+.zv-light-wordmark strong{font:600 clamp(36px,6vw,71px)/1.18 'Bodoni Moda',Georgia,serif;letter-spacing:.105em;color:#fff5d6;text-shadow:0 0 15px #f6d89586,0 0 40px #e6c47d40}
+.zv-light-wordmark em{font-style:normal;color:#d5e9bc;text-shadow:0 0 20px #d7f1b88b}
+.zv-light-wordmark span{display:block;margin-top:10px;font:700 10px/1.8 'Manrope',sans-serif;letter-spacing:.36em;color:#b9d2b2}
+.zv-arrival-progress{width:175px;height:2px;background:#ffffff2d;border-radius:2px;overflow:hidden;margin-top:29px;position:relative;z-index:1}
+.zv-arrival-progress i{height:100%;display:block;width:100%;background:#d5ebbc;transform-origin:left;transform:scaleX(0);animation:zvProgress 5.05s linear both}
+@keyframes zvHouseAppear{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes zvWindowOn{0%{opacity:.04;filter:brightness(.3)}23%{opacity:.65;filter:brightness(1.1)}39%{opacity:.27;filter:brightness(.7)}100%{opacity:1;filter:brightness(1)}}
+@keyframes zvDoorOn{0%{opacity:.06}50%{opacity:.62}100%{opacity:1}}
+@keyframes zvGroundOn{to{opacity:.28}}
+@keyframes zvNameReveal{to{opacity:1;transform:translateY(0)}}
+@keyframes zvProgress{to{transform:scaleX(1)}}
+@media(max-width:600px){.zv-house-stage{height:clamp(220px,59vw,330px);margin-bottom:9px}.zv-light-wordmark strong{font-size:clamp(34px,8vw,52px);letter-spacing:.045em}.zv-light-wordmark span{font-size:9px;letter-spacing:.2em;margin-top:8px}.zv-arrival-progress{margin-top:25px}.zv-night-sky span{opacity:.5}}
+@media(prefers-reduced-motion:reduce){.zv-house-illustration,.zv-window-one,.zv-window-two,.zv-door-light,.zv-ground-light,.zv-light-wordmark,.zv-arrival-progress i{animation:none!important}.zv-house-illustration{opacity:1}.zv-window-one,.zv-window-two,.zv-door-light{opacity:1;filter:none}.zv-light-wordmark{opacity:1;transform:none}.zv-ground-light{opacity:.2}}
