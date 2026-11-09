@@ -158,3 +158,8 @@ Backend migration: `db/0011_room_inventory_resident_approvals.sql`. Frontend: `a
 Security: All new functions are granted only to `authenticated`; manager operations verify the user's managed organisation using `auth.uid()`, and tenant approvals check the intended account, expiry and room availability under row locks. Direct browser INSERT grants on units and resident invitations remain disabled.
 
 **Release qualification:** Database functions are installed, anonymous access checks and static JS syntax checks passed. The complete two-account flow, frontend UI, and GitHub Pages deployment still need signed-in browser end-to-end tests before commercial release.
+
+Additional November 9 improvements:
+- Manager views an approved resident directory with verified email and assigned room; pending candidates appear separately without approved contact access.
+- The 2D Building Studio supports **Generate floor** to create up to 100 sequential room numbers with a starting monthly rent in one database transaction, up to 500 units per property.
+- Refreshed frontend cache version `20261109-build3`.
