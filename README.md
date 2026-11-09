@@ -207,3 +207,17 @@ Backend migration: `db/0013_repair_tracking_notifications.sql`. Frontend: `asset
 Security: notifications are scoped to `auth.uid()`; manager repair changes use `zimba_my_manager_org()`; tenant progress shows only maintenance submitted by that tenant for an active home. An unauthenticated user cannot call these functions, and authenticated browser roles cannot directly insert or modify the notification ledger or progress history.
 
 Release gate: source syntax and privilege checks passed, but an authenticated tenant-manager browser journey and deployed GitHub Pages assets remain unverified.
+
+## Security hardening phase — 9 November 2026
+
+**Implemented and deployed to Neon development:**
+- Separate privileged PostgreSQL RPC permissions for verified super administrators and scoped landlord/manager accounts; anonymous users cannot invoke audit or rent-edit endpoints.
+- Read-only super-admin audit feed at **ZIMBA Control → Audit activity** and organisation-only landlord audit feed at **Workspace → Security & activity**.
+- Append-only database audit ledger with safe metadata for property, unit, maintenance, resident connection and invitation changes; separate message and wallet-entry metadata auditing (no message body).
+- Security-definer audit and throttle helpers have no direct browser EXECUTE grants. Authenticated clients have no direct SELECT, INSERT, UPDATE or DELETE privileges on the audit ledger or rate-limit counters.
+- Database-enforced per-account write limits: **20 invitations per day, 12 messages per minute, 10 maintenance requests per hour, 500 room creations per day, 120 maintenance progress updates per day, and 20 rent-date corrections per day**. Limits are enforced server-side via row triggers or protected RPC, not UI alone. These are *per authenticated account*, not per IP.
+- Landlord or manager can edit approved tenant rent start date with required 8–500-character reason. Neon verifies the actor's own organisation and active resident connection, records both old and new dates in audit, and sends the tenant an in-app notice.
+- Controlled background refresh at most once every 90 seconds for relevant visible workspace sections; it pauses offline, while hidden, or while the user is editing a form or modal. Notification polling remains separate.
+- RLS and browser-grant checks for audit/security tables are validated. New audit events will be captured after deployment; historical activity is not backfilled.
+
+**Still required before production security sign-off:** independent authenticated two-role UI tests, end-to-end API and browser console checks, CI/Pages deployment confirmation, managed-auth login throttling and MFA enforcement, WAF/IP abuse rules at the edge, automated backup/restore test, audit retention and partitioning policy, log monitoring/alerting, secret rotation, independent penetration testing and load testing. GitHub Pages alone cannot host an API gateway, so IP-level throttling must be implemented in a trusted edge/backend service. No zero-console-error guarantee is made without running the live browser.
