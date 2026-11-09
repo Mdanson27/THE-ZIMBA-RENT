@@ -50,3 +50,14 @@
 @keyframes progressFill{to{transform:scaleX(1)}}
 @media(max-width:570px){.intro-scene{width:min(390px,92vw);transform:scale(.84);margin:-22px 0}.intro-brand span{font-size:9px;letter-spacing:.22em}.intro-brand strong{letter-spacing:.055em}}
 @media(prefers-reduced-motion:reduce){.intro-house,.intro-door,.walker-wrap,.walker-bob,.walker-leg,.walker-arm,.suitcase-swing,.intro-progress span{animation:none!important}.walker-wrap{opacity:1;transform:translateX(190px) scale(.8)}.intro-brand{animation:none!important;opacity:1;transform:none}}
+
+
+/* ZIMBA · soft moving green light behind the welcome message */
+.alertbar{position:relative;isolation:isolate;overflow:hidden;background:#10372a;color:#f1f8e9;text-align:center}
+.alertbar::before,.alertbar::after{content:"";position:absolute;z-index:-1;pointer-events:none;top:-140%;height:380%;width:32%;border-radius:50%;filter:blur(19px);background:radial-gradient(ellipse at center,rgba(137,221,143,.53) 0%,rgba(48,154,111,.23) 37%,transparent 72%);animation:zimbaBannerLights 11s ease-in-out infinite alternate}
+.alertbar::before{left:-20%}
+.alertbar::after{right:-20%;animation-duration:13s;animation-direction:alternate-reverse;background:radial-gradient(ellipse,rgba(127,209,114,.38),rgba(30,129,97,.15) 44%,transparent 74%)}
+.alertbar .zimba-banner-copy{position:relative;z-index:1;display:inline-block;padding:0 12px}
+.alertbar .zimba-banner-copy b{font-weight:800;color:#e0f3b3}
+@keyframes zimbaBannerLights{0%{transform:translateX(-18%) scale(.85);opacity:.55}45%{transform:translateX(180%) scale(1.1);opacity:1}100%{transform:translateX(320%) scale(.95);opacity:.7}}
+@media(prefers-reduced-motion:reduce){.alertbar::before,.alertbar::after{animation:none!important;opacity:.28;transform:none}}
