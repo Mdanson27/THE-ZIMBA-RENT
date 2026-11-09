@@ -76,7 +76,7 @@ const api = {
     return jwt;
   },
   async rpc(name,params={}){
-    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts"].includes(name)) throw new Error("Unsupported API operation");
+    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings"].includes(name)) throw new Error("Unsupported API operation");
     const jwt=await api.token();
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
       method:"POST",
@@ -96,6 +96,17 @@ const api = {
   async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("zimba_admin_accounts");},
   async assignPlan(userId,plan,reason){return api.rpc("admin_assign_plan",{p_target_user:userId,p_plan_code:plan,p_reason:reason});},
   async myPlan(){return api.rpc("my_subscription");},
+  async policies(){return api.rpc("zimba_current_policies");},
+  async policyStatus(){return api.rpc("zimba_policy_status");},
+  async acceptPolicies(){return api.rpc("zimba_accept_policies");},
+  async managerOverview(){return api.rpc("zimba_manager_overview");},
+  async maintenance(){return api.rpc("zimba_my_maintenance");},
+  async createMaintenance(property,issue,priority){return api.rpc("zimba_create_maintenance",{p_property:property,p_issue:issue,p_priority:priority});},
+  async updateMaintenance(id,status,note){return api.rpc("zimba_update_maintenance",{p_request:id,p_status:status,p_note:note||null});},
+  async financials(){return api.rpc("zimba_my_financials");},
+  async recordExpense(description,amount,category,property=null){return api.rpc("zimba_record_expense",{p_description:description,p_amount_ugx:amount,p_category:category,p_property:property});},
+  async settings(){return api.rpc("zimba_my_settings");},
+  async updateSettings(name,area,preferences){return api.rpc("zimba_update_settings",{p_org_name:name,p_area:area,p_notifications:preferences});},
   async isSuperAdmin(){return api.rpc("zimba_is_super_admin");},
   async superAdminOverview(){return api.rpc("zimba_admin_overview");},
   async superAdminProperties(){return api.rpc("zimba_admin_properties");},
