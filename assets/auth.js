@@ -75,9 +75,20 @@ const api = {
     if(!isJwt(jwt))throw new Error("Neon returned an invalid access token.");
     return jwt;
   },
+  async relogin(reason="Your secure session needs to be renewed."){
+    try{await client.signOut()}catch(_){}
+    state.user=null;state.ready=true;state.error=reason;
+    window.ZimbaLoginNotice=reason;
+    dispatchEvent(new Event("zimba-auth-change"));
+    location.hash="#/auth";
+  },
   async rpc(name,params={}){
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings"].includes(name)) throw new Error("Unsupported API operation");
-    const jwt=await api.token();
+    let jwt;
+    try{jwt=await api.token()}catch(error){
+      if(/expired|sign in again|needs to be renewed/i.test(error.message))error.requiresLogin=true;
+      throw error;
+    }
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
       method:"POST",
       headers:{"Authorization":"Bearer "+jwt,"Content-Type":"application/json","Accept":"application/json"},
@@ -85,11 +96,20 @@ const api = {
     });
     const contentType=response.headers.get("content-type")||"";
     const data=contentType.includes("json")?await response.json():null;
-    if(response.status===401){await api.refresh();throw new Error("Your secure session has expired. Please sign in again.");}
+    if(response.status===401){
+      const error=new Error("Your sign-in session expired. Please sign in again.");
+      error.requiresLogin=true;error.httpStatus=401;throw error;
+    }
     if(!response.ok){
       const detail=data?.message||data?.error||"Database request failed";
-      if(response.status===404)throw new Error("The Zimba service could not find this operation (HTTP 404). Please refresh your browser; the server route may need publishing.");
-      throw new Error(detail);
+      if(response.status===404){
+        const error=new Error("Zimba couldn't load "+name+". "+detail+" (HTTP 404).");
+        error.httpStatus=404;
+        error.operation=name;
+        error.code=data?.code||"ROUTE_NOT_FOUND";
+        throw error;
+      }
+      const error=new Error(detail);error.httpStatus=response.status;error.code=data?.code;throw error;
     }
     return data;
   },
