@@ -20,8 +20,8 @@ function loadScreen(text){
  paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">SECURE SYNC</span><h1>Your Zimba space is <em>coming together.</em></h1><p>'+esc(text)+'</p></div><div class="zv-gate-image"><span>ZIMBA · PROPERTY CONNECTED</span></div></main>');
 }
 function syncBlocked(){
- paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">CONNECTION REQUIRED</span><h1>We couldn’t load your <em>secure account.</em></h1><p>'+esc(syncError||"The Neon data connection is temporarily unavailable.")+'</p><button id="zv-retry-sync" class="zv-button">Sign in again ↗</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR DATA STAYS PRIVATE</span></div></main>');
- $("#zv-retry-sync").onclick=()=>window.ZimbaAuth.relogin("Please sign in again to reconnect your secure workspace.");
+ paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">ACCOUNT DATA CONNECTION</span><h1>You are still <em>signed in.</em></h1><p>'+esc(syncError||"Neon could not load your account data.")+'</p><button id="zv-retry-sync" class="zv-button">Reload account data ↻</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR SESSION IS PRESERVED</span></div></main>');
+ $("#zv-retry-sync").onclick=()=>{accountStatus="idle";propertyStatus="idle";render(location.hash.split("?")[0].split("/").pop()||"home")};
 }
 
 const managed=()=>["landlord","manager"].includes(record?.role);
