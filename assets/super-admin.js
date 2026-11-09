@@ -46,7 +46,7 @@ async function fetchSection(section){
  if(section==="organizations")return a.superAdminOrganizations();
  if(section==="properties")return a.superAdminProperties();
  if(section==="subscriptions")return a.superAdminPlans();
- if(section==="activity")return a.superAdminActivity();
+ if(section==="activity"){const [base,security]=await Promise.all([a.superAdminActivity(),a.adminSecurityAudit(150)]);return {...base,security};}
  if(section==="system"){const [overview,plans]=await Promise.all([a.superAdminOverview(),a.superAdminPlans()]);return {overview,plans}};
  return {};
 }
@@ -89,9 +89,12 @@ function renderData(section,data){
  else if(section==="activity"){
   const changes=Array.isArray(data.tierChanges)?data.tierChanges:[];
   const users=Array.isArray(data.recentAccounts)?data.recentAccounts:[];
+  const events=Array.isArray(data.security?.events)?data.security.events:[];
   el.innerHTML=heading("ACCOUNTABILITY","Platform activity","Transparent administrative decisions and recent account registrations.",'<button class="zc-btn" id="zc-refresh">↻ Refresh activity</button>')+
    '<div class="zc-two-col">'+panel("Tier assignment history",changes.length?'<div class="zc-timeline">'+changes.map(x=>'<div><span class="zc-dot"></span><div><strong>'+esc(x.email)+'</strong><p>'+esc(x.from||"None")+' → '+esc(x.to)+'</p><small>'+esc(x.reason||"No reason supplied")+' · '+date(x.at)+'</small></div></div>').join("")+'</div>':empty("No plan changes yet."),"AUDIT LOG")+
-   panel("Recent accounts",users.length?'<div class="zc-timeline">'+users.map(x=>'<div><span class="zc-dot"></span><div><strong>'+esc(x.email)+'</strong><p>'+date(x.createdAt)+'</p><small>'+esc(x.verified?"Verified":"Unverified")+'</small></div></div>').join("")+'</div>':empty("No recent account registrations."),"NEON AUTH")+'</div>';
+   panel("Recent accounts",users.length?'<div class="zc-timeline">'+users.map(x=>'<div><span class="zc-dot"></span><div><strong>'+esc(x.email)+'</strong><p>'+date(x.createdAt)+'</p><small>'+esc(x.verified?"Verified":"Unverified")+'</small></div></div>').join("")+'</div>':empty("No recent account registrations."),"NEON AUTH")+'</div>'+
+   panel("Security & operational audit trail",events.length?table(["Time","Actor","Action","Resource","Safe details"],events.map(e=>row([date(e.at),esc(e.actor),'<strong>'+esc(e.action)+'</strong>',esc(e.resource)+' · '+esc(String(e.resourceId||"").slice(0,8)),esc(JSON.stringify(e.details||{}))]))):empty("No security events have been recorded yet."),"RECENT "+number(events.length)+" / "+number(data.security?.total||0)+" TOTAL")+
+   notice("Audit records track protected database mutations, rent-date corrections and activity metadata. Message contents are intentionally excluded.");
  }
  else if(section==="system"){
   const d=data.overview||{},p=data.plans||[];
