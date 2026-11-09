@@ -20,8 +20,8 @@ function loadScreen(text){
  paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">SECURE SYNC</span><h1>Your Zimba space is <em>coming together.</em></h1><p>'+esc(text)+'</p></div><div class="zv-gate-image"><span>ZIMBA · PROPERTY CONNECTED</span></div></main>');
 }
 function syncBlocked(){
- paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">CONNECTION REQUIRED</span><h1>We couldn’t load your <em>secure account.</em></h1><p>'+esc(syncError||"The Neon data connection is temporarily unavailable.")+'</p><button id="zv-retry-sync" class="zv-button">Retry connection ↗</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR DATA STAYS PRIVATE</span></div></main>');
- $("#zv-retry-sync").onclick=()=>{accountStatus="idle";propertyStatus="idle";render("home")};
+ paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">CONNECTION REQUIRED</span><h1>We couldn’t load your <em>secure account.</em></h1><p>'+esc(syncError||"The Neon data connection is temporarily unavailable.")+'</p><button id="zv-retry-sync" class="zv-button">Sign in again ↗</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR DATA STAYS PRIVATE</span></div></main>');
+ $("#zv-retry-sync").onclick=()=>window.ZimbaAuth.relogin("Please sign in again to reconnect your secure workspace.");
 }
 
 const managed=()=>["landlord","manager"].includes(record?.role);
@@ -186,7 +186,7 @@ function render(section){
    accountStatus='ready';
    if(data?.role)syncProfile(data);else{record=null;localStorage.removeItem(storeKey())}
    render(section);
-  }).catch(err=>{syncError=err.message;accountStatus='error';render(section)});
+  }).catch(async err=>{if(await window.ZimbaAuth.recover(err))return;syncError=err.message;accountStatus='error';render(section)});
   return;
  }
  if(accountStatus==='loading')return;
@@ -209,7 +209,7 @@ function render(section){
     record=read();
     record.properties=Array.isArray(rows)?rows.map(x=>({id:x.id,name:x.title,area:x.city||"",category:x.category,status:x.visibility})):[];
     save();propertyStatus='ready';render(section);
-   }).catch(err=>{syncError=err.message;propertyStatus='error';render(section)});
+   }).catch(async err=>{if(await window.ZimbaAuth.recover(err))return;syncError=err.message;propertyStatus='error';render(section)});
    return;
   }
   if(propertyStatus==='loading')return;
