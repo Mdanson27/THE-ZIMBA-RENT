@@ -15,6 +15,10 @@ function paint(html){document.body.classList.add("zimba-control-mode");document.
 function clear(){document.body.classList.remove("zimba-control-mode")}
 function status(text,kind=""){const msg=$("#zc-notify");if(!msg)return;msg.textContent=text;msg.className="zc-notify "+kind;msg.hidden=false;clearTimeout(window._zcn);window._zcn=setTimeout(()=>msg.hidden=true,5500)}
 function loading(message){paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">ZIMBA PLATFORM OPERATIONS</span><h1>Opening your control centre.</h1><p>'+esc(message||"Verifying administrative access…")+'</p><div class="zc-loader"></div></div></main>')}
+function connectionError(message){
+ paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">SECURE CONNECTION</span><h1>We couldn’t connect to Zimba Auth.</h1><p>'+esc(message||"The service could not verify your current session.")+'</p><button id="zc-retry-connection" class="zc-btn">Retry secure connection ↗</button><a class="zc-btn secondary" href="#/auth">Sign in again</a></div></main>');
+ $("#zc-retry-connection").onclick=()=>{verifyState="idle";render(activeSection)};
+}
 function forbidden(message){
  paint('<main class="zc-gate"><div><span class="zc-monogram">Z.</span><span class="zc-eyebrow">PRIVATE ADMINISTRATION</span><h1>Restricted access.</h1><p>'+esc(message||"Only the verified Zimba platform administrator can access this console.")+'</p><a class="zc-btn" href="#/workspace/home">Return to my space ↗</a><button id="zc-retry" class="zc-btn secondary">Check again</button></div></main>');
  $("#zc-retry").onclick=()=>{verifyState="idle";render(activeSection)};
@@ -143,7 +147,7 @@ function render(section="overview"){
   return
  }
  if(verifyState==="checking"){loading("Completing administrator verification…");return}
- if(verifyState==="error"){forbidden(currentUser||"Administrator verification is temporarily unavailable.");return}
+ if(verifyState==="error"){connectionError(currentUser||"Administrator verification is temporarily unavailable.");return}
  if(verifyState!=="ready"||!verified){forbidden("This account does not have active Super Administrator privileges.");return}
  shell(activeSection);load(activeSection);
 }
