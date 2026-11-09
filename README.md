@@ -163,3 +163,21 @@ Additional November 9 improvements:
 - Manager views an approved resident directory with verified email and assigned room; pending candidates appear separately without approved contact access.
 - The 2D Building Studio supports **Generate floor** to create up to 100 sequential room numbers with a starting monthly rent in one database transaction, up to 500 units per property.
 - Refreshed frontend cache version `20261109-build3`.
+
+## November 9: session stability and API schema repair
+
+Browser evidence: the same verified user could sign into Zimba but navigation repeatedly showed HTTP 403 for `my_onboarding` / `my_properties` and HTTP 404 for newer `zimba_property_details` / `zimba_manager_units` / `zimba_save_unit`.
+
+Neon `neon_auth.session` inspection confirmed existing active sessions were created with **7-day expiration intervals**. They had been repeatedly revoked by our own `recover()` -> `relogin()` -> `client.signOut()` client-side implementation, even for database-only errors.
+
+Fixes:
+- Explicit logout is now the only code path that calls `client.signOut()`.
+- Auth refresh preserves the last verified identity when the Auth service temporarily fails, without claiming the server has verified a new token.
+- Data API 401/403/404 no longer clear the user session; they display service-specific messages. A verified Auth session remains independent of database RPC availability.
+- The manager overview now greets the actual signed-in user's given name.
+- Building errors leave the user in the workspace instead of ejecting them to sign-in.
+- Added Zimba SVG favicon and cache-versioned site assets.
+- Neon Data API configuration update performed (also refreshes the schema cache), retaining `public` schema, `authenticated` JWT role claim, and GitHub Pages CORS origin.
+- Default Better Auth session duration is seven days, verified against database records; this is not a promise to suppress explicit sign-outs, user revocation, or legitimate expiry.
+
+**Not yet confirmed:** signed-in browser requests on GitHub Pages after schema refresh, and whether the 403 operations succeed with the actual browser JWT. Do not represent all API permissions as repaired until a real account tests again. If the 403 persists, inspect actual `code` and `message` in the API response body and compare the verified JWT's role claim and database `auth.uid()`. Never disable RLS, issue a privileged browser secret, or grant anonymous access to solve this.
