@@ -120,7 +120,7 @@ function route(){
   if(intent&&['rent','buy','land','saved','all'].includes(intent))state.filters.intent=intent;
   if(term!==null)state.filters.term=term;
  }
- const gated=p.startsWith('workspace/')?accessGate():null;
+ if(p.startsWith('workspace/')&&window.ZimbaWorkspace){window.ZimbaWorkspace.render(p);return;}if(window.ZimbaWorkspace)window.ZimbaWorkspace.clear();const gated=p.startsWith('workspace/')?accessGate():null;
  let page=gated;
  if(!page){
   switch(p){
