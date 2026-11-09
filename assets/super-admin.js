@@ -110,7 +110,7 @@ function paintUsers(users){
  '<strong>'+esc(u.display_name||"Member")+'</strong><small>'+esc(u.email)+'</small>',
  badge(u.email_verified?"Verified":"Pending"),
  badge(u.account_role||"Not onboarded"),
- badge(u.plan_code?(u.plan_code+(u.plan_status==="suspended"?" · Pending onboarding":"")):"Unassigned"),
+ badge(u.plan_code?(u.plan_code+(u.plan_status==="pending"?" · Pending onboarding":"")):"Unassigned"),
  '<select data-tier="'+esc(u.user_id)+'">'+plans.map(p=>'<option value="'+p+'" '+(p===u.plan_code?"selected":"")+'>'+p.toUpperCase()+'</option>').join("")+'</select>',
  '<input data-reason="'+esc(u.user_id)+'" placeholder="Audit reason" maxlength="300">',
  (String(u.email||'').toLowerCase()==='automindsafrica@gmail.com'?'<span class="zc-badge">Platform administrator</span>':['tenant','renter','buyer'].includes(u.account_role)?'<span class="zc-badge">Personal account</span>':'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Confirm tier ↗</button>')
@@ -123,7 +123,7 @@ function paintUsers(users){
   const message="Assign "+plan.toUpperCase()+" to "+(member?.email||"this user")+"?"+(pending?" This tier will remain pending until they complete landlord or manager onboarding.":"")+" Reason: "+reason;
   if(!window.confirm(message))return;
   btn.disabled=true;btn.textContent="Saving…";
-  try{const result=await auth().assignPlan(id,plan,reason);status(result?.status==="suspended"?"Tier saved as pending until account onboarding is completed.":"Tier assigned and audited successfully.","success");await load("accounts",true)}
+  try{const result=await auth().assignPlan(id,plan,reason);status(result?.status==="pending"?"Tier saved as pending until account onboarding is completed.":"Tier assigned and audited successfully.","success");await load("accounts",true)}
   catch(e){status("Tier assignment was rejected: "+e.message,"error");btn.disabled=false;btn.textContent="Confirm tier ↗"}
  }));
 }
