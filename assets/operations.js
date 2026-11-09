@@ -18,7 +18,14 @@ function card(ico,label,value,desc){return '<article class="zo-card"><span class
 function panel(title,body,extra=""){return '<section class="zo-panel"><div class="zo-panel-title"><h2>'+title+'</h2><span>'+extra+'</span></div>'+body+'</section>'}
 function statNote(msg){return '<p class="zo-muted">'+msg+'</p>'}
 function feedback(msg,bad=false){const el=$("#zo-feedback");if(el){el.textContent=msg;el.className="zo-feedback "+(bad?"error":"success");el.hidden=false}}
-function fail(err){const b=$("#zo-body");if(b)b.innerHTML='<div class="zo-error"><h2>Unable to load secure data</h2><p>'+esc(err.message||"Connection unavailable")+'</p><button id="zo-try-again" class="zo-btn">Retry ↗</button></div>';$("#zo-try-again")?.addEventListener("click",()=>$("#zo-reload")?.click())}
+async function fail(err){
+ const handled=await auth()?.recover?.(err);
+ if(handled)return;
+ const b=$("#zo-body");if(!b)return;
+ const backendMissing=err?.httpStatus===404;
+ b.innerHTML='<div class="zo-error"><h2>'+(backendMissing?'Service temporarily unavailable':'Your secure connection needs attention')+'</h2><p>'+esc(err.message||"Connection unavailable")+'</p><p>'+(backendMissing?'Signing in again cannot repair a missing backend API operation. The system needs an API configuration fix.':'You can sign in again to refresh your access.')+'</p><button id="zo-signin-again" class="zo-btn">Sign in again ↗</button></div>';
+ $("#zo-signin-again").onclick=()=>auth().relogin("Please sign in to reconnect to Zimba.");
+}
 function overview(data,record){
  const recent=data.latestMaintenance||[];
  const plan=String(record.plan||"free").toUpperCase();
