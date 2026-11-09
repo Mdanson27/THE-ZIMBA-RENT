@@ -3,6 +3,7 @@ const AUTH_URL = "https://ep-misty-frost-ber91fca.neonauth.c-9.us-east-2.aws.neo
 const originReturn = location.origin + location.pathname + "#/workspace/home";
 const DATA_API_URL = "https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1"; // public service URL, not a database credential
 const state = { ready:false, user:null, error:null };
+const missingRpcCache = new Map(); // avoid repeated known-missing RPC requests during schema refresh
 const api = {
   state,
   async refresh(){
@@ -120,6 +121,8 @@ const api = {
     return false;
   },
   async rpc(name,params={}){
+    const knownMissing=missingRpcCache.get(name);
+    if(knownMissing && Date.now()-knownMissing.when<12000){const error=new Error(knownMissing.message);error.httpStatus=404;error.code=knownMissing.code;error.operation=name;throw error;}
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units","zimba_resident_profiles","zimba_tenant_home","zimba_tenant_wallet","zimba_connection_messages","zimba_send_connection_message","zimba_manager_threads","zimba_resident_service_request","zimba_tenant_service_requests","zimba_invite_with_rent_start","zimba_tenant_inbox_v2","zimba_resident_profiles_v2"].includes(name)) throw new Error("Unsupported API operation");
     let jwt;
     try{jwt=await api.token()}catch(error){
@@ -146,10 +149,12 @@ const api = {
         error.code=data?.code||"ROUTE_NOT_FOUND";
         error.details=data?.details||null;
         error.hint=data?.hint||null;
+        if(error.code==="PGRST202")missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
         throw error;
       }
       const error=new Error(response.status===403?"Zimba cannot access "+name+" (HTTP 403). The backend permissions or JWT roles need repair; your account remains signed in.":detail);error.httpStatus=response.status;error.code=data?.code;error.operation=name;throw error;
     }
+    missingRpcCache.delete(name);
     return data;
   },
   async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("zimba_admin_accounts");},
