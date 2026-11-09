@@ -101,7 +101,7 @@ const api = {
     return false;
   },
   async rpc(name,params={}){
-    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite"].includes(name)) throw new Error("Unsupported API operation");
+    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units"].includes(name)) throw new Error("Unsupported API operation");
     let jwt;
     try{jwt=await api.token()}catch(error){
       if(/expired|sign in again|needs to be renewed/i.test(error.message))error.requiresLogin=true;
@@ -161,6 +161,7 @@ const api = {
   async myResidences(){return api.rpc("my_residences");},
   async managerUnits(property){return api.rpc("zimba_manager_units",{p_property:property});},
   async saveUnit(property,id,number,floor,rent,status){return api.rpc("zimba_save_unit",{p_property:property,p_unit:id||null,p_number:number,p_floor:floor,p_rent:rent,p_status:status});},
+  async generateUnits(property,floor,prefix,start,count,rent){return api.rpc("zimba_generate_units",{p_property:property,p_floor:floor,p_prefix:prefix,p_start:start,p_count:count,p_rent:rent});},
   async propertyDetails(property){return api.rpc("zimba_property_details",{p_property:property});},
   async updateProperty(property,title,description,address,price){return api.rpc("zimba_update_property",{p_property:property,p_title:title,p_description:description,p_address:address,p_price:price});},
   async inviteByReference(property,reference,unit){return api.rpc("zimba_invite_by_reference",{p_property:property,p_reference:reference,p_unit:unit||null});},
