@@ -113,14 +113,18 @@ function paintUsers(users){
  badge(u.plan_code||"Unassigned"),
  '<select data-tier="'+esc(u.user_id)+'">'+plans.map(p=>'<option value="'+p+'" '+(p===u.plan_code?"selected":"")+'>'+p.toUpperCase()+'</option>').join("")+'</select>',
  '<input data-reason="'+esc(u.user_id)+'" placeholder="Audit reason" maxlength="300">',
- (['landlord','manager'].includes(u.account_role)?'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Assign ↗</button>':'<span class="zc-badge">No management subscription</span>')
+ (['tenant','renter','buyer'].includes(u.account_role)?'<span class="zc-badge">Personal account</span>':'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Confirm tier ↗</button>')
  ])));
  el.querySelectorAll("[data-assign]").forEach(btn=>btn.addEventListener("click",async()=>{
   const id=btn.dataset.assign,plan=el.querySelector('[data-tier="'+id+'"]').value,reason=el.querySelector('[data-reason="'+id+'"]').value.trim();
   if(reason.length<5){status("Give a clear audit reason of at least five characters.","error");return}
+  const member=users.find(u=>u.user_id===id);
+  const pending=!member?.account_role;
+  const message="Assign "+plan.toUpperCase()+" to "+(member?.email||"this user")+"?"+(pending?" This tier will remain pending until they complete landlord or manager onboarding.":"")+" Reason: "+reason;
+  if(!window.confirm(message))return;
   btn.disabled=true;btn.textContent="Saving…";
-  try{await auth().assignPlan(id,plan,reason);status("Tier assigned and recorded in Neon.","success");await load("accounts",true)}
-  catch(e){status("Tier assignment was rejected: "+e.message,"error");btn.disabled=false;btn.textContent="Assign ↗"}
+  try{const result=await auth().assignPlan(id,plan,reason);status(result?.status==="suspended"?"Tier saved as pending until account onboarding is completed.":"Tier assigned and audited successfully.","success");await load("accounts",true)}
+  catch(e){status("Tier assignment was rejected: "+e.message,"error");btn.disabled=false;btn.textContent="Confirm tier ↗"}
  }));
 }
 async function load(section,force=false){
