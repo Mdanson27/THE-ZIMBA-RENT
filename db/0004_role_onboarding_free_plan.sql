@@ -1,6 +1,6 @@
 -- ZIMBA RENT / migration 0004: Free one-property plan and role-oriented onboarding
--- IMPORTANT: This migration has been committed but NOT applied to Neon because
--- Neon MCP authentication was unavailable on 9 November 2026.
+-- Installed on Neon development branch on 9 November 2026.
+-- Follow with 0005 and 0006 for hardened RPCs and resident linking.
 -- Run on development branch after credentials are restored and audit existing plan assignments.
 
 INSERT INTO subscription_plans(code,name,description,rank,price_ugx,billing_period,entitlements)
