@@ -57,7 +57,7 @@ async function refresh(){
  try{
   const [d,u]=await Promise.all([auth().propertyDetails(selectedProperty),auth().managerUnits(selectedProperty)]);
   if(counter!==request||!host.isConnected)return;detail=d;units=Array.isArray(u)?u:[];host.innerHTML=layout();wireUnits();
- }catch(e){if(counter!==request)return;if(await auth().recover?.(e))return;host.innerHTML='<div class="zb-error"><h2>Could not load the building</h2><p>'+esc(e.message)+'</p><button class="zb-btn" id="zb-relogin">Sign in again ↗</button></div>';$("#zb-relogin").onclick=()=>auth().relogin("Please sign in again to open your building.")}
+ }catch(e){if(counter!==request)return;if(await auth().recover?.(e))return;host.innerHTML='<div class="zb-error"><h2>Building data temporarily unavailable</h2><p>'+esc(e.message)+'</p><p>Your seven-day session is still active. You can continue elsewhere in Zimba.</p><button class="zb-btn" id="zb-retry">Reload building ↻</button></div>';$("#zb-retry").onclick=refresh}
 }
 function bind(record){
  $("#zb-property")?.addEventListener("change",e=>{selectedProperty=e.target.value;refresh()});
