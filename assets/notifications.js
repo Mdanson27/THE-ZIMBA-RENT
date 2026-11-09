@@ -1,7 +1,7 @@
 (()=>{
 "use strict";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let feed=null,loading=false;
+let feed=null,loading=false,refreshClock=null;
 function mount(){
  const root=document.querySelector(".zv-topright");if(!root)return;
  let slot=document.querySelector("#zn-holder");
@@ -10,6 +10,7 @@ function mount(){
  slot.querySelector("#zn-bell").onclick=()=>{const p=slot.querySelector("#zn-popover");p.hidden=!p.hidden;slot.querySelector("#zn-bell").setAttribute("aria-expanded",String(!p.hidden));if(!p.hidden)refresh()};
  slot.querySelector("#zn-view-all").onclick=()=>{slot.querySelector("#zn-popover").hidden=true};
  refresh();
+ if(!refreshClock)refreshClock=setInterval(()=>{if(document.visibilityState==='visible'&&window.ZimbaAuth?.state?.user)refresh()},45000);
 }
 async function refresh(){
  if(loading||!window.ZimbaAuth?.state?.user)return;
