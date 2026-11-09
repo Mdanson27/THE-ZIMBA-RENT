@@ -63,5 +63,5 @@ document.addEventListener("click",e=>{
  e.preventDefault();
  open({start:link.getAttribute("href")?.includes("privacy")?"privacy":link.dataset.legalOpen||"terms"}).catch(console.error);
 });
-window.ZimbaLegal={open,ensureAccepted};
+window.ZimbaLegal={open,ensureAccepted,getPolicy:(type)=>policies.find(p=>p.policy_type===type)||null};
 })();
