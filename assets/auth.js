@@ -45,8 +45,34 @@ const api = {
     return "A new verification code has been requested.";
   },
   async token(){
-    const jwt=await client.getJWTToken();
-    if(!jwt || typeof jwt!=="string")throw new Error("Sign in to continue");
+    // Neon Managed Auth uses /token (or the signed access_token supplied with
+    // the session). The legacy getJWTToken() calls /get-jwt-token, which this
+    // Neon Managed Better Auth instance does not expose and returns HTTP 404.
+    const session=await client.getSession();
+    const user=session?.data?.user;
+    if(!user?.id || user.emailVerified!==true){
+      throw new Error("Your verified sign-in session has expired. Sign in again.");
+    }
+    const isJwt=value=>typeof value==="string" && value.split(".").length===3;
+    const sessionJwt=session?.data?.session?.access_token;
+    if(isJwt(sessionJwt))return sessionJwt;
+    let response;
+    try{
+      response=await fetch(AUTH_URL.replace(/\\/$/,"")+"/token",{
+        method:"GET",credentials:"include",headers:{"Accept":"application/json"},
+        cache:"no-store"
+      });
+    }catch(err){throw new Error("Neon Auth is unreachable. Check your connection and retry.");}
+    if(response.status===401||response.status===403){
+      await api.refresh();
+      throw new Error("Your session needs to be renewed. Please sign in again.");
+    }
+    if(!response.ok){
+      throw new Error("Neon could not issue your secure access token (HTTP "+response.status+").");
+    }
+    const payload=await response.json();
+    const jwt=payload?.token||payload?.data?.token||payload?.access_token||payload?.data?.access_token;
+    if(!isJwt(jwt))throw new Error("Neon returned an invalid access token.");
     return jwt;
   },
   async rpc(name,params={}){
@@ -59,6 +85,7 @@ const api = {
     });
     const contentType=response.headers.get("content-type")||"";
     const data=contentType.includes("json")?await response.json():null;
+    if(response.status===401){await api.refresh();throw new Error("Your secure session has expired. Please sign in again.");}
     if(!response.ok){
       const detail=data?.message||data?.error||"Database request failed";
       if(response.status===404)throw new Error("The Zimba service could not find this operation (HTTP 404). Please refresh your browser; the server route may need publishing.");
