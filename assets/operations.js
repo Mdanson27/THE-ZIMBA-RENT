@@ -22,14 +22,16 @@ async function fail(err){
  const handled=await auth()?.recover?.(err);
  if(handled)return;
  const b=$("#zo-body");if(!b)return;
- const backendMissing=err?.httpStatus===404;
- b.innerHTML='<div class="zo-error"><h2>'+(backendMissing?'Service temporarily unavailable':'Your secure connection needs attention')+'</h2><p>'+esc(err.message||"Connection unavailable")+'</p><p>'+(backendMissing?'Signing in again cannot repair a missing backend API operation. The system needs an API configuration fix.':'You can sign in again to refresh your access.')+'</p><button id="zo-signin-again" class="zo-btn">Sign in again ↗</button></div>';
- $("#zo-signin-again").onclick=()=>auth().relogin("Please sign in to reconnect to Zimba.");
+ b.innerHTML='<div class="zo-error"><h2>This feature could not load</h2><p>'+esc(err.message||"Service unavailable")+'</p><p>You are still signed in. Your portfolio and other areas remain accessible.</p><button id="zo-try-again" class="zo-btn">Check again ↗</button></div>';
+ $("#zo-try-again").onclick=()=>$("#zo-reload")?.click();
 }
 function overview(data,record){
+ const identity=window.ZimbaAuth?.state?.user;
+ const preferredName=String(identity?.name||identity?.email?.split("@")[0]||"there").trim().split(/\s+/)[0];
+ const greetingName=preferredName.charAt(0).toUpperCase()+preferredName.slice(1);
  const recent=data.latestMaintenance||[];
  const plan=String(record.plan||"free").toUpperCase();
- return '<div class="zo-hero"><div><span class="zo-eyebrow">PORTFOLIO PULSE · '+plan+'</span><h2>Welcome back to your space.</h2><p>'+esc(data.organization||"Your organisation")+' · Live records from Neon</p><a href="#/workspace/properties" class="zo-btn light">Explore your properties ↗</a></div><div class="zo-hero-art">⌂</div></div>'+
+ return '<div class="zo-hero"><div><span class="zo-eyebrow">PORTFOLIO PULSE · '+plan+'</span><h2>Welcome back, '+esc(greetingName)+'.</h2><p>'+esc(data.organization||"Your organisation")+' · Live records from Neon</p><a href="#/workspace/properties" class="zo-btn light">Explore your properties ↗</a></div><div class="zo-hero-art">⌂</div></div>'+
  '<div class="zo-cards">'+card("⌂","Properties",num(data.properties),"Managed portfolio")+
  card("⚒","Open maintenance",num(data.maintenanceOpen),"Issues requiring attention")+
  card("♙","Connected residents",num(data.residents),"Verified property connections")+
