@@ -170,4 +170,30 @@ DROP TRIGGER IF EXISTS zimba_new_message_notify ON zimba_resident_messages;
 CREATE TRIGGER zimba_new_message_notify AFTER INSERT ON zimba_resident_messages FOR EACH ROW EXECUTE FUNCTION public.zimba_notify_new_message();
 DROP TRIGGER IF EXISTS zimba_new_maintenance_notify ON maintenance_requests;
 CREATE TRIGGER zimba_new_maintenance_notify AFTER INSERT ON maintenance_requests FOR EACH ROW EXECUTE FUNCTION public.zimba_notify_new_maintenance();
+CREATE OR REPLACE FUNCTION public.zimba_notify_resident_invite()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ DECLARE property_name text;
+ BEGIN
+ SELECT title INTO property_name FROM properties WHERE id=NEW.property_id AND organization_id=NEW.organization_id;
+ IF TG_OP='INSERT' THEN
+ INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id)
+ VALUES(NEW.invited_auth_user_id,'invitation','New home invitation','You have been invited to '||coalesce(property_name,'a property')||'. Review and approve or decline.','#/workspace/connection',NEW.id);
+ ELSIF NEW.accepted_at IS NOT NULL AND OLD.accepted_at IS NULL THEN
+ INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id)
+ VALUES(NEW.invited_by_auth_user_id,'invitation','Resident invitation approved','A tenant approved your invitation for '||coalesce(property_name,'a property')||'.','#/workspace/residents',NEW.id);
+ ELSIF NEW.revoked_at IS NOT NULL AND OLD.revoked_at IS NULL THEN
+ INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id)
+ VALUES(NEW.invited_by_auth_user_id,'invitation','Resident invitation declined','A tenant declined the invitation for '||coalesce(property_name,'a property')||'.','#/workspace/residents',NEW.id);
+ END IF;
+ RETURN NEW;
+ END $function$
+
+DROP TRIGGER IF EXISTS zimba_invite_notify_insert ON resident_invites;
+CREATE TRIGGER zimba_invite_notify_insert AFTER INSERT ON resident_invites FOR EACH ROW EXECUTE FUNCTION public.zimba_notify_resident_invite();
+DROP TRIGGER IF EXISTS zimba_invite_notify_update ON resident_invites;
+CREATE TRIGGER zimba_invite_notify_update AFTER UPDATE OF accepted_at,revoked_at ON resident_invites FOR EACH ROW EXECUTE FUNCTION public.zimba_notify_resident_invite();
 NOTIFY pgrst, 'reload schema';
