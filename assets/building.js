@@ -82,5 +82,5 @@ function bind(record){
  if(selectedProperty)refresh();
  else $("#zb-display").innerHTML='<div class="zb-empty"><h2>No property selected</h2><p>Create your first property to set up a floor-by-floor layout.</p><a class="zb-btn" href="#/workspace/properties">Add a property ↗</a></div>';
 }
-window.ZimbaBuilding={page,bind};
+window.ZimbaBuilding={page,bind,refresh};
 })();
