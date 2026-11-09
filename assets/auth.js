@@ -8,8 +8,13 @@ const api = {
   async refresh(){
     try {
       const result = await client.getSession();
-      state.user = result?.data?.user && result.data.user.emailVerified ? result.data.user : null;
-      state.error = result?.error?.message || null;
+      if(result?.error){
+        // Keep the last verified identity during temporary service failures.
+        state.error=result.error.message||"Session verification temporarily unavailable";
+      }else{
+        state.user=result?.data?.user?.emailVerified===true ? result.data.user : null;
+        state.error=null;
+      }
     } catch(err) {
       // A temporary network/Auth service failure is NOT evidence that the
       // current cookie-backed session has expired.
@@ -66,8 +71,9 @@ const api = {
       });
     }catch(err){throw new Error("Neon Auth is unreachable. Check your connection and retry.");}
     if(response.status===401||response.status===403){
-      await api.refresh();
-      throw new Error("Your session needs to be renewed. Please sign in again.");
+      // Token issuing failure must not revoke the cookie-backed session.
+      const error=new Error("Neon could not issue a database access token (HTTP "+response.status+"). Your signed-in session is preserved.");
+      error.httpStatus=response.status;throw error;
     }
     if(!response.ok){
       throw new Error("Neon could not issue your secure access token (HTTP "+response.status+").");
@@ -103,7 +109,6 @@ const api = {
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units","zimba_resident_profiles"].includes(name)) throw new Error("Unsupported API operation");
     let jwt;
     try{jwt=await api.token()}catch(error){
-      if(error.requiresLogin===true)error.requiresLogin=true;
       throw error;
     }
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
