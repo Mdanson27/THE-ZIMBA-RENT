@@ -82,6 +82,24 @@ const api = {
     dispatchEvent(new Event("zimba-auth-change"));
     location.hash="#/auth";
   },
+  async recover(error){
+    const status=error?.httpStatus;
+    if(error?.requiresLogin||status===401||status===403){
+      await api.relogin("Your sign-in session expired. Please sign in to continue.");
+      return true;
+    }
+    // An RPC 404 is usually missing backend configuration, not lost identity.
+    // Offer a single fresh-login attempt per failing operation, never a loop.
+    if(status===404){
+      const key="zimba-relogin-once:"+String(error?.operation||"service");
+      if(!sessionStorage.getItem(key)){
+        sessionStorage.setItem(key,"attempted");
+        await api.relogin("The service could not load "+String(error?.operation||"this feature")+". Please sign in again once.");
+        return true;
+      }
+    }
+    return false;
+  },
   async rpc(name,params={}){
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings"].includes(name)) throw new Error("Unsupported API operation");
     let jwt;
@@ -111,6 +129,7 @@ const api = {
       }
       const error=new Error(detail);error.httpStatus=response.status;error.code=data?.code;throw error;
     }
+    if(typeof sessionStorage!=="undefined")sessionStorage.removeItem("zimba-relogin-once:"+name);
     return data;
   },
   async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("zimba_admin_accounts");},
