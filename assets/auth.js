@@ -50,7 +50,7 @@ const api = {
     return result.data.token;
   },
   async rpc(name,params={}){
-    if(!["my_subscription","admin_user_directory","admin_assign_plan"].includes(name)) throw new Error("Unsupported API operation");
+    if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin"].includes(name)) throw new Error("Unsupported API operation");
     const jwt=await api.token();
     const response=await fetch(DATA_API_URL+"/rpc/"+name,{
       method:"POST",
@@ -62,7 +62,7 @@ const api = {
     if(!response.ok)throw new Error(data?.message||data?.error||"Database request failed");
     return data;
   },
-  async listUsers(){return api.rpc("admin_user_directory");},
+  async listUsers(){await api.rpc("claim_zimba_admin");return api.rpc("admin_user_directory");},
   async assignPlan(userId,plan,reason){return api.rpc("admin_assign_plan",{p_target_user:userId,p_plan_code:plan,p_reason:reason});},
   async myPlan(){return api.rpc("my_subscription");},
   async google(){
