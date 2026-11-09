@@ -193,3 +193,17 @@ Fixes:
 - **Backend:** Reproducible migration `db/0012_resident_rent_messaging_wallet.sql`.
 
 **Security verification:** Anonymous RPC access denied, direct authenticated browser INSERT on wallet transactions/messages denied, and new SQL functions reject execution without a valid tenant/manager identity. The browser flow and GitHub Pages deployment remain unverified because Desktop Commander DANSON is offline. Do not claim real payments are active.
+
+## Maintenance progress and notifications — 9 November 2026
+
+Tenant maintenance now displays a percentage complete, status, expected completion date, latest management note, and an expandable chronological progress history. Existing tickets start at 0% until their first manager update; no progress is fabricated.
+
+Authorised organisation managers can post `open`, `in_progress`, `completed` or `cancelled` statuses, a matching progress percentage, an optional ETA, and a required explanation in the Management → Maintenance area. Updates are inserted into `zimba_maintenance_updates` with the authenticated actor and timestamp, and a tenant-specific notification is created when the request has an author.
+
+Each authenticated user has a dedicated notification feed with unread badge and top-right bell, plus a Notifications page. Events include new tenant messages, replies from managers, new tenant repair submissions, posted repair updates, newly issued property invitations, and tenant invitation approvals/declines. The badge refreshes when a page is rendered and every 45 seconds while the browser is visible; this is polling, not real-time push or email delivery. Viewing a notification marks it read and navigates to its feature area.
+
+Backend migration: `db/0013_repair_tracking_notifications.sql`. Frontend: `assets/notifications.js`, `assets/notifications.css`, and enhancements to `assets/tenant-portal.js`, `assets/operations.js`, `assets/workspace-v3.js`.
+
+Security: notifications are scoped to `auth.uid()`; manager repair changes use `zimba_my_manager_org()`; tenant progress shows only maintenance submitted by that tenant for an active home. An unauthenticated user cannot call these functions, and authenticated browser roles cannot directly insert or modify the notification ledger or progress history.
+
+Release gate: source syntax and privilege checks passed, but an authenticated tenant-manager browser journey and deployed GitHub Pages assets remain unverified.
