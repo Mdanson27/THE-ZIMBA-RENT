@@ -93,7 +93,41 @@ function accountPage(){
  return header()+'<main class="container section" style="max-width:850px"><span class="eyebrow">MY ACCOUNT</span><h1 class="heading">Account settings</h1><div class="panel"><h3>'+esc(user.name||'Zimba member')+'</h3><p>'+esc(user.email||'')+' · Verified account</p><p class="sub">Subscription: not yet assigned. Your organisation tier will be managed securely by Zimba administration once subscription services are deployed.</p><button class="btn btn-outline" data-action="logout">Sign out</button></div></main>'+footer();
 }
 
-function route(){let r=currentRoute(),p=r.path;document.title='ZIMBA | '+(p? p.replaceAll('/',' · '):'Spaces for what’s next');if(p==='properties'){let intent=r.params.get('intent'),term=r.params.get('term');if(intent&&['rent','buy','land','saved','all'].includes(intent))state.filters.intent=intent;if(term!==null)state.filters.term=term}let gated = p.startsWith('workspace/') ? accessGate() : null;let page=gated || (p==='auth'?authPage('login'):p==='signup'?authPage('signup'):p==='account'?accountPage():p==='plans'?planPage():p==='legal/terms'?policyPage('terms'):p==='legal/privacy'?policyPage('privacy'):(!p||p==='home')?home():p==='properties'?properties():p.startsWith('property/')?detail(p.slice(9)):p==='services'?services():p==='services/estimator'?estimator():p==='insights'?insights():p==='workspace/overview'?overview():p==='workspace/properties'?workProperties():p==='workspace/enquiries'?enquiries():p==='workspace/tenants'?tenants():p==='workspace/maintenance'?maintenance():p==='workspace/finance'?finance():home();$('#app').innerHTML=page;window.scrollTo(0,0)}
+function route(){
+ const r=currentRoute(),p=r.path;
+ document.title='ZIMBA | '+(p ? p.replaceAll('/',' · ') : 'Spaces for what’s next');
+ if(p==='properties'){
+  const intent=r.params.get('intent'), term=r.params.get('term');
+  if(intent&&['rent','buy','land','saved','all'].includes(intent))state.filters.intent=intent;
+  if(term!==null)state.filters.term=term;
+ }
+ const gated=p.startsWith('workspace/')?accessGate():null;
+ let page=gated;
+ if(!page){
+  switch(p){
+   case '':case 'home':page=home();break;
+   case 'properties':page=properties();break;
+   case 'services':page=services();break;
+   case 'services/estimator':page=estimator();break;
+   case 'insights':page=insights();break;
+   case 'auth':page=authPage('login');break;
+   case 'signup':page=authPage('signup');break;
+   case 'account':page=accountPage();break;
+   case 'plans':page=planPage();break;
+   case 'legal/terms':page=policyPage('terms');break;
+   case 'legal/privacy':page=policyPage('privacy');break;
+   case 'workspace/overview':page=overview();break;
+   case 'workspace/properties':page=workProperties();break;
+   case 'workspace/enquiries':page=enquiries();break;
+   case 'workspace/tenants':page=tenants();break;
+   case 'workspace/maintenance':page=maintenance();break;
+   case 'workspace/finance':page=finance();break;
+   default:page=p.startsWith('property/')?detail(p.slice(9)):home();
+  }
+ }
+ $('#app').innerHTML=page;
+ window.scrollTo(0,0);
+}
 function downloadCSV(){let rows=[['ID','Title','Location','Category','Purpose','Price UGX','Status'],...all().map(p=>[p.id,p.title,p.location,p.category,p.intent,p.price,p.status])];let csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\r\n');let b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(b),a=document.createElement('a');a.href=url;a.download='zimba-demo-portfolio.csv';a.click();URL.revokeObjectURL(url);toast('Demo portfolio CSV exported')}
 window.addEventListener('hashchange',()=>{closeModal();state.mobile=false;route()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();let card=e.target.closest('[data-open-property]');if(card&&e.key==='Enter'){location.hash='#/property/'+encodeURIComponent(card.dataset.openProperty)}});
