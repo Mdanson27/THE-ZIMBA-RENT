@@ -225,4 +225,8 @@ DROP TRIGGER IF EXISTS zimba_limit_maintenance_updates ON zimba_maintenance_upda
 CREATE TRIGGER zimba_limit_maintenance_updates BEFORE INSERT ON zimba_maintenance_updates FOR EACH ROW EXECUTE FUNCTION public.zimba_security_write_limit();
 CREATE INDEX IF NOT EXISTS zimba_audit_actor_idx ON zimba_security_audit(actor_auth_id,occurred_at DESC);
 CREATE INDEX IF NOT EXISTS zimba_rate_bucket_time_idx ON zimba_security_rate_buckets(bucket_start);
+REVOKE ALL ON FUNCTION public.zimba_security_event() FROM PUBLIC,anonymous,authenticated;
+REVOKE ALL ON FUNCTION public.zimba_security_write_limit() FROM PUBLIC,anonymous,authenticated;
+REVOKE ALL ON FUNCTION public.zimba_security_message_audit() FROM PUBLIC,anonymous,authenticated;
+REVOKE ALL ON FUNCTION public.zimba_security_wallet_audit() FROM PUBLIC,anonymous,authenticated;
 NOTIFY pgrst, 'reload schema';
