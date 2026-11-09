@@ -110,10 +110,10 @@ function paintUsers(users){
  '<strong>'+esc(u.display_name||"Member")+'</strong><small>'+esc(u.email)+'</small>',
  badge(u.email_verified?"Verified":"Pending"),
  badge(u.account_role||"Not onboarded"),
- badge(u.plan_code||"Unassigned"),
+ badge(u.plan_code?(u.plan_code+(u.plan_status==="suspended"?" · Pending onboarding":"")):"Unassigned"),
  '<select data-tier="'+esc(u.user_id)+'">'+plans.map(p=>'<option value="'+p+'" '+(p===u.plan_code?"selected":"")+'>'+p.toUpperCase()+'</option>').join("")+'</select>',
  '<input data-reason="'+esc(u.user_id)+'" placeholder="Audit reason" maxlength="300">',
- (['tenant','renter','buyer'].includes(u.account_role)?'<span class="zc-badge">Personal account</span>':'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Confirm tier ↗</button>')
+ (String(u.email||'').toLowerCase()==='automindsafrica@gmail.com'?'<span class="zc-badge">Platform administrator</span>':['tenant','renter','buyer'].includes(u.account_role)?'<span class="zc-badge">Personal account</span>':'<button class="zc-mini-btn" data-assign="'+esc(u.user_id)+'">Confirm tier ↗</button>')
  ])));
  el.querySelectorAll("[data-assign]").forEach(btn=>btn.addEventListener("click",async()=>{
   const id=btn.dataset.assign,plan=el.querySelector('[data-tier="'+id+'"]').value,reason=el.querySelector('[data-reason="'+id+'"]').value.trim();
