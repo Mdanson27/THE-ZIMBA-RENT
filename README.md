@@ -1,70 +1,81 @@
-# ZIMBA RENT — Neon Auth and subscriptions
+# ZIMBA RENT — Unified Property Platform (development)
 
-Public site: https://mdanson27.github.io/THE-ZIMBA-RENT/
+Website: https://mdanson27.github.io/THE-ZIMBA-RENT/
+Repository: https://github.com/Mdanson27/THE-ZIMBA-RENT
 
-## Development status (9 November 2026)
+## November 9, 2026 development upgrade
 
-ZIMBA has a public real-estate frontend hosted on GitHub Pages, a property-management demo, and a Neon development database with property and subscription schemas.
+ZIMBA now has a redesigned, independent management experience rather than the public site's navigation wrapped around a dashboard. Verified Neon Auth sessions are required before any workspace route is rendered.
 
-Neon Managed Better Auth is enabled for the zimba_rent_dev database, including:
-- Email/password signup and sign-in
-- Email OTP verification
-- Google OAuth via Neon shared development provider
-- Session revocation on password reset
-- GitHub Pages trusted origin
+### Premium experience
+- Responsive public real estate marketplace.
+- Cinematic high-resolution SVG loader: night house, sequential window lights, entrance light and glowing ZIMBA RENT reveal, plus a JavaScript exit fallback and reduced-motion support.
+- Separate signed-in workspace shell with personalized greeting, account identity and online/offline network indicator.
+- Four-step, role-specific first-login onboarding:
+  - Landlord
+  - Property manager
+  - Tenant
+  - Looking to rent
+  - Looking to buy
+- Distinct navigation and dashboard features for each role.
+- Premium tier skins while preserving consistent layout: Free, Starter, Growth, Business, Enterprise.
 
-Site routes:
-- #/auth — sign in
-- #/signup — create account
-- #/verify-email — enter OTP
-- #/account — view account and current tier
-- #/workspace/overview — session-gated management demo
-- #/workspace/admin — administrator tier assignments
-- #/plans — provisional subscription tiers
-- #/legal/terms and #/legal/privacy — policy drafts
+### Database and auth
+- Neon project odd-snow-83079818 / database zimba_rent_dev.
+- Neon Managed Better Auth with Google shared OAuth and email/password verification.
+- Neon Data API with broad default grants disabled and database-verified JWT identities.
+- Database onboarding records keyed to Neon Auth user IDs, not locally trusted profiles.
+- Automatic private organisation creation for landlords/managers.
+- Automatic Free plan provisioning (UGX 0, one managed property).
+- Optional first property created as a private draft during onboarding.
+- Secure create/list property RPCs with organisation-membership verification, plan quota enforcement and row locking.
+- Verified tenant reference IDs, single-use seven-day invitations, landlord-side issuance and tenant-side explicit acceptance.
+- Restricted admin tier-assignment interface using audited Neon functions. Designated email: automindsafrica@gmail.com; actual admin claim requires verified Google identity.
 
-## Subscription tiers
+### Code locations
+- index.html — entry point, animated house loader.
+- assets/arrival-v4.css — sequential window and wordmark lighting.
+- assets/workspace-v3.css — responsive premium workspace styling.
+- assets/workspace-v3.js — onboarding, role-specific dashboards, property creation and invitations.
+- assets/auth.js — Neon Auth and guarded Data API calls.
+- assets/app.js — marketplace and protected-route delegation.
+- db/0004_role_onboarding_free_plan.sql — Free plan, onboarding and invitation tables.
+- db/0005_secure_onboarding_property_rpcs.sql — verified onboarding, organization creation and quota-checked property creation.
+- db/0006_secure_resident_invitations.sql — invite/accept/read resident connection functions.
+- .github/workflows/validate-ui.yml — browser-script syntax and static contract checks.
+- .github/workflows/deploy.yml — GitHub Pages deployment.
 
-Starter (5 properties, 1 team member), Growth (50, 10), Business (250, 50), Enterprise (custom).
-These are provisional entitlement definitions. Pricing, payment collection, renewals and cancellation rules are not yet active.
+### Tiers (landlords / property managers only)
+| Tier | Property cap | Pricing |
+| --- | ---: | --- |
+| Free | 1 | UGX 0 |
+| Starter | 5 | Not approved |
+| Growth | 50 | Not approved |
+| Business | 250 | Not approved |
+| Enterprise | Custom | Not approved |
 
-The plan tables, role controls and audited RPCs are versioned in db/0003_auth_subscriptions.sql.
+Tenants and buyers/rent seekers do not need paid management subscriptions. Free and paid plan authorizations are read from Neon and actual property caps are enforced server-side. The first-property onboarding flow provisions Free automatically, and all later upgrades require administrator authorization.
 
-## Administrator activation
+### Tenant reference and invitations
+A tenant's displayed Zimba reference is for lookup only. It is NOT a login credential or a tenancy link. A verified landlord creates a short-lived cryptographically random invitation, whose SHA-256 hash is stored in Neon. Only the intended signed-in and email-verified tenant can accept the invitation, once, before expiry. Invite-related data tables remain closed to direct browser writes.
 
-The designated platform administrator is automindsafrica@gmail.com.
+### Security and remaining production gates
 
-The administrator must authenticate with that exact verified Google account. The Neon claim_zimba_admin RPC checks the verified identity and linked Google OAuth account before creating an admin record. Revoked admin records cannot be reclaimed.
+Important: This is an active **development deployment**, not a completed production release.
 
-The admin directory RPC and audited plan assignment RPC enforce privileges in the database, not merely the public frontend. Every tier assignment requires an audit reason.
+- Authenticated database RPCs are configured and unauthenticated SQL calls were verified as denied; browser sign-in, onboarding and invitation workflows have **not yet been tested end to end using real separate accounts**.
+- Property publishing, real rent, financial reconciliation, card access, lease agreements and maintenance handling still require approved backend workflows.
+- User-facing legal terms and privacy policy are drafts; final legal review and versioned consent capture are pending.
+- Neon shared Google OAuth and shared email sending must be replaced with approved production configuration.
+- The current public marketplace includes illustrative listing data; it is not live inventory.
+- Never use demo interfaces for live money, sensitive tenant information or door access decisions.
+- The old API folder remains a separate undeployed Node scaffold; new account/property/invitation RPCs operate through the JWT-authenticated Neon Data API.
+- Per-user roles, property quotas and landlord/tenant linking are enforced by Postgres functions, rather than browser-local settings. Further security review, access logging and multi-user tests are mandatory before launch.
 
-## Neon APIs
-
-Auth base URL:
-https://ep-misty-frost-ber91fca.neonauth.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/auth
-
-Data API URL:
-https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1
-
-These are public endpoint addresses, not secrets. Keep database credentials out of GitHub Pages.
-
-Authenticated RPCs: my_subscription, claim_zimba_admin, admin_user_directory and admin_assign_plan. Neon Data API was enabled with broad default table grants disabled.
-
-## Security and production limitations
-
-The management workspace currently contains browser-local demonstration data. The route is session-gated but does not yet handle genuine tenant or financial records securely.
-
-Policy screens are drafts requiring legal review. Signup agreement acknowledgements are not yet persistent legally binding consent records.
-
-Google shared OAuth and SMTP are for development, not a final branded production configuration. The login, signup, OTP, Google and browser session flows still require end-to-end verification with test accounts.
-
-The separate Node API scaffold in api/ has not been deployed. Tier assignment can instead use the secured Neon Data API RPCs directly.
-
-Remaining work:
-1. End-to-end test account creation, Google sign-in, OTP, logout and session persistence.
-2. Move actual property operations from browser storage into authenticated org-scoped database services.
-3. Enforce tier entitlements on the server and create properly licensed payment and billing workflows.
-4. Finalise legal terms, privacy policy, policy acceptance records, production Google OAuth and email sending.
-5. Complete role isolation, security testing, backups and AWS/Genese PoC gates.
-
-Never use the current prototype for live customer funds or confidential tenant records.
+## Next engineering tasks
+1. Run full end-to-end browser flows with test accounts: landlord, tenant, renter, buyer, Google and email signup, session renewal, and logout.
+2. Test two concurrent property creations on Free to confirm no quota bypass.
+3. Test both authorized and rejected tenant invitations, replay, expiry and revocation.
+4. Migrate genuine verified property records and professional photos.
+5. Implement genuine leases, invoices, maintenance and approved payment flows.
+6. Finalize legal policies, plan pricing, email delivery, backups and AWS/Genese Solution PoC acceptance.
