@@ -197,4 +197,28 @@ REVOKE ALL ON FUNCTION public.zimba_tenant_inbox() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_inbox() TO authenticated;
 REVOKE ALL ON FUNCTION public.zimba_update_property(p_property uuid, p_title text, p_description text, p_address text, p_price bigint) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_update_property(p_property uuid, p_title text, p_description text, p_address text, p_price bigint) TO authenticated;
+CREATE OR REPLACE FUNCTION public.zimba_generate_units(p_property uuid, p_floor text, p_prefix text, p_start integer, p_count integer, p_rent bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_org uuid:=public.zimba_my_manager_org(); v_index integer;v_number text;v_created integer:=0;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM properties WHERE id=p_property AND organization_id=v_org AND visibility<>'archived') THEN RAISE EXCEPTION 'Property access denied' USING ERRCODE='42501'; END IF;
+ IF length(coalesce(p_floor,''))>50 OR length(coalesce(p_prefix,''))>15 OR p_start IS NULL OR p_start<0 OR p_start>9999 OR p_count NOT BETWEEN 1 AND 100 OR p_rent IS NULL OR p_rent<0 OR p_rent>100000000000 THEN RAISE EXCEPTION 'Invalid room generation settings' USING ERRCODE='22023'; END IF;
+ PERFORM 1 FROM properties WHERE id=p_property FOR UPDATE;
+ IF (SELECT count(*) FROM units WHERE property_id=p_property)+p_count>500 THEN RAISE EXCEPTION 'Property has a maximum of 500 units' USING ERRCODE='22023'; END IF;
+ FOR v_index IN 0..(p_count-1) LOOP
+  v_number=btrim(coalesce(p_prefix,''))||lpad((p_start+v_index)::text,3,'0');
+  IF length(v_number)>30 THEN RAISE EXCEPTION 'Room number is too long' USING ERRCODE='22023'; END IF;
+  INSERT INTO units(organization_id,property_id,unit_number,floor_label,monthly_rent_ugx,status)
+  VALUES(v_org,p_property,v_number,nullif(btrim(p_floor),''),p_rent,'vacant');
+  v_created=v_created+1;
+ END LOOP;
+ RETURN jsonb_build_object('success',true,'unitsCreated',v_created);
+END $function$
+
+REVOKE ALL ON FUNCTION public.zimba_generate_units(uuid,text,text,integer,integer,bigint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.zimba_generate_units(uuid,text,text,integer,integer,bigint) TO authenticated;
 NOTIFY pgrst, 'reload schema';
