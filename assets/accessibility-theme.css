@@ -36,3 +36,13 @@ html[data-zimba-theme="dark"] .z-theme-control button[aria-pressed=true]{backgro
 .zf-form label{font-size:14px!important;color:var(--z-ui-text,#1b4630)!important}
 @media(max-width:720px){.z-theme-control{gap:1px}.z-theme-control .z-theme-label{display:none}.z-theme-control button{font-size:11px!important;padding:8px 6px}.zv-topright,.zc-top-right{gap:5px!important}.zf-setup-section{padding:12px}}
 @media(prefers-reduced-motion:reduce){.zv-workspace-on *, .zc-app *{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Side navigation uses short, discoverable groups rather than one flat menu. */
+.zv-sidebar .zv-nav-group{font:750 10px/1.5 Inter,system-ui,sans-serif!important;letter-spacing:.12em;color:#53715f;padding:19px 16px 7px;margin-top:3px;user-select:none}
+.zv-sidebar .zv-nav-group:first-child{padding-top:8px}
+html[data-zimba-theme="dark"] .zv-sidebar .zv-nav-group{color:#a9cbb4!important}
+.zf-land-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.zf-instructions{font-size:14px;line-height:1.7;margin-bottom:15px}
+.zf-issue-toggle{display:flex!important;align-items:center;gap:10px}
+.zf-issue-toggle input[type=checkbox]{width:20px;height:20px;min-height:20px}
+@media(max-width:650px){.zf-land-grid{grid-template-columns:1fr}.zv-sidebar .zv-nav-group{padding-left:11px}}
