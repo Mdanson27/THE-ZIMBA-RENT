@@ -9,6 +9,13 @@ const me=()=>window.ZimbaAuth?.state?.user||null;
 const storeKey=()=>("zimba-workspace-v3:"+me()?.id);
 const first=()=>String(me()?.name||me()?.email?.split("@")[0]||"Member").trim().split(/\s+/)[0];
 let step=0,draft={},record=null,serverTier=null,tierLookupStarted=false,accountStatus='idle',propertyStatus='idle',syncError='';
+let reconnectTimer=null,reconnectFailures=0;
+function retryAccountData(){
+ if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}
+ accountStatus="idle";propertyStatus="idle";
+ render(currentSection("home"));
+}
+
 const read=()=>{try{return JSON.parse(localStorage.getItem(storeKey())||"null")}catch{return null}};
 const bootstrapWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let bootstrapGeneration=0;
@@ -39,8 +46,13 @@ function loadScreen(text){
  paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">SECURE SYNC</span><h1>Your Zimba space is <em>coming together.</em></h1><p>'+esc(text)+'</p></div><div class="zv-gate-image"><span>ZIMBA · PROPERTY CONNECTED</span></div></main>');
 }
 function syncBlocked(){
- paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">ACCOUNT DATA CONNECTION</span><h1>You are still <em>signed in.</em></h1><p>'+esc(syncError||"Neon could not load your account data.")+'</p><button id="zv-retry-sync" class="zv-button">Reload account data ↻</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR SESSION IS PRESERVED</span></div></main>');
- $("#zv-retry-sync").onclick=()=>{accountStatus="idle";propertyStatus="idle";render(location.hash.split("?")[0].split("/").pop()||"home")};
+ const message=syncError||"We couldn't reconnect to your account data yet.";
+ paint('<main class="zv-gate"><div class="zv-gate-copy"><a class="zv-logo" href="#/">zimba<span>.</span></a><span class="zv-overline">RECONNECTING SECURELY</span><h1>Your account is <em>still signed in.</em></h1><p>We are automatically retrying the secure data connection. You do not need to sign in again.</p><p class="zv-gate-detail" role="status">'+esc(message)+'</p><button id="zv-retry-sync" class="zv-button">Reconnect now ↻</button><a href="#/" class="zv-text-link">← Public marketplace</a></div><div class="zv-gate-image"><span>YOUR SESSION IS PRESERVED</span></div></main>');
+ $("#zv-retry-sync").onclick=retryAccountData;
+ if(!reconnectTimer){
+  const delay=Math.min(30000,7000+reconnectFailures*4000);
+  reconnectTimer=setTimeout(()=>{reconnectTimer=null;reconnectFailures++;if(me()&&location.hash.startsWith("#/workspace/"))retryAccountData()},delay);
+ }
 }
 
 const managed=()=>["landlord","manager"].includes(record?.role);
@@ -267,7 +279,7 @@ function render(section){
   const generation=bootstrapGeneration;
   loadWithRecovery(()=>window.ZimbaAuth.myOnboarding()).then(data=>{
    if(generation!==bootstrapGeneration)return;
-   accountStatus='ready';
+   accountStatus='ready';reconnectFailures=0;if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}
    if(data?.role)syncProfile(data);else{record=null;localStorage.removeItem(storeKey())}
    render(currentSection(section));
   }).catch(async err=>{
@@ -298,7 +310,7 @@ function render(section){
     if(generation!==bootstrapGeneration)return;
     record=read();
     record.properties=Array.isArray(rows)?rows.map(x=>({id:x.id,name:x.title,area:x.city||"",category:x.category,status:x.visibility})):[];
-    save();propertyStatus='ready';render(currentSection(section));
+    save();propertyStatus='ready';reconnectFailures=0;if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}render(currentSection(section));
    }).catch(async err=>{
     if(generation!==bootstrapGeneration)return;
     if(await window.ZimbaAuth.recover(err))return;
@@ -346,6 +358,7 @@ window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home
  clear:function(){document.body.classList.remove("zv-workspace-on")}};
 window.addEventListener("zimba-auth-change",()=>{
  bootstrapGeneration++;
+ if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}reconnectFailures=0;
  serverTier=null;tierLookupStarted=false;accountStatus="idle";propertyStatus="idle";syncError="";
  if(location.hash.startsWith("#/workspace/"))window.ZimbaWorkspace.render(location.hash.slice(2))
 });
