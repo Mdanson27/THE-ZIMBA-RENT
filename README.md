@@ -255,3 +255,11 @@ The management dashboard separates **monthly rental setup** from the **land and 
 - **Auto / Light / Dark** appearance selector in workspace and Super Admin headers. Auto follows OS `prefers-color-scheme`; choice persists locally. `assets/accessibility-theme.js` and `assets/accessibility-theme.css`. Reduced-motion users get minimal interface animation.
 
 **Still necessary:** authenticated browser cross-role acceptance testing, dark-mode contrast audit per WCAG 2.2 AA, keyboard and screen-reader testing, legal review of displayed agreement clauses, production payment-provider integration, secure document and signature flow, responsive QA, and verified Pages workflow completion. Advanced features from the uploaded roadmap (owner portals, fine-grained staff roles, custom widgets, privacy switch, photo attachments, accounting integrations and AI copilot) require separate implementations and should not be labelled complete.
+
+## 10 November 2026 — Dark appearance readability patch
+
+Screenshots of the Properties screen and Add Property modal showed white/near-white text on light cards when dark mode was selected. Root cause: global dark text overrides covered more elements than the dark-surface list; property list entries, property toolbar, user profile and modal backgrounds still used light-mode colors.
+
+Patch in `assets/accessibility-theme.css` explicitly applies dark background **and** readable foreground together to property list entries, toolbars, active navigation, user profile, modal and form inputs. Dark surface and border tokens are scoped to the authenticated workspace; public marketplace styling is unchanged. Added high-contrast placeholder and disabled-field colors, keyboard focus rings, modal scrolling at small screen heights and mobile padding. `.github/workflows/validate-ui.yml` now asserts critical dark-surface selectors, CSS brace pairing and scoped styles. New asset cache key: `20261110-darkfix3`.
+
+These are targeted CSS/UI changes; the underlying Neon create-property functionality, session and role checks have not been replaced. Source-level validation does not prove all browser paths work. Final sign-off requires testing both appearance modes with an authenticated account, mobile viewport, modal save/validation/error states, and browser console/network logs.
