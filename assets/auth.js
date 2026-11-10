@@ -71,7 +71,9 @@ const api = {
       const user=session?.data?.user;
       if(!user?.id||user.emailVerified!==true){
         const error=new Error("Your authenticated session needs verification.");
-        error.requiresLogin=true;
+        // An intermittent getSession error is not evidence of session expiry.
+        if(session?.error&&state.user?.id){error.transient=true}
+        else{error.requiresLogin=true}
         throw error;
       }
       if(!state.user||state.user.id!==user.id){state.user=user;clearSignedToken()}
@@ -144,6 +146,25 @@ const api = {
     return false;
   },
   async rpc(name,params={}){
+    // Retry transport errors only for idempotent reads. Never replay money,
+    // invitation, message, rental, or other writes after an ambiguous failure.
+    const readOnly=new Set([
+      "my_onboarding","my_properties","my_subscription","my_residences",
+      "zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties",
+      "zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans",
+      "zimba_admin_accounts","zimba_admin_security_audit",
+      "zimba_manager_security_audit","zimba_manager_overview","zimba_my_maintenance",
+      "zimba_my_financials","zimba_my_settings","zimba_manager_units",
+      "zimba_property_details","zimba_resident_requests","zimba_resident_profiles_v3",
+      "zimba_tenant_home","zimba_tenant_wallet","zimba_connection_messages",
+      "zimba_manager_threads","zimba_tenant_inbox","zimba_tenant_inbox_v2",
+      "zimba_tenant_service_requests","zimba_notification_feed",
+      "zimba_manager_maintenance_list","zimba_tenant_maintenance_progress",
+      "zimba_resident_profiles_v2","zimba_manager_lease_list","zimba_tenant_lease",
+      "zimba_manager_invoice_list","zimba_tenant_billing",
+      "zimba_manager_deposit_summary","zimba_tenant_deposit_summary",
+      "zimba_manager_land_lease_drafts"
+    ]).has(name);
     const knownMissing=missingRpcCache.get(name);
     if(knownMissing && Date.now()-knownMissing.when<12000){const error=new Error(knownMissing.message);error.httpStatus=404;error.code=knownMissing.code;error.operation=name;throw error;}
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units","zimba_resident_profiles","zimba_tenant_home","zimba_tenant_wallet","zimba_connection_messages","zimba_send_connection_message","zimba_manager_threads","zimba_resident_service_request","zimba_tenant_service_requests","zimba_invite_with_rent_start","zimba_tenant_inbox_v2","zimba_resident_profiles_v2","zimba_notification_feed","zimba_mark_notification_read","zimba_manager_maintenance_progress","zimba_tenant_maintenance_progress","zimba_manager_maintenance_list","zimba_manager_change_rent_start","zimba_resident_profiles_v3","zimba_admin_security_audit","zimba_manager_security_audit","zimba_manager_prepare_lease","zimba_tenant_lease","zimba_tenant_acknowledge_lease","zimba_manager_lease_list","zimba_manager_issue_invoice","zimba_tenant_billing","zimba_manager_invoice_list","zimba_manager_send_rent_reminder","zimba_tenant_deposit_summary","zimba_tenant_request_deposit_refund","zimba_manager_deposit_summary","zimba_manager_end_lease","zimba_manager_review_deposit_refund","zimba_manager_land_lease_drafts","zimba_manager_create_land_lease_draft"].includes(name)) throw new Error("Unsupported API operation");
@@ -167,14 +188,14 @@ const api = {
           body:JSON.stringify(params)
         });
       }catch(error){
-        if(attempt<2){await pause(attempt===0?300:900);continue}
+        if(readOnly&&attempt<2){await pause(attempt===0?300:900);continue}
         const networkError=new Error("The secure database is temporarily unreachable.");
         networkError.transient=true;throw networkError;
       }
       const contentType=response.headers.get("content-type")||"";
       data=contentType.includes("json")?await response.json():null;
       if(response.ok)break;
-      if([401,403,429,502,503,504].includes(response.status)&&attempt<2){
+      if(([401,403].includes(response.status)||(readOnly&&[429,502,503,504].includes(response.status)))&&attempt<2){
         clearSignedToken();
         await pause(attempt===0?300:900);
         continue;
