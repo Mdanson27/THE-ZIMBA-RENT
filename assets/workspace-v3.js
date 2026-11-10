@@ -10,6 +10,25 @@ const storeKey=()=>("zimba-workspace-v3:"+me()?.id);
 const first=()=>String(me()?.name||me()?.email?.split("@")[0]||"Member").trim().split(/\s+/)[0];
 let step=0,draft={},record=null,serverTier=null,tierLookupStarted=false,accountStatus='idle',propertyStatus='idle',syncError='';
 const read=()=>{try{return JSON.parse(localStorage.getItem(storeKey())||"null")}catch{return null}};
+const bootstrapWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+let bootstrapGeneration=0;
+const currentSection=fallback=>String(location.hash.split("?")[0].split("/").pop()||fallback||"home");
+async function loadWithRecovery(operation){
+  // Do not expose a full-page error for momentary Neon role/token propagation.
+  // The Auth RPC layer also renews its JWT when a first request is refused.
+  let lastError;
+  for(let attempt=0;attempt<6;attempt++){
+    try{return await operation()}
+    catch(err){
+      lastError=err;
+      const retryable=err?.transient===true||[401,403,429,502,503,504].includes(err?.httpStatus);
+      if(!retryable||attempt===5)throw err;
+      await bootstrapWait([250,550,1100,1800,3000][attempt]);
+    }
+  }
+  throw lastError;
+}
+
 const save=()=>localStorage.setItem(storeKey(),JSON.stringify(record));
 
 function syncProfile(p){
@@ -245,11 +264,17 @@ function render(section){
  }
  if(accountStatus==='idle'){
   accountStatus='loading';loadScreen("Loading your account and first-time setup…");
-  window.ZimbaAuth.myOnboarding().then(data=>{
+  const generation=bootstrapGeneration;
+  loadWithRecovery(()=>window.ZimbaAuth.myOnboarding()).then(data=>{
+   if(generation!==bootstrapGeneration)return;
    accountStatus='ready';
    if(data?.role)syncProfile(data);else{record=null;localStorage.removeItem(storeKey())}
-   render(section);
-  }).catch(async err=>{if(await window.ZimbaAuth.recover(err))return;syncError=err.message;accountStatus='error';render(section)});
+   render(currentSection(section));
+  }).catch(async err=>{
+   if(generation!==bootstrapGeneration)return;
+   if(await window.ZimbaAuth.recover(err))return;
+   syncError=err.message;accountStatus='error';render(currentSection(section));
+  });
   return;
  }
  if(accountStatus==='loading')return;
@@ -268,11 +293,17 @@ function render(section){
   }
   if(propertyStatus==='idle'){
    propertyStatus='loading';loadScreen("Loading your private property records…");
-   window.ZimbaAuth.myProperties().then(rows=>{
+   const generation=bootstrapGeneration;
+   loadWithRecovery(()=>window.ZimbaAuth.myProperties()).then(rows=>{
+    if(generation!==bootstrapGeneration)return;
     record=read();
     record.properties=Array.isArray(rows)?rows.map(x=>({id:x.id,name:x.title,area:x.city||"",category:x.category,status:x.visibility})):[];
-    save();propertyStatus='ready';render(section);
-   }).catch(async err=>{if(await window.ZimbaAuth.recover(err))return;syncError=err.message;propertyStatus='error';render(section)});
+    save();propertyStatus='ready';render(currentSection(section));
+   }).catch(async err=>{
+    if(generation!==bootstrapGeneration)return;
+    if(await window.ZimbaAuth.recover(err))return;
+    syncError=err.message;propertyStatus='error';render(currentSection(section));
+   });
    return;
   }
   if(propertyStatus==='loading')return;
@@ -314,6 +345,7 @@ window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home
  refreshResidents:async function(){if(managed()&&$("#zv-manager-requests"))await Promise.all([loadManagerRequests(),loadConnectedResidentProfiles()])},
  clear:function(){document.body.classList.remove("zv-workspace-on")}};
 window.addEventListener("zimba-auth-change",()=>{
+ bootstrapGeneration++;
  serverTier=null;tierLookupStarted=false;accountStatus="idle";propertyStatus="idle";syncError="";
  if(location.hash.startsWith("#/workspace/"))window.ZimbaWorkspace.render(location.hash.slice(2))
 });
