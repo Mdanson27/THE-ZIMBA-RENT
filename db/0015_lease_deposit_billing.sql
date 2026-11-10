@@ -51,7 +51,7 @@ CREATE OR REPLACE FUNCTION public.zimba_manager_issue_invoice(p_lease uuid, p_pe
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE org uuid:=public.zimba_my_manager_org();l zimba_lease_records%ROWTYPE;invoice uuid;due date;period date;tenant uuid;
+DECLARE org uuid:=public.zimba_my_manager_org();l zimba_lease_records%ROWTYPE;invoice uuid;due date;period date;tenant uuid;charge bigint;bill_start date;bill_end date;
 BEGIN
  SELECT * INTO l FROM zimba_lease_records WHERE id=p_lease AND organization_id=org AND status='acknowledged' FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Tenant must acknowledge lease terms first' USING ERRCODE='42501'; END IF;
@@ -59,13 +59,16 @@ BEGIN
  period:=date_trunc('month',p_period)::date;
  due:=(date_trunc('month',period::timestamp)+interval '1 month - 1 day')::date;
  IF l.end_date IS NOT NULL AND period>l.end_date THEN RAISE EXCEPTION 'Lease already ended for billing period' USING ERRCODE='22023'; END IF;
+ bill_start:=greatest(period,l.start_date);bill_end:=least(due,coalesce(l.end_date,due));
+ charge:=round(l.monthly_rent_ugx::numeric*(bill_end-bill_start+1)::numeric/extract(day from due)::numeric)::bigint;
+ IF charge<=0 THEN RAISE EXCEPTION 'No billable days in this period' USING ERRCODE='22023'; END IF;
  INSERT INTO zimba_rent_invoices(lease_id,period_start,period_end,due_date,amount_ugx)
- VALUES(p_lease,greatest(period,l.start_date),least(due,coalesce(l.end_date,due)),due,l.monthly_rent_ugx)
+ VALUES(p_lease,bill_start,bill_end,due,charge)
  ON CONFLICT(lease_id,period_start) DO NOTHING RETURNING id INTO invoice;
  IF invoice IS NULL THEN RAISE EXCEPTION 'Invoice for this lease and month already exists' USING ERRCODE='23505'; END IF;
  SELECT c.resident_auth_user_id INTO tenant FROM resident_connections c WHERE c.id=l.connection_id;
  INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id) VALUES(tenant,'general','Rent invoice issued','Rent invoice for '||to_char(period,'FMMonth YYYY')||' is due '||due::text||'.','#/workspace/payments',invoice);
- INSERT INTO zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details) VALUES(auth.uid(),org,'rent_invoice_issued','invoice',invoice,jsonb_build_object('period',period,'amount',l.monthly_rent_ugx,'due',due));
+ INSERT INTO zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details) VALUES(auth.uid(),org,'rent_invoice_issued','invoice',invoice,jsonb_build_object('period',period,'amount',charge,'due',due));
  RETURN jsonb_build_object('id',invoice,'due',due);
 END $function$
 
