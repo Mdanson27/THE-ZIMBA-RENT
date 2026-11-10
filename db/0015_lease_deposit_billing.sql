@@ -97,7 +97,7 @@ DECLARE org uuid:=public.zimba_my_manager_org();c resident_connections%ROWTYPE;l
 BEGIN
  SELECT * INTO c FROM resident_connections WHERE id=p_connection AND organization_id=org AND status='active' FOR UPDATE;
  IF NOT FOUND OR c.unit_id IS NULL THEN RAISE EXCEPTION 'An approved tenant and assigned room are required' USING ERRCODE='42501'; END IF;
- IF p_rent IS NULL OR p_rent<=0 OR p_deposit IS NULL OR p_deposit<0 OR p_deposit>p_rent OR p_start IS NULL OR p_end IS NOT NULL AND p_end<=p_start THEN RAISE EXCEPTION 'Invalid rent, deposit cap or dates' USING ERRCODE='22023'; END IF;
+ IF p_rent IS NULL OR p_rent<=0 OR p_deposit IS NULL OR p_deposit<=0 OR p_deposit>p_rent OR p_start IS NULL OR p_end IS NOT NULL AND p_end<=p_start THEN RAISE EXCEPTION 'Invalid rent, deposit cap or dates' USING ERRCODE='22023'; END IF;
  IF length(btrim(coalesce(p_terms,''))) NOT BETWEEN 50 AND 10000 OR length(btrim(coalesce(p_deposit_terms,''))) NOT BETWEEN 20 AND 3000 THEN RAISE EXCEPTION 'Complete written lease and security deposit terms' USING ERRCODE='22023'; END IF;
  SELECT status INTO current_status FROM zimba_lease_records WHERE connection_id=p_connection FOR UPDATE;
  IF current_status IS NOT NULL AND current_status<>'draft' THEN RAISE EXCEPTION 'Issued lease must be revised through a separate amendment process' USING ERRCODE='42501'; END IF;
