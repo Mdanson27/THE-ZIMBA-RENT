@@ -1,0 +1,15 @@
+(()=>{
+"use strict";
+const api=()=>window.ZimbaAuth,esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ugx=v=>"UGX "+Number(v||0).toLocaleString("en-UG");
+function page(){return '<section class="zf-page"><span>ZIMBA / SPECIALISED PROPERTY AGREEMENTS</span><h1>Land & long-term leases</h1><p>Maintain a separate record of land parcels and extended lease arrangements.</p><div id="zland-content">Loading secure land records…</div></section>'}
+async function load(){
+ const host=document.querySelector("#zland-content");if(!host)return;
+ try{
+  const drafts=await api().landLeaseDrafts();if(!host.isConnected)return;
+  host.innerHTML='<section class="zf-card"><h2>Create a land lease draft</h2><p class="zf-caution">This is a private record of proposed terms, not a legal instrument, registered interest, verified land title or completed lease. Independent land-title verification and professional review are required.</p><form id="zland-form" class="zf-form"><label>Land parcel or plot reference<input name="parcel" minlength="3" maxlength="150" required placeholder="Plot, block or parcel reference"></label><label>Location and land description<textarea name="location" minlength="8" maxlength="500" rows="2" required placeholder="District, area, approximate size and description"></textarea></label><div class="zf-land-grid"><label>Term starts<input name="start" type="date" required></label><label>Term ends<input name="end" type="date" required></label><label>Agreed premium (UGX)<input name="premium" type="number" min="0" value="0" required></label><label>Recurring rent (UGX)<input name="rent" type="number" min="0" value="0" required></label></div><label>Renewal and expiry conditions<textarea name="renewal" minlength="10" maxlength="2000" required rows="3"></textarea></label><label>Special provisions, lawful use and responsibilities<textarea name="conditions" minlength="30" maxlength="10000" required rows="4"></textarea></label><button type="submit">Save private draft</button><p id="zland-message" role="status"></p></form></section><section class="zf-card"><h2>Land lease drafts</h2>'+(drafts.length?drafts.map(d=>'<article class="zf-line"><strong>'+esc(d.parcel)+' · '+esc(d.location)+'</strong><p>Term '+esc(d.start)+' to '+esc(d.end)+' · Premium '+ugx(d.premium)+' · Recurring '+ugx(d.rent)+'</p><details><summary>View draft conditions</summary><p class="zf-terms">'+esc(d.conditions)+'</p><p class="zf-terms">'+esc(d.renewalTerms)+'</p></details><small>Status: '+esc(d.status)+' — Not signed or registered</small></article>').join(""):'<p>No land lease drafts yet.</p>')+'</section>';
+  const form=host.querySelector("#zland-form");form.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(form).entries()),btn=form.querySelector("button");btn.disabled=true;try{await api().createLandLeaseDraft(d);await load()}catch(err){host.querySelector("#zland-message").textContent=err.message;btn.disabled=false}};
+ }catch(e){host.textContent="Could not load land lease records: "+e.message}
+}
+window.ZimbaLandLeases={page,load};
+})();
