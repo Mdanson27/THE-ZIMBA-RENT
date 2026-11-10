@@ -91,3 +91,10 @@ html[data-zimba-theme="light"] body.zv-workspace-on .zv-modal{background:#fff;co
 /* Dark-mode property creation must not lose the save action or its focus treatment. */
 html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal :is(button[type="submit"],.zv-button){min-height:44px}
 html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal :is(button,input,textarea,select):focus-visible{outline:3px solid #9ee6b8!important;outline-offset:3px}
+
+/* Keep dialogs usable at 320px width and on short mobile viewports. */
+body.zv-workspace-on .zv-modal{box-sizing:border-box;max-height:min(92dvh,850px);overflow-y:auto;overscroll-behavior:contain}
+body.zv-workspace-on .zv-modal-bg{padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+body.zv-workspace-on .zv-modal form{min-width:0}
+body.zv-workspace-on .zv-modal input{box-sizing:border-box;max-width:100%}
+@media(max-width:540px){body.zv-workspace-on .zv-modal{padding:24px 18px}body.zv-workspace-on .zv-modal h2{font-size:27px!important}}
