@@ -240,3 +240,18 @@ Release gate: source syntax and privilege checks passed, but an authenticated te
 **Migration files:** `db/0015_lease_deposit_billing.sql`, `db/0016_rent_reminders_worker.sql`.
 
 **Not production-ready until:** regulated payment provider / segregated deposit custodian, verified webhook signatures and idempotency, reversal and refund settlement, official/EFRIS documentation integrations as applicable, legal review of agreement templates and signatures, daily cron trigger deployment, secure signed-document storage, automated tests with two account roles, live GitHub Pages testing and console/network error verification.
+
+## 10 November 2026 — Human-centred UI, monthly rentals versus land leasing
+
+The management dashboard separates **monthly rental setup** from the **land and long-term lease draft register**, without making an incorrect legal claim that leases exist only for land. Uganda's Landlord and Tenant Act 2022 defines a tenancy as a relationship created by a lease, agreement or assignment. A written tenancy agreement may use the prescribed form with modifications agreed by the parties.
+
+**Changes:**
+- Renamed generic Leases navigation to **Rental agreements** (tenant: **My agreement**). The existing `zimba_lease_records` RPCs remain the financial/agreement backbone, preserving prior draft records and rent invoices.
+- Grouped manager sidebar into discoverable property, communications, finance, and account sections, with labelled current-page navigation.
+- Connected resident directory now has **Set rent & deposit**, which opens the monthly rental setup with that resident preselected.
+- Rebuilt the monthly rental form into three plain-language sections: selected tenant/home, monthly rent plus refundable security deposit, and editable tenancy/deposit terms. Example legal-language draft clauses are provided for convenience and **require review before use**.
+- Separate **Land & long-term leases** screen, with authenticated, organisation-scoped draft storage for parcel reference, location, premium, periodic rent, start/end dates, renewal and conditions. No land title verification, lease execution or registry integration is claimed. SQL migration `db/0017_land_lease_drafts.sql`.
+- Dashboard and admin typography moves to clear **Inter/system UI fonts** rather than decorative serif text for operational screens. Labels, focus indicators, input sizes, group headings and responsive layouts support everyday accessibility.
+- **Auto / Light / Dark** appearance selector in workspace and Super Admin headers. Auto follows OS `prefers-color-scheme`; choice persists locally. `assets/accessibility-theme.js` and `assets/accessibility-theme.css`. Reduced-motion users get minimal interface animation.
+
+**Still necessary:** authenticated browser cross-role acceptance testing, dark-mode contrast audit per WCAG 2.2 AA, keyboard and screen-reader testing, legal review of displayed agreement clauses, production payment-provider integration, secure document and signature flow, responsive QA, and verified Pages workflow completion. Advanced features from the uploaded roadmap (owner portals, fine-grained staff roles, custom widgets, privacy switch, photo attachments, accounting integrations and AI copilot) require separate implementations and should not be labelled complete.
