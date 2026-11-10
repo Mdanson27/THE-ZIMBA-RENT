@@ -273,3 +273,19 @@ Root issue was a CSS rule assigning light foreground text to *all* headings, par
 Accessibility-theme.css is loaded after component styles, and every dark selector is restricted to an authenticated workspace or Super Admin body, avoiding interference with the public listing website. All interactive forms retain their original JavaScript and backend calls. The CI static contract now verifies component selector coverage and refuses reintroduction of the generic dark text override.
 
 Deployed asset cache version: `20261110-darkfix4`. GitHub commit status API returned no statuses or PR-triggered workflow runs; **production Pages deployment and authenticated UI tests are not confirmed**. Browser acceptance test remains mandatory: each dashboard in Auto/Light/Dark, property creation/edit, building floor list/edit, message thread send/read, maintenance state, invoices, deposits, superadmin accounts and notification popovers. Review desktop and mobile contrast, keyboard focus, console/network errors.
+
+## 10 November 2026 — Intermittent onboarding HTTP 403: automatic bootstrap recovery
+
+Reported symptom: immediately after entering `#/workspace/home`, the account shows a full-page “You are still signed in” technical error (`my_onboarding HTTP 403`), while pressing **Reload account data** usually succeeds.
+
+Database inspection confirmed `my_onboarding()`, `my_properties()`, and `my_subscription()` all exist, use `SECURITY DEFINER`, allow `authenticated` execution, and deny `anonymous` execution. Consequently the initial failure is consistent with a transient authentication-token/role propagation race, though live network diagnostics are still necessary to confirm the precise source of the 403.
+
+**Code changes:**
+- `assets/auth.js` now deduplicates concurrent signed JWT requests, validates subject/role/expiry, and keeps the JWT briefly **in memory only**. The browser never persists JWT tokens.
+- On a transient 401/403, refreshes the database JWT and retries, without clearing a legitimate Neon session or making anonymous fallback requests.
+- Only idempotent read operations are retried after ambiguous network/service failures; messages, payments, invitations, room edits and other writes are not replayed.
+- `assets/workspace-v3.js` retries onboarding and initial property loads with bounded backoff before showing an error. Stale responses from a previous login cannot replace a newer session.
+- On a prolonged outage, the UI keeps the authenticated session, explains it is reconnecting, and **automatically reattempts** in the background (with capped delay), rather than requiring the user to press Refresh repeatedly.
+- Updated GitHub Pages asset query version `20261110-authsync2`. Static JavaScript syntax checks and guards passed; full authenticated browser/console and Pages deployment confirmation remain outstanding.
+
+**Security note:** Database function permissions and server-enforced role checks remain in place. Any persistent 403 must be investigated at the Neon Auth/Data API JWT configuration and trusted request logs; the UI must not bypass security restrictions to hide an error.
