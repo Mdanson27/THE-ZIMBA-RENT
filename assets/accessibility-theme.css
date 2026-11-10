@@ -46,3 +46,48 @@ html[data-zimba-theme="dark"] .zv-sidebar .zv-nav-group{color:#a9cbb4!important}
 .zf-issue-toggle{display:flex!important;align-items:center;gap:10px}
 .zf-issue-toggle input[type=checkbox]{width:20px;height:20px;min-height:20px}
 @media(max-width:650px){.zf-land-grid{grid-template-columns:1fr}.zv-sidebar .zv-nav-group{padding-left:11px}}
+
+
+/* DARK MODE V2 — scopes surfaces explicitly: never turn text white without making its parent dark. */
+html[data-zimba-theme="dark"] body.zv-workspace-on{--z-ui-bg:#101a17;--z-ui-card:#1e3029;--z-ui-text:#f1f6f2;--z-ui-muted:#baccbf;--z-ui-line:#365447;--z-ui-field:#243b31;background:var(--z-ui-bg)!important;color:var(--z-ui-text)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(
+ .zv-toolbar,.zv-property-list article,.zv-modal,.zv-user,.zv-empty,.zv-plan-card,.zv-disclaimer,.zv-connected-home,
+ .zv-tenant-invitation,.zv-empty-inline,.zv-onboarding,.zv-onboard-content,.zv-onboard-preview,
+ .zv-detail,.zv-form-stack,.zv-panel,.zv-stat,.zv-sidebar,.zv-topbar,.zv-modal-bg .zv-modal,
+ .zv-rent-modal,.zv-invitation-actions,.zv-request-table,.zv-request-table table,
+ .zf-card,.zf-line,.zt-panel,.zt-house,.zo-panel,.zo-card,.zo-form,.zn-item,
+ .zv-choice,.zv-choice-card
+){background-color:var(--z-ui-card)!important;border-color:var(--z-ui-line)!important;color:var(--z-ui-text)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zv-onboarding,.zv-onboard-content,.zv-gate,.zv-gate-copy){background-color:var(--z-ui-bg)!important;color:var(--z-ui-text)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zv-property-list h3,.zv-property-list strong,.zv-modal h2,.zv-modal h3,.zv-modal label,.zv-modal p,.zv-modal small,.zv-toolbar strong,.zv-toolbar b,.zv-user b,.zv-user small,.zv-page-title h1,.zv-panel h2,.zv-plan-card h3,.zv-sidebar a,.zv-modal #zv-close,.zv-brand-section small){color:var(--z-ui-text)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zv-property-list p,.zv-property-list small,.zv-modal .zv-help,.zv-disclaimer,.zv-toolbar small,.zv-detail span,.zv-page-title p,.zv-overline,.zv-connected-home small){color:var(--z-ui-muted)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-property-icon{background:#355745!important;color:#d4f1dc!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal #zv-close,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-rent-close{background:#334d40!important;color:#f2faf4!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar nav a{background:transparent!important;color:#cfdfd3!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar nav a:hover{background:#294c39!important;color:#f2fbf4!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar nav a.selected{background:#34684c!important;color:#fff!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar .zv-user{background:#2c4a39!important;border-color:#547a5b!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-tier{background:#274d3d!important;color:#f6fff6!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-tier :is(b,small){color:#f2fcf3!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-button.secondary,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zf-row button.secondary{background:#314d3f!important;color:#f3fff5!important;border:1px solid #59836c!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(input,textarea,select){background:#253c32!important;color:#f2fff6!important;border:1px solid #58715f!important;caret-color:#cff6d8}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(input,textarea)::placeholder{color:#b6cabd!important;opacity:1}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(input,select,textarea):disabled{background:#34453e!important;color:#c0d3c5!important;opacity:.8}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zv-request-table th,.zv-request-table thead,.zf-instructions,.zf-setup-section,.zf-caution){background:#293f34!important;color:#f0f9f1!important;border-color:#446351!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zv-request-table td,.zv-request-table th){border-color:#405d4d!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal-bg{background:#06120ee5!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal{box-shadow:0 30px 100px #000a!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-live{color:#bbebca!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-live i{border-color:#1e3029!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-toolbar :is(span,p,small){color:#d4e6d7!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal button:not(.zv-button){color:var(--z-ui-text)}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar .zv-logo{color:#f3fff5!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-sidebar .zv-logo span{color:#9ad6aa!important}
+/* Light theme remains explicit, avoiding stale colors when toggling from dark to light. */
+html[data-zimba-theme="light"] body.zv-workspace-on .zv-property-list article,
+html[data-zimba-theme="light"] body.zv-workspace-on .zv-modal{background:#fff;color:#183b2b}
+/* Dark-mode property creation must not lose the save action or its focus treatment. */
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal :is(button[type="submit"],.zv-button){min-height:44px}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zv-modal :is(button,input,textarea,select):focus-visible{outline:3px solid #9ee6b8!important;outline-offset:3px}
