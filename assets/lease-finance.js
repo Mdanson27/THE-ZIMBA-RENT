@@ -36,6 +36,8 @@ async function load(kind,manager){
  root.innerHTML=html;
  root.querySelectorAll("[data-zf-end]").forEach(btn=>btn.onclick=async()=>{const reason=prompt("Reason for recording end of completed lease term (12–500 characters). This is not an eviction.");if(!reason)return;btn.disabled=true;try{await api().endLease(btn.dataset.zfEnd,reason);await load(kind,manager)}catch(e){btn.textContent=e.message;btn.disabled=false}});
  const lease=root.querySelector("#zf-lease");
+ if(lease){try{const selected=sessionStorage.getItem("zimba:rental-setup-connection");if(selected&&lease.elements.connection){const option=Array.from(lease.elements.connection.options).find(o=>o.value===selected);if(option){lease.elements.connection.value=selected;sessionStorage.removeItem("zimba:rental-setup-connection")}}}catch(_){}}
+
  if(lease)lease.onsubmit=async e=>{e.preventDefault();const f=new FormData(lease),btn=lease.querySelector("button");btn.disabled=true;try{await api().prepareLease(f.get("connection"),f.get("start"),f.get("end")||null,Number(f.get("rent")),Number(f.get("deposit")),f.get("terms"),f.get("depositTerms"),f.has("issue"));await load(kind,manager)}catch(err){lease.querySelector(".zf-error").textContent=err.message;btn.disabled=false}};
  const invoice=root.querySelector("#zf-invoice");
  if(invoice)invoice.onsubmit=async e=>{e.preventDefault();const f=new FormData(invoice),btn=invoice.querySelector("button");btn.disabled=true;try{await api().issueRentInvoice(f.get("lease"),f.get("period")+"-01");await load(kind,manager)}catch(err){invoice.querySelector(".zf-error").textContent=err.message;btn.disabled=false}};
