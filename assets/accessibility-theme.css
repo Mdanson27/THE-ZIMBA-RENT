@@ -173,3 +173,37 @@ html[data-zimba-theme="dark"] body.zv-workspace-on .zo-error{box-shadow:0 24px 7
 html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal{max-height:92dvh;overflow-y:auto;box-sizing:border-box}
 html[data-zimba-theme="dark"] body.zv-workspace-on .zb-floor>summary:focus-visible,
 html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit:focus-visible{outline:3px solid #a4e5b7!important;outline-offset:3px}
+
+
+/* Super Admin: preserve dark navigation identity and pair each information panel with legible text. */
+html[data-zimba-theme="dark"] body.zimba-control-mode{background:#111c18!important;color:#eff6f0!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(.zc-stage,.zc-main,.zc-app){background:#111c18!important;color:#eff6f0!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(
+ .zc-topbar,.zc-panel,.zc-metric,.zc-price-card,.zc-toolbar,.zc-table-scroll,
+ .zc-empty,.zc-error,.zc-distribution>div,.zc-information,.zc-price-rule,
+ .zc-notify,.zc-bar-track
+){background:#22352c!important;color:#edf5ee!important;border-color:#43614d!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(
+ .zc-heading h1,.zc-heading p,.zc-panel h2,.zc-panel strong,.zc-metric strong,
+ .zc-metric b,.zc-metric small,.zc-metric span,.zc-bar strong,.zc-bar span,
+ .zc-breadcrumb,.zc-breadcrumb strong,.zc-env,.zc-panel-head span,
+ .zc-distribution strong,.zc-distribution span,.zc-ops strong,.zc-ops span,
+ .zc-price-card h2,.zc-price-card p,.zc-information p,.zc-table td,.zc-table th
+){color:#edf5ee!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(.zc-metric-top small,.zc-heading p,.zc-eyebrow,.zc-panel-head span,.zc-information){color:#bdcebf!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode .zc-side{background:#142a20!important;color:#edf5ee!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode .zc-nav a{color:#c7decf!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode .zc-nav a.current{background:#32634b!important;color:#fff!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode .zc-btn.secondary{background:#324e3e!important;border-color:#74937a!important;color:#f3fff5!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(input,textarea,select){background:#293f33!important;color:#f4f9f5!important;border:1px solid #65806a!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(input,textarea)::placeholder{color:#bed0c0!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(.zc-table th,.zc-table td){border-color:#45614e!important}
+html[data-zimba-theme="dark"] body.zimba-control-mode :is(.zc-badge,.zc-admin-tag){background:#345540!important;color:#e9f9ee!important;border-color:#61876c!important}
+/* Contextual labels and controls retain contrast in both themes. */
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zb-toolbar label,.zb-modal label,.zt-form label,.zt-panel label,.zo-form label,.zf-form label,.zf-setup-section h3){color:#e9f5ed!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zb-btn,.zo-btn,.zt-button,.zf-form button){min-height:42px}
+@media(max-width:650px){
+ html[data-zimba-theme="dark"] body.zv-workspace-on .zb-metrics{gap:10px}
+ html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal{max-height:92dvh;padding:22px}
+ html[data-zimba-theme="dark"] body.zv-workspace-on .zt-thread{padding:12px}
+}
