@@ -13,8 +13,6 @@ html[data-zimba-theme="dark"] .zv-workspace-on,html[data-zimba-theme="dark"] .zc
 html[data-zimba-theme="dark"] body.zv-workspace-on{background:var(--z-ui-bg)!important;color:var(--z-ui-text)!important}
 html[data-zimba-theme="dark"] .zv-layout,html[data-zimba-theme="dark"] .zv-stage,html[data-zimba-theme="dark"] .zv-content,html[data-zimba-theme="dark"] .zc-app,html[data-zimba-theme="dark"] .zc-stage,html[data-zimba-theme="dark"] .zc-main{background:var(--z-ui-bg)!important;color:var(--z-ui-text)!important}
 html[data-zimba-theme="dark"] :is(.zv-topbar,.zv-sidebar,.zf-card,.zf-line,.zt-panel,.zt-house,.zt-repair,.zv-panel,.zo-panel,.zc-panel,.zc-topbar,.zc-side,.zn-popover,.zn-item,.zn-page-list,.zv-rent-modal,.zo-repair-card,.zv-stat,.zv-request-table,.zv-note,.zc-information,.zo-form,.zo-card,.zv-settings-card){background:var(--z-ui-card)!important;color:var(--z-ui-text)!important;border-color:var(--z-ui-line)!important}
-html[data-zimba-theme="dark"] :is(.zv-workspace-on,.zc-app) :is(h1,h2,h3,h4,p,strong,b,small,label,td,th,summary,.zv-breadcrumb,.zc-breadcrumb,.zf-card h2,.zf-line strong,.zt-heading h1,.zt-panel h2,.zc-heading h1,.zo-panel h2){color:var(--z-ui-text)!important}
-html[data-zimba-theme="dark"] :is(.zv-workspace-on,.zc-app) :is(.zf-line p,.zf-caution,.zf-page>span,.zc-eyebrow,.zf-card label,.zt-panel p,.zv-page-title p,.zc-heading p){color:var(--z-ui-muted)!important}
 html[data-zimba-theme="dark"] :is(.zv-workspace-on,.zc-app) :is(input,textarea,select){background:var(--z-ui-field)!important;color:var(--z-ui-text)!important;border:1px solid var(--z-ui-line)!important}
 html[data-zimba-theme="dark"] :is(.zv-workspace-on,.zc-app) :is(input,textarea)::placeholder{color:#a3b6a9}
 html[data-zimba-theme="dark"] :is(.zv-workspace-on,.zc-app) :is(table,tr,td,th){border-color:var(--z-ui-line)!important}
@@ -98,3 +96,80 @@ body.zv-workspace-on .zv-modal-bg{padding:max(12px,env(safe-area-inset-top)) 12p
 body.zv-workspace-on .zv-modal form{min-width:0}
 body.zv-workspace-on .zv-modal input{box-sizing:border-box;max-width:100%}
 @media(max-width:540px){body.zv-workspace-on .zv-modal{padding:24px 18px}body.zv-workspace-on .zv-modal h2{font-size:27px!important}}
+
+
+/* Dark surface architecture — all colors are paired with their owning component.
+   Do not target all h1/p/strong elements globally: it breaks chat bubbles and status cards. */
+html[data-zimba-theme="dark"] body.zv-workspace-on{
+  --zb-bg:#101b17;--zb-surface:#1e3028;--zb-raised:#273d32;--zb-input:#263e33;
+  --zb-text:#eef5ef;--zb-muted:#bdd0c1;--zb-border:#415e4d;--zb-accent:#a5dfb6;
+  --zb-on-accent:#0b2b1a
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(
+ .zb-toolbar,.zb-metrics article,.zb-floor,.zb-list-row,.zb-empty,.zb-error,.zb-modal,
+ .zb-layout-switch,.zt-thread,.zt-bubble,.zt-facts>div,.zt-links a,.zt-demo,
+ .zt-note,.zt-repair-note,.zt-repair-status,.zo-card,.zo-repair-card,.zo-steps p,
+ .zo-notice,.zo-feedback,.zo-error,.zo-table th,.zn-bell,.zn-popover,.zn-item,
+ .zn-page-list,.zn-page-head button,.zv-disclaimer,.zv-connected-home
+){background:var(--zb-surface)!important;color:var(--zb-text)!important;border-color:var(--zb-border)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(
+ .zb-title,.zb-page,.zb-title h1,.zb-toolbar label,.zb-metrics strong,.zb-metrics span,
+ .zb-floor summary,.zb-floor header,.zb-floor strong,.zb-floor small,.zb-list-row strong,
+ .zb-list-row small,.zb-legend,.zb-clarifier,.zb-empty p,.zb-modal h2,.zb-modal label,
+ .zo-page,.zo-card strong,.zo-card b,.zo-panel-title h2,.zo-panel p,.zo-activity small,
+ .zt-heading,.zt-heading p,.zt-panel p,.zt-panel h2,.zt-house p,.zt-house h2,
+ .zt-bubble b,.zt-bubble p,.zt-bubble small,.zn-item strong,.zn-item small,.zn-item em,
+ .zn-page-head h1,.zn-page-head p,.zn-empty,.zf-card h2,.zf-row strong,
+ .zb-modal-help
+){color:var(--zb-text)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on :is(.zb-floor>summary,.zb-floor>header){
+ background:var(--zb-raised)!important;border-color:var(--zb-border)!important;color:var(--zb-text)!important
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-room-grid{background:var(--zb-surface)!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit:not(.zb-occupied):not(.zb-pending):not(.zb-reserved):not(.zb-maintenance){
+ background:#2a4837!important;color:#e1f6e6!important;border-color:#4e8060!important
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit.zb-occupied{background:#204b38!important;color:#fff!important;border-color:#518b66!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit.zb-pending{background:#36423d!important;color:#f0f6f1!important;border-color:#82988a!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit.zb-reserved{background:#5a4627!important;color:#fff2d4!important;border-color:#947746!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit.zb-maintenance{background:#5b372b!important;color:#ffe4cf!important;border-color:#ae6c50!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit :is(strong,small,span){color:inherit!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-layout-switch button:not(.active){color:#d1e5d5!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-layout-switch button.active{background:#75bc8a!important;color:#092718!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-floor-option{background:#2a4535!important;color:#edf5ed!important;border-color:#52705c!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-floor-option.selected{background:#70b987!important;color:#092617!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-btn.secondary,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zo-btn.secondary,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-button.light{background:#304d3c!important;color:#f1fbf2!important;border-color:#587b64!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal .zb-close{background:#3d5a47!important;color:#f5fff5!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-thread{background:#152921!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-bubble{
+ background:#2b4034!important;border-color:#506957!important;color:#f2f9f3!important
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-bubble.mine{
+ background:#315944!important;border-color:#618c6c!important;color:#f2fff5!important
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-bubble :is(b,p,small){color:#f1f8f1!important;opacity:1}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-bubble small{color:#c4d8c8!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-repair-track{background:#3d5747!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-repair-status,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zo-chip{background:#365b43!important;color:#e8faea!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zn-item.unread{background:#294938!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zn-item:hover{background:#345843!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zn-head{border-color:#405d4d!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zn-head a{color:#b2e5c4!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal :is(input,textarea,select),
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-form :is(input,textarea,select),
+html[data-zimba-theme="dark"] body.zv-workspace-on .zo-form :is(input,textarea,select){
+ background:var(--zb-input)!important;color:var(--zb-text)!important;border:1px solid #617c69!important
+}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-metrics strong,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-metrics span{color:#eef7ee!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-property-card :is(h2,p,strong,span),
+html[data-zimba-theme="dark"] body.zv-workspace-on .zt-hero :is(h2,p,span),
+html[data-zimba-theme="dark"] body.zv-workspace-on .zo-hero :is(h2,p,strong,span){color:#fff!important}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zo-error{box-shadow:0 24px 75px #0007}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-modal{max-height:92dvh;overflow-y:auto;box-sizing:border-box}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-floor>summary:focus-visible,
+html[data-zimba-theme="dark"] body.zv-workspace-on .zb-unit:focus-visible{outline:3px solid #a4e5b7!important;outline-offset:3px}
