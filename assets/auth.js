@@ -4,6 +4,12 @@ const originReturn = location.origin + location.pathname + "#/workspace/home";
 const DATA_API_URL = "https://ep-misty-frost-ber91fca.apirest.c-9.us-east-2.aws.neon.tech/zimba_rent_dev/rest/v1"; // public service URL, not a database credential
 const state = { ready:false, user:null, error:null };
 const missingRpcCache = new Map(); // avoid repeated known-missing RPC requests during schema refresh
+let signedJwtCache=null;
+let tokenInFlight=null;
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const clearSignedToken=()=>{signedJwtCache=null;tokenInFlight=null};
+const jwtIsFresh=(entry,userId)=>!!(entry&&entry.userId===userId&&entry.expiresAt>Date.now()+45000);
+
 const api = {
   state,
   async refresh(){
@@ -13,7 +19,10 @@ const api = {
         // Keep the last verified identity during temporary service failures.
         state.error=result.error.message||"Session verification temporarily unavailable";
       }else{
-        state.user=result?.data?.user?.emailVerified===true ? result.data.user : null;
+        const previousUserId=state.user?.id||null;
+        const verified=result?.data?.user?.emailVerified===true ? result.data.user : null;
+        if(previousUserId!==verified?.id)clearSignedToken();
+        state.user=verified;
         state.error=null;
       }
     } catch(err) {
@@ -51,52 +60,66 @@ const api = {
     if(r.error)throw new Error(r.error.message || "Could not send verification code");
     return "A new verification code has been requested.";
   },
-  async token(){
-    // Neon Managed Auth uses /token (or the signed access_token supplied with
-    // the session). The legacy getJWTToken() calls /get-jwt-token, which this
-    // Neon Managed Better Auth instance does not expose and returns HTTP 404.
-    const session=await client.getSession();
-    const user=session?.data?.user;
-    if(!user?.id || user.emailVerified!==true){
-      const error=new Error("Unable to verify the current account session. Please sign in again if the session has expired.");
-      error.requiresLogin=true;throw error;
-    }
-    const isJwt=value=>typeof value==="string" && value.split(".").length===3;
-    // A Better Auth session token is not necessarily a Neon Data API JWT.
-    // Always request a fresh, server-signed JWT from the Auth /token endpoint.
-    let response;
-    try{
-      response=await fetch(AUTH_URL.replace(/\/$/,"")+"/token",{
-        method:"GET",credentials:"include",headers:{"Accept":"application/json"},
-        cache:"no-store"
-      });
-    }catch(err){throw new Error("Neon Auth is unreachable. Check your connection and retry.");}
-    if(response.status===401||response.status===403){
-      // Token issuing failure must not revoke the cookie-backed session.
-      const error=new Error("Neon could not issue a database access token (HTTP "+response.status+"). Your signed-in session is preserved.");
-      error.httpStatus=response.status;throw error;
-    }
-    if(!response.ok){
-      throw new Error("Neon could not issue your secure access token (HTTP "+response.status+").");
-    }
-    const payload=await response.json();
-    const jwt=payload?.token||payload?.data?.token||payload?.access_token||payload?.data?.access_token;
-    if(!isJwt(jwt))throw new Error("Neon returned an invalid database access token.");
-    // This is a client-side format check, not signature verification. The
-    // Data API verifies the signed JWT before authorising any SQL operation.
-    let claims;
-    try{
-      const part=jwt.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
-      claims=JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,"=")));
-    }catch(_){throw new Error("The database token has an unreadable payload.");}
-    if(String(claims.sub||"")!==String(user.id||"")){
-      throw new Error("Neon returned a token for a different account. Your session is preserved; contact Zimba support.");
-    }
-    if(claims.role!=="authenticated"){
-      const error=new Error("Neon returned a token without the authenticated database role. The JWT role mapping requires correction.");
-      error.code="NEON_JWT_ROLE_MISMATCH";error.httpStatus=403;throw error;
-    }
-    return jwt;
+  async token({force=false}={}){
+    // Cache the signed JWT only in memory and only while a verified user is present.
+    // Concurrent startup RPCs share one issuance request. No token enters localStorage.
+    const known=state.user;
+    if(!force&&known?.id&&jwtIsFresh(signedJwtCache,known.id))return signedJwtCache.token;
+    if(!force&&tokenInFlight)return tokenInFlight;
+    const issue=async()=>{
+      const session=await client.getSession();
+      const user=session?.data?.user;
+      if(!user?.id||user.emailVerified!==true){
+        const error=new Error("Your authenticated session needs verification.");
+        error.requiresLogin=true;
+        throw error;
+      }
+      if(!state.user||state.user.id!==user.id){state.user=user;clearSignedToken()}
+      let response;
+      try{
+        response=await fetch(AUTH_URL.replace(/\/$/,"")+"/token",{
+          method:"GET",credentials:"include",
+          headers:{"Accept":"application/json"},cache:"no-store"
+        });
+      }catch(err){
+        const error=new Error("Unable to reach the secure token service.");
+        error.transient=true;throw error;
+      }
+      if(!response.ok){
+        const error=new Error("Database token issuance temporarily unavailable (HTTP "+response.status+").");
+        error.httpStatus=response.status;
+        error.transient=[401,403,429,500,502,503,504].includes(response.status);
+        throw error;
+      }
+      const payload=await response.json();
+      const jwt=payload?.token||payload?.data?.token||payload?.access_token||payload?.data?.access_token;
+      if(typeof jwt!=="string"||jwt.split(".").length!==3)throw new Error("Invalid signed database access token.");
+      let claims;
+      try{
+        const part=jwt.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
+        claims=JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,"=")));
+      }catch(_){throw new Error("Invalid database access token payload.");}
+      if(String(claims.sub||"")!==String(user.id)){
+        const error=new Error("Token subject does not match signed-in user.");
+        error.code="NEON_SUBJECT_MISMATCH";throw error;
+      }
+      if(claims.role!=="authenticated"){
+        const error=new Error("Database access token has an invalid role.");
+        error.code="NEON_JWT_ROLE_MISMATCH";
+        error.httpStatus=403;throw error;
+      }
+      const expiry=Number(claims.exp||0)*1000;
+      if(!Number.isFinite(expiry)||expiry<=Date.now()+10000){
+        const error=new Error("Database access token has expired.");
+        error.transient=true;throw error;
+      }
+      signedJwtCache={token:jwt,userId:user.id,expiresAt:expiry};
+      return jwt;
+    };
+    if(force)clearSignedToken();
+    const current=issue();
+    tokenInFlight=current;
+    try{return await current}finally{if(tokenInFlight===current)tokenInFlight=null}
   },
   async relogin(reason="Your account needs verification."){
     // Redirect for interactive authentication without revoking a still-live
@@ -124,35 +147,54 @@ const api = {
     const knownMissing=missingRpcCache.get(name);
     if(knownMissing && Date.now()-knownMissing.when<12000){const error=new Error(knownMissing.message);error.httpStatus=404;error.code=knownMissing.code;error.operation=name;throw error;}
     if(!["my_subscription","admin_user_directory","admin_assign_plan","claim_zimba_admin","my_onboarding","finish_my_onboarding","my_properties","create_my_property","create_resident_invite","accept_resident_invite","my_residences","zimba_is_super_admin","zimba_admin_overview","zimba_admin_properties","zimba_admin_organizations","zimba_admin_activity","zimba_admin_plans","zimba_admin_accounts","zimba_current_policies","zimba_policy_status","zimba_accept_policies","zimba_manager_overview","zimba_my_maintenance","zimba_create_maintenance","zimba_update_maintenance","zimba_my_financials","zimba_record_expense","zimba_my_settings","zimba_update_settings","zimba_manager_units","zimba_save_unit","zimba_property_details","zimba_update_property","zimba_invite_by_reference","zimba_tenant_inbox","zimba_resident_requests","zimba_respond_resident_invite","zimba_generate_units","zimba_resident_profiles","zimba_tenant_home","zimba_tenant_wallet","zimba_connection_messages","zimba_send_connection_message","zimba_manager_threads","zimba_resident_service_request","zimba_tenant_service_requests","zimba_invite_with_rent_start","zimba_tenant_inbox_v2","zimba_resident_profiles_v2","zimba_notification_feed","zimba_mark_notification_read","zimba_manager_maintenance_progress","zimba_tenant_maintenance_progress","zimba_manager_maintenance_list","zimba_manager_change_rent_start","zimba_resident_profiles_v3","zimba_admin_security_audit","zimba_manager_security_audit","zimba_manager_prepare_lease","zimba_tenant_lease","zimba_tenant_acknowledge_lease","zimba_manager_lease_list","zimba_manager_issue_invoice","zimba_tenant_billing","zimba_manager_invoice_list","zimba_manager_send_rent_reminder","zimba_tenant_deposit_summary","zimba_tenant_request_deposit_refund","zimba_manager_deposit_summary","zimba_manager_end_lease","zimba_manager_review_deposit_refund","zimba_manager_land_lease_drafts","zimba_manager_create_land_lease_draft"].includes(name)) throw new Error("Unsupported API operation");
-    let jwt;
-    try{jwt=await api.token()}catch(error){
-      throw error;
+    // Startup requests can race with Neon Auth cookie restoration or token
+    // propagation. Retry only transient authorization/service errors, never
+    // application validation failures, and never remove a verified session.
+    let response,data;
+    for(let attempt=0;attempt<3;attempt++){
+      let jwt;
+      try{jwt=await api.token({force:attempt>0})}
+      catch(error){
+        if(attempt<2&&(error.transient||[401,403,429,500,502,503,504].includes(error.httpStatus))){
+          await pause(attempt===0?300:900);continue;
+        }
+        throw error;
+      }
+      try{
+        response=await fetch(DATA_API_URL+"/rpc/"+name,{
+          method:"POST",
+          headers:{"Authorization":"Bearer "+jwt,"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify(params)
+        });
+      }catch(error){
+        if(attempt<2){await pause(attempt===0?300:900);continue}
+        const networkError=new Error("The secure database is temporarily unreachable.");
+        networkError.transient=true;throw networkError;
+      }
+      const contentType=response.headers.get("content-type")||"";
+      data=contentType.includes("json")?await response.json():null;
+      if(response.ok)break;
+      if([401,403,429,502,503,504].includes(response.status)&&attempt<2){
+        clearSignedToken();
+        await pause(attempt===0?300:900);
+        continue;
+      }
+      break;
     }
-    const response=await fetch(DATA_API_URL+"/rpc/"+name,{
-      method:"POST",
-      headers:{"Authorization":"Bearer "+jwt,"Content-Type":"application/json","Accept":"application/json"},
-      body:JSON.stringify(params)
-    });
-    const contentType=response.headers.get("content-type")||"";
-    const data=contentType.includes("json")?await response.json():null;
-    if(response.status===401){
-      const error=new Error("The Zimba Data API rejected this access token (HTTP 401). Your account session has not been signed out.");
-      error.httpStatus=401;error.code=data?.code;throw error;
-    }
-    if(!response.ok){
+    if(!response?.ok){
       const detail=data?.message||data?.error||"Database request failed";
-      if(response.status===404){
+      if(response?.status===404){
         const serviceCode=String(data?.code||"");
         const error=new Error(serviceCode==="PGRST202"?"Neon has not refreshed the "+name+" function signature in its API schema cache (PGRST202). Your login remains active.":"The "+name+" API operation returned HTTP 404 ("+(serviceCode||"unknown code")+"). Your account remains signed in.");
-        error.httpStatus=404;
-        error.operation=name;
-        error.code=data?.code||"ROUTE_NOT_FOUND";
-        error.details=data?.details||null;
-        error.hint=data?.hint||null;
+        error.httpStatus=404;error.operation=name;error.code=data?.code||"ROUTE_NOT_FOUND";
+        error.details=data?.details||null;error.hint=data?.hint||null;
         if(error.code==="PGRST202")missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
         throw error;
       }
-      const error=new Error(response.status===403?"Zimba cannot access "+name+" (HTTP 403). The backend permissions or JWT roles need repair; your account remains signed in.":detail);error.httpStatus=response.status;error.code=data?.code;error.operation=name;throw error;
+      const error=new Error(response?.status===403?"Zimba cannot access "+name+" (HTTP 403). Your account session is preserved.":response?.status===401?"The database declined this access token (HTTP 401). Your account remains signed in.":detail);
+      error.httpStatus=response?.status;error.code=data?.code;error.operation=name;
+      error.transient=[401,403,429,502,503,504].includes(response?.status);
+      throw error;
     }
     missingRpcCache.delete(name);
     return data;
@@ -230,6 +272,7 @@ const api = {
     if(r.error)throw new Error(r.error.message || "Google sign-in could not start");
   },
   async logout(){
+    clearSignedToken();
     await client.signOut();
     state.user=null;
     dispatchEvent(new Event("zimba-auth-change"));
