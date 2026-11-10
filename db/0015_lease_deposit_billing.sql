@@ -238,4 +238,25 @@ REVOKE ALL ON FUNCTION public.zimba_tenant_lease() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_lease() TO authenticated;
 REVOKE ALL ON FUNCTION public.zimba_tenant_request_deposit_refund(p_lease uuid, p_amount bigint, p_reason text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_request_deposit_refund(p_lease uuid, p_amount bigint, p_reason text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.zimba_manager_end_lease(p_lease uuid, p_reason text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE org uuid:=public.zimba_my_manager_org();l zimba_lease_records%ROWTYPE;uid uuid;
+BEGIN
+ SELECT * INTO l FROM zimba_lease_records WHERE id=p_lease AND organization_id=org AND status='acknowledged' FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Only an acknowledged active lease may be marked ended' USING ERRCODE='42501'; END IF;
+ IF l.end_date IS NULL OR l.end_date>current_date THEN RAISE EXCEPTION 'End date must have passed; early termination requires separately documented agreement' USING ERRCODE='42501'; END IF;
+ IF length(btrim(coalesce(p_reason,''))) NOT BETWEEN 12 AND 500 THEN RAISE EXCEPTION 'Provide an audit reason of 12–500 characters' USING ERRCODE='22023'; END IF;
+ UPDATE zimba_lease_records SET status='ended' WHERE id=p_lease;
+ SELECT resident_auth_user_id INTO uid FROM resident_connections WHERE id=l.connection_id;
+ INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id) VALUES(uid,'general','Lease status updated','Your landlord recorded the lease as ended. Review deposit settlement and keep copies of all records.','#/workspace/deposits',p_lease);
+ INSERT INTO zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details) VALUES(auth.uid(),org,'lease_marked_ended','lease',p_lease,jsonb_build_object('reason',btrim(p_reason),'contractEnd',l.end_date));
+ RETURN jsonb_build_object('success',true,'status','ended','note','This status update is an administrative record and not an eviction or physical access change');
+END $function$
+
+REVOKE ALL ON FUNCTION public.zimba_manager_end_lease(uuid,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.zimba_manager_end_lease(uuid,text) TO authenticated;
 NOTIFY pgrst,'reload schema';
