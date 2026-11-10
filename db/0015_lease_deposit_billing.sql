@@ -259,4 +259,31 @@ END $function$
 
 REVOKE ALL ON FUNCTION public.zimba_manager_end_lease(uuid,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.zimba_manager_end_lease(uuid,text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.zimba_manager_review_deposit_refund(p_request uuid, p_approve boolean, p_note text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE org uuid:=public.zimba_my_manager_org();r zimba_deposit_refund_requests%ROWTYPE;tenant uuid;verified bigint;previous_approved bigint;
+BEGIN
+ SELECT r.* INTO r FROM zimba_deposit_refund_requests r JOIN zimba_lease_records l ON l.id=r.lease_id
+ WHERE r.id=p_request AND l.organization_id=org AND l.status='ended' AND r.status='requested' FOR UPDATE OF r;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Pending refund request not found for this organisation' USING ERRCODE='42501'; END IF;
+ IF length(btrim(coalesce(p_note,''))) NOT BETWEEN 15 AND 1000 THEN RAISE EXCEPTION 'Provide a written review decision (15–1000 characters)' USING ERRCODE='22023'; END IF;
+ IF p_approve THEN
+ SELECT coalesce(sum(CASE WHEN entry_kind='verified_deposit' THEN amount_ugx ELSE -amount_ugx END),0) INTO verified FROM zimba_deposit_ledger WHERE lease_id=r.lease_id;
+ SELECT coalesce(sum(amount_ugx),0) INTO previous_approved FROM zimba_deposit_refund_requests WHERE lease_id=r.lease_id AND status='approved_pending_payout';
+ IF r.amount_ugx>verified-previous_approved THEN RAISE EXCEPTION 'Verified held deposit is insufficient to approve this request' USING ERRCODE='22023'; END IF;
+ END IF;
+ UPDATE zimba_deposit_refund_requests SET status=CASE WHEN p_approve THEN 'approved_pending_payout' ELSE 'rejected' END,reviewed_by=auth.uid(),reviewed_at=now(),decision_note=btrim(p_note) WHERE id=r.id;
+ SELECT c.resident_auth_user_id INTO tenant FROM zimba_lease_records l JOIN resident_connections c ON c.id=l.connection_id WHERE l.id=r.lease_id;
+ INSERT INTO zimba_notifications(recipient_auth_id,kind,title,body,link,related_id)
+ VALUES(tenant,'general',CASE WHEN p_approve THEN 'Deposit refund approved for review' ELSE 'Deposit refund request declined' END,CASE WHEN p_approve THEN 'Refund request approved pending external payout verification. No funds have been transferred.' ELSE 'Your landlord has responded to the refund request. View the decision.' END,'#/workspace/deposits',r.id);
+ INSERT INTO zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details) VALUES(auth.uid(),org,'deposit_refund_reviewed','deposit_refund',r.id,jsonb_build_object('approved',p_approve,'amount',r.amount_ugx,'reason',btrim(p_note)));
+ RETURN jsonb_build_object('success',true,'status',CASE WHEN p_approve THEN 'approved_pending_payout' ELSE 'rejected' END,'moneyTransferred',false);
+END $function$
+
+REVOKE ALL ON FUNCTION public.zimba_manager_review_deposit_refund(uuid,boolean,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.zimba_manager_review_deposit_refund(uuid,boolean,text) TO authenticated;
 NOTIFY pgrst,'reload schema';
