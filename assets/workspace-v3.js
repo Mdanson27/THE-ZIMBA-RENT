@@ -95,6 +95,7 @@ function navGroup(key){
  if(["home","properties","property","building","residents"].includes(key))return "PROPERTY MANAGEMENT";
  if(["messages","maintenance","connection"].includes(key))return "COMMUNICATION & CARE";
  if(["finance","payments","lease","land-leases","invoices","deposits"].includes(key))return "RENT & FINANCES";
+  if(key==="enterprise")return "ENTERPRISE OPERATIONS";
  if(["notifications","security","settings","plans","preferences","admin"].includes(key))return "ACCOUNT & SECURITY";
  return "YOUR WORKSPACE";
 }
@@ -106,7 +107,7 @@ function navMarkup(nav,section){
  }).join("");
 }
 function shell(section,body){
- let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["property","Property workspace","▤"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["lease","Rental agreements","▣"],["land-leases","Land & long-term leases","▱"],["invoices","Rent invoices","▤"],["deposits","Deposits","◈"],["plans","Plans & billing","✧"],["settings","Settings","⚙"],["notifications","Notifications","♧"],["security","Security & activity","♢"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["lease","My agreement","▣"],["invoices","Rent invoices","▤"],["deposits","Security deposit","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
+ let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["property","Property workspace","▤"],["enterprise","Enterprise Centre","▦"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["lease","Rental agreements","▣"],["land-leases","Land & long-term leases","▱"],["invoices","Rent invoices","▤"],["deposits","Deposits","◈"],["plans","Plans & billing","✧"],["settings","Settings","⚙"],["notifications","Notifications","♧"],["security","Security & activity","♢"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["lease","My agreement","▣"],["invoices","Rent invoices","▤"],["deposits","Security deposit","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
  if(adminCandidate())nav=[...nav,["admin","Platform administration","✧"]];
  paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+'"><aside class="zv-sidebar"><div class="zv-brand-section"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+navMarkup(nav,section)+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout">⇥ Sign out</button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" aria-label="Open navigation">☰</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> '+(navigator.onLine?'Online · Signed in':'Offline · Signed in')+'</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
  $("#zv-logout").onclick=()=>window.ZimbaAuth.logout();
@@ -325,18 +326,18 @@ function render(section){
   if(propertyStatus==='error'){syncBlocked();return}
  }
  if(section==="overview")section="home";
- if(["properties","property","building","residents","finance","plans","security"].includes(section)&&!managed())section="home";
+ if(["properties","property","building","residents","finance","plans","security","enterprise"].includes(section)&&!managed())section="home";
  if(section==="messages"&&!managed()&&record.role!=="tenant")section="home";
  if(["connection","payments"].includes(section)&&record.role!=="tenant")section="home";
  if(section==="admin"&&!adminCandidate())section="home";
  section=section.split("?")[0];
- if(!["home","properties","property","building","plans","settings","residents","maintenance","finance","payments","connection","messages","notifications","lease","land-leases","invoices","deposits","security","preferences","admin"].includes(section))section="home";
+ if(!["home","properties","property","building","plans","settings","residents","maintenance","finance","payments","connection","messages","notifications","lease","land-leases","invoices","deposits","security","enterprise","preferences","admin"].includes(section))section="home";
  const ops=window.ZimbaOperations;
  const operational=managed()&&["home","maintenance","finance","settings"].includes(section)&&!!ops;
  const residentFeature=record.role==="tenant"&&["home","messages","maintenance","payments"].includes(section)&&!!window.ZimbaTenantPortal;
  const managerMessages=managed()&&section==="messages"&&!!window.ZimbaTenantPortal;
  const leaseSection=["lease","invoices","deposits"].includes(section)&&!!window.ZimbaLeaseFinance&&(managed()||record.role==="tenant");
- shell(section,section==="property"&&managed()?window.ZimbaPropertyHub.page(record):section==="land-leases"&&managed()?window.ZimbaLandLeases.page():leaseSection?window.ZimbaLeaseFinance.page(section,managed()):managerMessages?window.ZimbaTenantPortal.managerEntry():residentFeature?window.ZimbaTenantPortal.entry(section):operational?ops.shell(section):section==="notifications"?window.ZimbaNotify?.page():section==="security"?securityPage():section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
+ shell(section,section==="enterprise"&&managed()?window.ZimbaEnterprise.page():section==="property"&&managed()?window.ZimbaPropertyHub.page(record):section==="land-leases"&&managed()?window.ZimbaLandLeases.page():leaseSection?window.ZimbaLeaseFinance.page(section,managed()):managerMessages?window.ZimbaTenantPortal.managerEntry():residentFeature?window.ZimbaTenantPortal.entry(section):operational?ops.shell(section):section==="notifications"?window.ZimbaNotify?.page():section==="security"?securityPage():section==="home"?home():section==="properties"?properties():section==="plans"?plansPage():section==="building"?window.ZimbaBuilding?.page(record):section==="admin"?adminPage():section==="residents"?residentsPage():section==="connection"?connectPage():other(section));
  window.ZimbaNotify?.mount();
  if(section==="notifications")window.ZimbaNotify?.activatePage();
  if(operational)ops.activate(section,record);
@@ -347,6 +348,7 @@ function render(section){
  $("#zv-add")?.addEventListener("click",openProperty);
  $("#zv-first")?.addEventListener("click",openProperty);
  if(section==="property"&&managed())window.ZimbaPropertyHub.bind(record);
+  if(section==="enterprise"&&managed())window.ZimbaEnterprise.bind(record);
  if(section==="building")window.ZimbaBuilding?.bind(record);
  if(section==="security"){loadSecurityFeed();$("#zv-security-refresh")?.addEventListener("click",loadSecurityFeed)}
  if(section==="residents")bindResidents();
