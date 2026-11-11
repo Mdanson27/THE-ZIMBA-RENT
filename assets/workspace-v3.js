@@ -91,28 +91,20 @@ function onboard(){
  step++;onboard();
  };
 }
-function navGroup(key){
- if(["home","properties","property","building","residents"].includes(key))return "PROPERTY MANAGEMENT";
- if(["messages","maintenance","connection"].includes(key))return "COMMUNICATION & CARE";
- if(["finance","payments","lease","land-leases","invoices","deposits"].includes(key))return "RENT & FINANCES";
-  if(key==="enterprise")return "ENTERPRISE OPERATIONS";
-  if(key==="intelligence")return "ZIMBA INTELLIGENCE";
- if(["notifications","security","settings","plans","preferences","admin"].includes(key))return "ACCOUNT & SECURITY";
- return "YOUR WORKSPACE";
-}
-function navMarkup(nav,section){
- return nav.map(([key,title,icon],index)=>{
-  const group=navGroup(key),prev=index?navGroup(nav[index-1][0]):null;
-  return (group!==prev?'<div class="zv-nav-group">'+esc(group)+'</div>':'')+
-    '<a href="#/workspace/'+key+'" class="'+(key===section?"selected":"")+'" '+(key===section?'aria-current="page"':'')+'><span aria-hidden="true">'+icon+'</span>'+esc(title)+'</a>';
- }).join("");
-}
+function navMarkup(nav,section){return window.ZimbaNavigation.build(nav,section);}
 function shell(section,body){
- let nav=managed()?[["home","Overview","◫"],["properties","Properties","⌂"],["property","Property workspace","▤"],["enterprise","Enterprise Centre","▦"],["intelligence","ZIMBA Intelligence","✧"],["building","Building studio","▦"],["residents","Residents","♙"],["messages","Messages","✉"],["maintenance","Maintenance","⚒"],["finance","Financials","▤"],["lease","Rental agreements","▣"],["land-leases","Land & long-term leases","▱"],["invoices","Rent invoices","▤"],["deposits","Deposits","◈"],["plans","Plans & billing","✧"],["settings","Settings","⚙"],["notifications","Notifications","♧"],["security","Security & activity","♢"]]:record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["lease","My agreement","▣"],["invoices","Rent invoices","▤"],["deposits","Security deposit","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:[["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
+ let nav=managed()?
+ [["home","Overview","◫"],["properties","Properties","⌂"],["property","Property workspace","▤"],["building","Building studio","▦"],["residents","Residents","♙"],
+ ["messages","Messages","✉"],["maintenance","Maintenance","⚒"],
+ ["finance","Financials","▤"],["lease","Rental agreements","▣"],["land-leases","Land & long-term leases","▱"],["invoices","Rent invoices","▤"],["deposits","Deposits","◈"],
+ ["intelligence","ZIMBA Intelligence","✧"],["enterprise","Enterprise Centre","▦"],
+ ["notifications","Notifications","♧"],["plans","Plans & billing","✧"],["security","Security & activity","♢"],["settings","Settings","⚙"]]:
+ record.role==="tenant"?[["home","My home","⌂"],["connection","Connect to a home","♧"],["messages","Messages","✉"],["maintenance","Requests","⚒"],["payments","Payments","▤"],["lease","My agreement","▣"],["invoices","Rent invoices","▤"],["deposits","Security deposit","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]]:
+ [["home","Discover","⌕"],["preferences","My preferences","◈"],["notifications","Notifications","♧"],["settings","Settings","⚙"]];
  if(adminCandidate())nav=[...nav,["admin","Platform administration","✧"]];
- paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+'"><aside class="zv-sidebar"><div class="zv-brand-section"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+navMarkup(nav,section)+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout">⇥ Sign out</button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" aria-label="Open navigation">☰</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> '+(navigator.onLine?'Online · Signed in':'Offline · Signed in')+'</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
+ paint('<div class="zv-layout zv-plan-'+esc(record.plan||"personal")+(window.ZimbaNavigation.initialCollapsed()?' zv-sidebar-collapsed':'')+'"><div id="zv-sidebar-backdrop" hidden></div><aside class="zv-sidebar" id="zv-main-sidebar" aria-label="Workspace navigation"><div class="zv-brand-section"><div class="zv-brand-copy"><a href="#/workspace/home" class="zv-logo">zimba<span>.</span></a><small>YOUR PRIVATE SPACE</small></div><button type="button" id="zv-sidebar-pin" title="Collapse sidebar" aria-label="Collapse sidebar">☷</button></div><div class="zv-user"><div class="zv-avatar">'+esc(first().charAt(0).toUpperCase())+'</div><div><b>'+esc(first())+'</b><small>'+esc(roles[record.role]?.[0])+'</small></div><i title="Signed in"></i></div><nav>'+navMarkup(nav,section)+'</nav><div class="zv-sidebar-bottom">'+(managed()?'<a href="#/workspace/plans" class="zv-tier"><b>✧ '+esc((record.plan||"free").toUpperCase())+' WORKSPACE</b><small>'+(caps[record.plan||"free"]===999999?"Custom capacity":caps[record.plan||"free"]+" properties included")+' ↗</small></a>':"")+'<a href="#/">↗ Public marketplace</a><button id="zv-logout" title="Sign out" aria-label="Sign out"><span class="zv-footer-icon" aria-hidden="true">⇥</span> <span class="zv-footer-label">Sign out</span></button></div></aside><section class="zv-stage"><header class="zv-topbar"><button id="zv-toggle" type="button" title="Toggle sidebar" aria-label="Toggle sidebar" aria-controls="zv-main-sidebar">☷</button><div class="zv-breadcrumb"><span>YOUR SPACE</span> / <b>'+esc(nav.find(n=>n[0]===section)?.[1]||"Overview")+'</b></div><div class="zv-topright"><span class="zv-live"><i></i> '+(navigator.onLine?'Online · Signed in':'Offline · Signed in')+'</span><span class="zv-userdot">'+esc(first().charAt(0).toUpperCase())+'</span></div></header><main class="zv-content">'+body+'</main></section></div><div id="zv-dialog"></div>');
  $("#zv-logout").onclick=()=>window.ZimbaAuth.logout();
- $("#zv-toggle").onclick=()=>$(".zv-layout").classList.toggle("nav-open");
+ window.ZimbaNavigation.bind(section);
 }
 const head=(title,sub)=>'<header class="zv-page-title"><span class="zv-overline">ZIMBA · YOUR SPACE</span><h1>'+title+'</h1><p>'+sub+'</p></header>';
 const warning=text=>'<div class="zv-disclaimer">ⓘ '+text+'</div>';
