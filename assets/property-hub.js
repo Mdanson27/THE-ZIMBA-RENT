@@ -5,7 +5,7 @@ const api=()=>window.ZimbaAuth;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=v=>v==null?"Not set":"UGX "+Number(v).toLocaleString("en-UG");
 const dt=v=>v?new Date(String(v).length===10?v+"T12:00:00":v).toLocaleDateString("en-UG",{day:"numeric",month:"short",year:"numeric"}):"Not set";
-const tabs=[["overview","Overview"],["units","Rooms & floors"],["residents","Residents"],["maintenance","Maintenance"],["agreements","Agreements"],["billing","Rent & invoices"]];
+const tabs=[["overview","Overview"],["units","Rooms & floors"],["residents","Residents"],["maintenance","Maintenance"],["agreements","Agreements"],["billing","Rent & invoices"],["financials","Financial intelligence"]];
 let token=0;
 let activeTab="overview";
 const urlProperty=()=>new URLSearchParams((location.hash.split("?")[1]||"")).get("property");
@@ -66,7 +66,12 @@ function show(data,id){
  host.innerHTML='<div class="zh-tabs" role="tablist" aria-label="Property workspace sections">'+tabs.map(([key,label])=>'<button type="button" role="tab" aria-selected="'+(key===activeTab)+'" tabindex="'+(key===activeTab?0:-1)+'" data-zh-tab="'+key+'">'+label+'</button>').join("")+'</div><div id="zh-tab-panel" role="tabpanel" tabindex="0"></div>';
  const content=host.querySelector("#zh-tab-panel");
  const renderTab=()=>{
-   content.innerHTML=activeTab==="overview"?overview(data,id):activeTab==="units"?units(data,id):activeTab==="residents"?residents(data):activeTab==="maintenance"?maintenance(data):activeTab==="agreements"?agreements(data):billing(data);
+   if(activeTab==="financials"){
+    content.innerHTML='<div class="zfi-loading" role="status">Loading financial intelligence…</div>';
+    window.ZimbaFinancialIntelligence?.mount(id);
+   }else{
+    content.innerHTML=activeTab==="overview"?overview(data,id):activeTab==="units"?units(data,id):activeTab==="residents"?residents(data):activeTab==="maintenance"?maintenance(data):activeTab==="agreements"?agreements(data):billing(data);
+   }
    host.querySelectorAll("[data-zh-tab]").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.zhTab===activeTab));b.tabIndex=b.dataset.zhTab===activeTab?0:-1});
    window.ZimbaPrivacy?.refresh();
  };
