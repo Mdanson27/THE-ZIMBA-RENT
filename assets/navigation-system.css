@@ -81,3 +81,11 @@ html[data-zimba-theme="dark"] body.zv-workspace-on .zv-nav-standalone{border-col
  body.zv-workspace-on .zv-content{padding:22px 15px 70px}
 }
 @media(prefers-reduced-motion:reduce){body.zv-workspace-on .zv-layout,body.zv-workspace-on .zv-sidebar,body.zv-workspace-on .zv-nav-section *,body.zv-workspace-on .zv-track{transition:none!important;animation:none!important}}
+
+/* Keep browser-level and modal scrollbars unobtrusive, not only the sidebar's. */
+html:has(body.zv-workspace-on),body.zv-workspace-on{scrollbar-width:thin;scrollbar-color:#9db7a3 transparent}
+html:has(body.zv-workspace-on)::-webkit-scrollbar,body.zv-workspace-on::-webkit-scrollbar{width:6px;height:6px}
+html:has(body.zv-workspace-on)::-webkit-scrollbar-thumb,body.zv-workspace-on::-webkit-scrollbar-thumb{background:#91ac99;border-radius:10px}
+body.zv-workspace-on :is(.zv-rent-modal,.zai-tablewrap,.zen-tablewrap,.zh-tabs,.zv-sidebar nav){scrollbar-width:thin;scrollbar-color:#9db7a3 transparent}
+body.zv-workspace-on :is(.zv-rent-modal,.zai-tablewrap,.zen-tablewrap,.zh-tabs)::-webkit-scrollbar{width:5px;height:5px}
+body.zv-workspace-on :is(.zv-rent-modal,.zai-tablewrap,.zen-tablewrap,.zh-tabs)::-webkit-scrollbar-thumb{background:#9db7a3;border-radius:10px}
