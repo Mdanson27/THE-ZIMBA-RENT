@@ -318,3 +318,13 @@ Phase 2 now has a property-centric operational hub at `#/workspace/property?prop
 **Frontend:** `assets/property-hub.js`, `assets/property-hub.css`, and updates to `assets/workspace-v3.js`, `assets/auth.js`, `index.html`. Tabs support keyboard arrow, Home and End navigation. CSS supports light/dark mode, small viewports, high-visibility focus styles and reduced motion. No simulated financial transactions or fabricated property data.
 
 **Acceptance criteria still outstanding:** signed-in live browser tests on two organisations for isolation, keyboard/screen reader verification, mobile device checks, GitHub Pages deployment status, and error-free network/console validation. Phase 2B will carry property context into additional editing modules and extend the property hub to expense reporting, deposits and documents only after checking the backend fields and controls.
+
+## 11 November 2026 — Phase 2 Neon Data API schema cache incident
+
+**Symptom:** The authenticated Property Workspace loaded, but `zimba_property_hub(p_property uuid)` returned PostgREST `PGRST202`, producing an unavailable-records panel.
+
+**Verified:** the function exists in `public` of `zimba_rent_dev` on default Neon branch `main`; it takes exactly `p_property uuid`, grants EXECUTE to the `authenticated` role, denies `anonymous`, and checks manager organisation ownership. The configured Data API URL and exposed `public` schema match the frontend.
+
+**Repair:** invoked Neon Data API's explicit configuration/schema refresh, restoring the complete original settings: `db_schemas=['public']`, `db_anon_role=anonymous`, `db_max_rows=200`, `db_aggregates_enabled=true`, JWT role claim `.role`, OpenAPI disabled, and the GitHub Pages CORS origin. The Data API reports `active` afterwards. Frontend avoids negative-caching this operation's transient PGRST202 and retries schema propagation with bounded delays before a nontechnical error. Login is never cleared by this failure.
+
+**Release:** refreshed assets `20261111-phase2c`. The main HTML, auth.js and property-hub.js returned public HTTP 200 with updated content from GitHub Pages; JavaScript syntax and CI source checks passed. **An authenticated data API request is still necessary to conclusively validate the fix for the affected account.** No JWT or user credentials were retrieved.
