@@ -38,6 +38,7 @@ assert.ok(output.includes("zv-nav-label"));
 assert.equal((output.match(/data-expanded="true"/g)||[]).length,1,"Only the current group should open by default");
 assert.ok(output.includes('data-zv-group="finances" data-expanded="true"'));
 assert.ok(output.includes('data-zv-group="property" data-expanded="false"'));
+assert.ok(!nav.initialCollapsed());
 localStorage.setItem("zimba-nav-v4:user-1",JSON.stringify({collapsed:true,groups:{property:true,care:true,finances:true,intelligence:true,enterprise:true,account:true}}));
 assert.equal(nav.initialCollapsed(),true,"Preserve compact mode from V4 preferences");
 const tidy=nav.build(links,"finance");
@@ -47,7 +48,7 @@ assert.ok(!output.includes("zv-nav-group"),"flat ungrouped headings should not a
 const bad=nav.build([["properties",'<img src=x onerror=alert(1)>',"house"]],"properties");
 assert.ok(!bad.includes("<img src=x"),"Navigation titles must be escaped");
 assert.ok(bad.includes("&lt;img"));
-assert.ok(!nav.initialCollapsed());
+
 assert.ok(workspace.includes('window.ZimbaNavigation.bind(section)'));
 assert.ok(workspace.includes("window.ZimbaNavigation.initialCollapsed()"));
 assert.ok(workspace.includes("window.ZimbaNavigation.build(nav,section)"));
