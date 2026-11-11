@@ -32,12 +32,13 @@ function overview(data,record){
  const recent=data.latestMaintenance||[];
  const plan=String(record.plan||"free").toUpperCase();
  return '<div class="zo-hero"><div><span class="zo-eyebrow">PORTFOLIO PULSE · '+plan+'</span><h2>Welcome back, '+esc(greetingName)+'.</h2><p>'+esc(data.organization||"Your organisation")+' · Live records from Neon</p><a href="#/workspace/properties" class="zo-btn light">Explore your properties ↗</a></div><div class="zo-hero-art">⌂</div></div>'+
- '<div class="zo-cards">'+card("⌂","Properties",num(data.properties),"Managed portfolio")+
- card("⚒","Open maintenance",num(data.maintenanceOpen),"Issues requiring attention")+
- card("♙","Connected residents",num(data.residents),"Verified property connections")+
- card("▤","Rent receivables",money(data.rentDue),"Charges due or partially paid")+'</div>'+
- '<div class="zo-two">'+panel("Operational priorities",'<div class="zo-priority"><div><span class="zo-priority-dot"></span><strong>'+num(data.maintenanceUrgent)+' urgent maintenance cases</strong><a href="#/workspace/maintenance">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+num(data.properties)+' properties on record</strong><a href="#/workspace/properties">View ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+money(data.recordedExpenses)+' recorded expenses</strong><a href="#/workspace/finance">Open ↗</a></div></div>','YOUR NEXT ACTIONS')+
- panel("Recent maintenance",recent.length?'<div class="zo-activity">'+recent.map(x=>'<article><strong>'+esc(x.issue)+'</strong><small>'+esc(x.property)+' · '+esc(x.priority)+' · '+esc(x.status.replaceAll("_"," "))+'</small></article>').join("")+'</div>':statNote("No maintenance cases recorded yet."),"LIVE ACTIVITY")+'</div>'+
+ '<div class="zo-cards">'+card("⌂","Properties",num(data.properties),"Managed portfolio","properties")+
+ card("⚒","Open maintenance",num(data.maintenanceOpen),"Issues requiring attention","maintenance")+
+ card("♙","Connected residents",num(data.residents),"Verified property connections","residents")+
+ card("▤","Rent receivables",money(data.rentDue),"Charges due or partially paid","receivables")+'</div>'+
+ '<div class="zo-two">'+panel("Operational priorities",'<div class="zo-priority"><div><span class="zo-priority-dot"></span><strong>'+num(data.maintenanceUrgent)+' urgent maintenance cases</strong><a href="#/workspace/maintenance">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+num(data.properties)+' properties on record</strong><a href="#/workspace/properties">View ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+money(data.recordedExpenses)+' recorded expenses</strong><a href="#/workspace/finance">Open ↗</a></div></div>','YOUR NEXT ACTIONS','priorities')+
+ panel("Recent maintenance",recent.length?'<div class="zo-activity">'+recent.map(x=>'<article><strong>'+esc(x.issue)+'</strong><small>'+esc(x.property)+' · '+esc(x.priority)+' · '+esc(x.status.replaceAll("_"," "))+'</small></article>').join("")+'</div>':statNote("No maintenance cases recorded yet."),"LIVE ACTIVITY","recent")+'</div>'+
+ panel("Quick actions",'<div class="zo-quick-actions"><a href="#/workspace/properties">Manage properties ↗</a><a href="#/workspace/building">Configure rooms ↗</a><a href="#/workspace/residents">Manage residents ↗</a><a href="#/workspace/lease">Rental agreements ↗</a><a href="#/workspace/invoices">Issue invoices ↗</a><a href="#/workspace/maintenance">Track repairs ↗</a></div>','MANAGE YOUR PROPERTY')+
  notice("The figures above come from your authenticated organisation records. Financial receivables are not proof of payment received.");
 }
 function maintenance(data,record){
@@ -75,6 +76,7 @@ function activate(section,record){
  loader().then(data=>{
   if(id!==version||!host.isConnected)return;
   host.innerHTML=section==="home"?overview(data,record):section==="maintenance"?maintenance(data,record):section==="finance"?financial(data,record):settings(data);
+  if(section==="home")window.ZimbaDashboard?.activate();
   if(section==="maintenance")bindMaintenance(record);
   if(section==="finance")bindFinancial(record);
   if(section==="settings")bindSettings(record);
