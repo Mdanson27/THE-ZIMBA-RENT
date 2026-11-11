@@ -64,22 +64,34 @@ const description={
 };
 let currentItems=[],currentSection="home",handlers=null,flyoutGroup=null,flyoutAnchor=null,tooltipAnchor=null,hideTimer=null;
 const isMobile=()=>!!window.matchMedia?.("(max-width: 800px)")?.matches;
-const stateKey=()=>{const id=window.ZimbaAuth?.state?.user?.id;return id?"zimba-nav-v4:"+id:null;};
+const stateKey=()=>{const id=window.ZimbaAuth?.state?.user?.id;return id?"zimba-nav-v6:"+id:null;};
 function saved(){
  const key=stateKey();if(!key)return {};
- try{const v=JSON.parse(localStorage.getItem(key)||"{}");return v&&typeof v==="object"&&!Array.isArray(v)?v:{};}catch{return {};}
+ try{
+  const current=localStorage.getItem(key);
+  if(current){
+   const v=JSON.parse(current);
+   return v&&typeof v==="object"&&!Array.isArray(v)?v:{};
+  }
+  // Preserve the compact-rail preference from V5, but reset legacy multi-open groups.
+  const legacy=JSON.parse(localStorage.getItem(key.replace("zimba-nav-v6:","zimba-nav-v4:"))||"{}");
+  return {collapsed:legacy?.collapsed===true,groups:{}};
+ }catch{return {};}
 }
 function persist(next){
  const key=stateKey();if(!key)return;
  try{localStorage.setItem(key,JSON.stringify({collapsed:!!next.collapsed,groups:next.groups||{}}));}catch{}
 }
 function initialGroupStates(nav,section){
- const stored=saved().groups||{},active=groupFor(section),groups={};
+ const active=groupFor(section),groups={},stored=saved().groups||{};
  for(const [key] of nav)if(key!=="home"){
   const group=groupFor(key);
-  if(!(group in groups))groups[group]=typeof stored[group]==="boolean"?stored[group]:group===active;
+  if(!(group in groups))groups[group]=false;
  }
- if(active!=="overview"&&Object.prototype.hasOwnProperty.call(groups,active))groups[active]=true;
+ // One open section at a time. The current route always wins, preventing long menus.
+ const savedOpen=Object.keys(stored).find(key=>stored[key]===true&&Object.prototype.hasOwnProperty.call(groups,key));
+ const next=active!=="overview"?active:(savedOpen||"property");
+ if(Object.prototype.hasOwnProperty.call(groups,next))groups[next]=true;
  return groups;
 }
 function initialCollapsed(){return !isMobile()&&saved().collapsed===true;}
@@ -168,8 +180,16 @@ function showFlyout(button,focusFirst=false){
 function changeSection(button,expand){
  const section=button.closest(".zv-nav-section"),links=section?.querySelector(".zv-section-links");
  if(!section||!links)return;
- section.dataset.expanded=String(expand);button.setAttribute("aria-expanded",String(expand));links.hidden=!expand;
- const data=saved(),groups={...(data.groups||{})};groups[section.dataset.zvGroup]=expand;
+ const sections=document.querySelectorAll(".zv-sidebar .zv-nav-section");
+ const groups={};
+ sections.forEach(item=>{
+  const open=item===section&&expand,control=item.querySelector(".zv-section-toggle"),panel=item.querySelector(".zv-section-links");
+  item.dataset.expanded=String(open);
+  control?.setAttribute("aria-expanded",String(open));
+  if(panel)panel.hidden=!open;
+  groups[item.dataset.zvGroup]=open;
+ });
+ const data=saved();
  persist({collapsed:data.collapsed,groups});
 }
 function updateAria(){
