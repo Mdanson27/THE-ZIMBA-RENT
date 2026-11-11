@@ -103,7 +103,7 @@ function bind(section){
  document.querySelectorAll("[data-zv-section]").forEach(button=>button.addEventListener("click",()=>{
   const isExpanded=button.getAttribute("aria-expanded")==="true";
   const collapsed=layout.classList.contains("zv-sidebar-collapsed");
-  if(collapsed&&!window.matchMedia?.("(max-width: 800px)")?.matches)setCollapsed(false);
+  if(collapsed&&!window.matchMedia?.("(max-width: 800px)")?.matches){setCollapsed(false);changeSection(button,true);return;}
   changeSection(button,!isExpanded);
  }));
  document.querySelector("#zv-toggle")?.addEventListener("click",toggle);
