@@ -252,6 +252,9 @@ function bind(){
  });
  const nav=document.querySelector(".zv-sidebar nav");
  nav?.addEventListener("click",e=>{if(isMobile()&&e.target.closest("a"))setCollapsed(true);},{signal});
+ document.querySelector(".zv-sidebar-bottom")?.addEventListener("click",e=>{
+  if(isMobile()&&e.target.closest("a,button"))setCollapsed(true);
+ },{signal});
  nav?.addEventListener("scroll",()=>{hideTooltip();if(flyoutGroup)hideFlyout();},{signal,passive:true});
  container.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
