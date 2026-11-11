@@ -1,0 +1,32 @@
+/* Phase 3 — property finance report; isolated selectors and theme-aware surfaces. */
+.zfi-page{display:grid;gap:16px;color:var(--z-ui-text,#18392a);font:400 14px/1.55 Inter,system-ui,sans-serif}
+.zfi-page *{box-sizing:border-box}
+.zfi-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap}
+.zfi-heading>div>span{font-size:10px;letter-spacing:.14em;font-weight:800;color:#40815a}
+.zfi-heading h3{margin:7px 0;font:750 clamp(23px,3vw,32px)/1.2 Inter,system-ui,sans-serif!important;color:inherit}
+.zfi-heading p,.zfi-card-head p{margin:4px 0;color:var(--z-ui-muted,#627869);font-size:13px}
+.zfi-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.zfi-metric{min-width:0;display:flex;flex-direction:column;gap:8px;background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce7dd);border-radius:13px;padding:18px}
+.zfi-metric>span{font-size:12px;font-weight:700}
+.zfi-metric strong{font-size:clamp(18px,2.1vw,26px);overflow-wrap:anywhere}
+.zfi-metric small{font-size:11px;color:var(--z-ui-muted,#6a7c6f)}
+.zfi-card{background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce7dd);border-radius:14px;padding:20px;min-width:0}
+.zfi-card-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.zfi-card h4{font:750 18px/1.3 Inter,system-ui,sans-serif!important;margin:0;color:inherit}
+.zfi-button{border:1px solid var(--z-ui-line,#cadae0);background:var(--z-ui-card,#fff);color:var(--z-ui-text,#204734);font:700 12px Inter,system-ui,sans-serif;min-height:44px;border-radius:9px;padding:10px 14px;cursor:pointer}
+.zfi-button:hover{border-color:#4b996b}
+.zfi-button:focus-visible,.zfi-table:focus-visible{outline:3px solid #65c18a;outline-offset:2px}
+.zfi-table{overflow:auto;max-width:100%;scrollbar-width:thin}
+.zfi-table table{width:100%;min-width:700px;border-collapse:collapse;text-align:left}
+.zfi-table :is(td,th){padding:12px;border-bottom:1px solid var(--z-ui-line,#e1e8e2);vertical-align:top;overflow-wrap:anywhere}
+.zfi-table th{font-size:11px;letter-spacing:.03em;color:var(--z-ui-muted,#5f7465);font-weight:800;background:var(--z-ui-bg,#f4f8f3)}
+.zfi-table td{font-size:12px;font-variant-numeric:tabular-nums}
+.zfi-note,.zfi-empty{padding:13px;border-radius:9px;background:var(--z-ui-card,#fff);color:var(--z-ui-muted,#5f7567);font-size:12px;line-height:1.7}
+.zfi-warning{border:1px solid #ca9649;background:#fff3da;color:#784916;padding:14px;border-radius:10px;font-size:13px}
+.zfi-error,.zfi-loading{padding:30px;text-align:center;border:1px solid var(--z-ui-line,#dce7dd);border-radius:13px;background:var(--z-ui-card,#fff)}
+.zfi-error h4{color:#b44230;font-size:18px}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zfi-page{--z-ui-text:#eef8f0;--z-ui-muted:#c3d4c7;--z-ui-card:#1e3028;--z-ui-line:#466552;--z-ui-bg:#293e32}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zfi-warning{background:#5c4726;border-color:#99753b;color:#ffe5af}
+@media(max-width:940px){.zfi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.zfi-metrics{grid-template-columns:1fr}.zfi-card{padding:13px}.zfi-metric{padding:14px}}
+@media print{.zfi-button{display:none!important}.zfi-card{break-inside:avoid}}
