@@ -209,6 +209,9 @@ async function loadManagerRequests(){
 }
 function bindResidents(){
  const f=$("#zv-invite-form");if(!f)return;
+ const context=new URLSearchParams(location.hash.split("?")[1]||"").get("property");
+ const propertySelect=$("#zv-resident-property");
+ if(context&&propertySelect&&Array.from(propertySelect.options).some(x=>x.value===context))propertySelect.value=context;
  $("#zv-resident-property").onchange=()=>{loadManagerUnitOptions();loadManagerRequests();loadConnectedResidentProfiles()};
  loadManagerUnitOptions();loadManagerRequests();loadConnectedResidentProfiles();
  f.onsubmit=async e=>{
