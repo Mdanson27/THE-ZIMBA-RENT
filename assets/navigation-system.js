@@ -77,7 +77,7 @@ function initialGroupStates(nav,section){
  const stored=saved().groups||{},active=groupFor(section),groups={};
  for(const [key] of nav)if(key!=="home"){
   const group=groupFor(key);
-  if(!(group in groups))groups[group]=typeof stored[group]==="boolean"?stored[group]:group===active||group==="property";
+  if(!(group in groups))groups[group]=typeof stored[group]==="boolean"?stored[group]:group===active;
  }
  if(active!=="overview"&&Object.prototype.hasOwnProperty.call(groups,active))groups[active]=true;
  return groups;
@@ -236,7 +236,6 @@ function bind(){
  document.querySelectorAll("[data-zv-section]").forEach(button=>{
   button.addEventListener("click",()=>{
    if(railMode()){
-    if(flyoutGroup===button.dataset.zvSection){hideFlyout();return;}
     showFlyout(button,true);return;
    }
    changeSection(button,button.getAttribute("aria-expanded")!=="true");
