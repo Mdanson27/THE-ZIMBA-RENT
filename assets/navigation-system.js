@@ -11,7 +11,7 @@ const icons={
  "building-2":'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
  "users-round":'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3.13a4 4 0 0 1 0 7.75M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>',
  "message-circle":'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 10h8M8 14h5"/>',
- "wrench":'<path d="M14.7 6.3a1 1 0 0 0 1.3 1.3l3.4-3.4a6 6 0 0 1-7.9 7.9l-7.7 7.7a2 2 0 0 1-2.8-2.8l7.7-7.7a6 6 0 0 1 7.9-7.9z" transform="translate(2 0)"/>',
+ "wrench":'<path d="M14.7 6.3a1 1 0 0 0 1.3 1.3l3.4-3.4a6 6 0 0 1-7.9 7.9l-7.7 7.7a2 2 0 0 1-2.8-2.8l7.7-7.7a6 6 0 0 1 7.9-7.9z"/>',
  "wallet":'<rect x="2" y="5" width="20" height="16" rx="2"/><path d="M2 9V5a2 2 0 0 1 2-2h15"/><path d="M22 12h-6a2 2 0 0 0 0 4h6"/><path d="M17 14h.01"/>',
  "file-text":'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',
  "map-pinned":'<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -105,7 +105,7 @@ function build(nav,section){
    const m=meta[group]||meta.account,open=groups[group]!==false,hasActive=group===groupFor(section);
    html+='<section class="zv-nav-section'+(hasActive?' zv-group-active':'')+'" data-zv-group="'+group+'" data-expanded="'+open+'">'+
     '<button type="button" class="zv-section-toggle" data-zv-section="'+group+'" aria-expanded="'+open+
-    '" aria-controls="zv-links-'+group+'" data-zv-tooltip="'+esc(m.label)+'" data-zv-subtitle="'+esc(m.description)+'" title="'+esc(m.label)+'" >'+
+    '" aria-controls="zv-links-'+group+'" data-zv-tooltip="'+esc(m.label)+'" data-zv-subtitle="'+esc(m.description)+'" title="'+esc(m.label)+' — '+esc(m.description)+'" >'+
     '<span class="zv-section-symbol" aria-hidden="true">'+icon(m.icon)+'</span><span class="zv-section-title">'+esc(m.label)+'</span>'+
     '<span class="zv-section-chevron" aria-hidden="true">'+icon("chevron-down")+'</span></button>'+
     '<div class="zv-section-links" id="zv-links-'+group+'"'+(open?"":" hidden")+'>';
@@ -252,6 +252,7 @@ function bind(){
  });
  const nav=document.querySelector(".zv-sidebar nav");
  nav?.addEventListener("click",e=>{if(isMobile()&&e.target.closest("a"))setCollapsed(true);},{signal});
+ nav?.addEventListener("scroll",()=>{hideTooltip();if(flyoutGroup)hideFlyout();},{signal,passive:true});
  container.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
    if(flyoutGroup){e.preventDefault();hideFlyout(true);return;}
