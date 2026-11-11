@@ -86,12 +86,25 @@ async function load(record){
  if(!host||!property)return;
  host.innerHTML='<div class="zh-loading">Loading your verified property records…</div>';
  try{
-  const data=await api().propertyHub(property.id);
+  // During Neon Data API schema propagation a newly published RPC may
+  // temporarily return PGRST202. Retry a few times without disturbing auth.
+  let data,lastError;
+  for(let attempt=0;attempt<4;attempt++){
+    if(seq!==token||!host.isConnected)return;
+    try{data=await api().propertyHub(property.id);lastError=null;break}
+    catch(err){
+      lastError=err;
+      if(err?.code!=="PGRST202"||attempt===3)throw err;
+      host.innerHTML='<div class="zh-loading" role="status">Finishing the secure property connection…</div>';
+      await new Promise(resolve=>setTimeout(resolve,[600,1400,3000][attempt]));
+    }
+  }
+  if(lastError)throw lastError;
   if(seq!==token||!host.isConnected)return;
   show(data,property.id);
  }catch(err){
   if(seq!==token||!host.isConnected)return;
-  host.innerHTML='<div class="zh-error" role="alert"><h3>Property records unavailable</h3><p>'+esc(err.message)+'</p><p>Your account remains signed in. Other workspaces are unaffected.</p><button type="button" id="zh-retry">Try again</button></div>';
+  host.innerHTML='<div class="zh-error" role="alert"><h3>Property records temporarily unavailable</h3><p>'+esc(err?.code==="PGRST202"?"The secure property service is still updating. Your information is safe and your login remains active.":err.message)+'</p><p>Other ZIMBA sections remain available.</p><button type="button" id="zh-retry">Reconnect to property</button></div>';
   host.querySelector("#zh-retry").onclick=()=>load(record);
  }
 }
