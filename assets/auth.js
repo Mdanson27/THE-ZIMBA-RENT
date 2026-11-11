@@ -209,7 +209,7 @@ const api = {
         const error=new Error(serviceCode==="PGRST202"?"Neon has not refreshed the "+name+" function signature in its API schema cache (PGRST202). Your login remains active.":"The "+name+" API operation returned HTTP 404 ("+(serviceCode||"unknown code")+"). Your account remains signed in.");
         error.httpStatus=404;error.operation=name;error.code=data?.code||"ROUTE_NOT_FOUND";
         error.details=data?.details||null;error.hint=data?.hint||null;
-        if(error.code==="PGRST202" && name!=="zimba_property_hub")missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
+        if(error.code==="PGRST202" && !["zimba_property_hub","zimba_property_financial_report"].includes(name))missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
         throw error;
       }
       const error=new Error(response?.status===403?"Zimba cannot access "+name+" (HTTP 403). Your account session is preserved.":response?.status===401?"The database declined this access token (HTTP 401). Your account remains signed in.":detail);
