@@ -2,6 +2,7 @@ import http from "node:http";
 import { URL } from "node:url";
 import pg from "pg";
 import {handleAdminAPI} from "./admin.mjs";
+import {handleIntelligenceAPI} from "./intelligence.mjs";
 
 const PORT = Number(process.env.PORT || 3000);
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -60,6 +61,10 @@ const server = http.createServer(async (req, res) => {
   catch { return respond(res, 400, { error: "Invalid URL" }, origin); }
 
   if (url.pathname === "/health") return respond(res, 200, { status: "ok", service: "zimba-rent-api" }, origin);
+  if (url.pathname.startsWith("/api/v1/intelligence/")) {
+    if(!origin || !allowedOrigins.has(origin))return respond(res,403,{error:"Origin not allowed"},null);
+    return handleIntelligenceAPI(req,res,url.pathname,origin);
+  }
   if (url.pathname.startsWith("/api/v1/admin/") || url.pathname === "/api/v1/me/tier") {
     if(!origin || !allowedOrigins.has(origin))return respond(res,403,{error:"Origin not allowed"},null);
     return handleAdminAPI(req,res,url.pathname);
