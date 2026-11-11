@@ -14,8 +14,8 @@ function shell(section){
  return '<div class="zo-page"><div class="zo-head"><div><span class="zo-eyebrow">ZIMBA · YOUR MANAGEMENT SPACE</span><h1>'+t[0]+'</h1><p>'+t[1]+'</p></div><button class="zo-btn secondary" id="zo-reload" type="button">↻ Refresh</button></div><div id="zo-body"><div class="zo-loading"><span class="zo-spinner"></span><strong>Loading your secure records…</strong></div></div></div>';
 }
 function notice(text){return '<div class="zo-notice"><span>ⓘ</span><p>'+text+'</p></div>'}
-function card(ico,label,value,desc){return '<article class="zo-card"><span class="zo-card-icon">'+ico+'</span><strong>'+value+'</strong><b>'+label+'</b><small>'+desc+'</small></article>'}
-function panel(title,body,extra=""){return '<section class="zo-panel"><div class="zo-panel-title"><h2>'+title+'</h2><span>'+extra+'</span></div>'+body+'</section>'}
+function card(ico,label,value,desc,widget=""){return '<article class="zo-card" '+(widget?'data-z-widget="'+widget+'"':'')+'><span class="zo-card-icon">'+ico+'</span><strong>'+value+'</strong><b>'+label+'</b><small>'+desc+'</small></article>'}
+function panel(title,body,extra="",widget=""){return '<section class="zo-panel" '+(widget?'data-z-widget="'+widget+'"':'')+'><div class="zo-panel-title"><h2>'+title+'</h2><span>'+extra+'</span></div>'+body+'</section>'}
 function statNote(msg){return '<p class="zo-muted">'+msg+'</p>'}
 function feedback(msg,bad=false){const el=$("#zo-feedback");if(el){el.textContent=msg;el.className="zo-feedback "+(bad?"error":"success");el.hidden=false}}
 async function fail(err){
