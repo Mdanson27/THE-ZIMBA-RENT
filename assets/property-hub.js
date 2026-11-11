@@ -33,7 +33,7 @@ function overview(data,id){
  const percentage=count?Math.round(100*occupied/count):0;
  return '<div class="zh-hero"><div><span>YOUR PROPERTY</span><h2>'+esc(p.name||"Property")+'</h2><p>'+esc([p.city,p.address].filter(Boolean).join(" · ")||"Location not specified")+'</p></div>'+pill(p.visibility)+'</div>'+
  '<div class="zh-metrics">'+metric(count,"Total rooms / units","Configured in Building Studio")+metric(occupied,"Occupied units",percentage+"% occupancy of recorded units")+metric(s.activeResidents||0,"Connected residents","Approved active accounts")+metric(s.openMaintenance||0,"Open repairs","Requires attention")+metric(s.outstandingInvoices||0,"Unpaid invoices","Outstanding charges")+metric(money(s.outstandingRent||0),"Rent receivables","Invoiced, not verified cash")+'</div>'+
- '<div class="zh-panels"><section class="zh-panel"><h3>Next actions</h3><p>Manage this property without searching through separate accounts.</p><div class="zh-actions">'+action("building",id,"Configure rooms")+action("residents",null,"Manage residents")+action("lease",null,"Rental agreements")+action("invoices",null,"Rent invoices")+action("maintenance",null,"Manage repairs")+action("finance",null,"Financial reporting")+'</div></section>'+
+ '<div class="zh-panels"><section class="zh-panel"><h3>Next actions</h3><p>Manage this property without searching through separate accounts.</p><div class="zh-actions">'+action("building",id,"Configure rooms")+action("residents",id,"Manage residents")+action("lease",null,"Rental agreements")+action("invoices",null,"Rent invoices")+action("maintenance",null,"Manage repairs")+action("finance",null,"Financial reporting")+'</div></section>'+
  '<section class="zh-panel"><h3>Property health</h3><div class="zh-health"><div><span>Occupancy</span><strong>'+percentage+'%</strong></div><div class="zh-progress"><span style="width:'+percentage+'%"></span></div><p>'+occupied+' occupied out of '+count+' configured units</p><div class="zh-health-details"><span>Pending repairs</span><strong>'+Number(s.openMaintenance||0)+'</strong></div></div></section></div>'+
  '<p class="zh-footnote">Figures are computed from organisation-authorised Neon records. Rent receivables are unpaid invoice amounts, not proof of money received.</p>';
 }
@@ -44,7 +44,7 @@ function units(data,id){
  (all.length?floors.map(f=>'<details class="zh-floor" open><summary>'+esc(f)+' <small>'+all.filter(x=>(x.floor||"Ground floor")===f).length+' rooms</small></summary><div class="zh-room-grid">'+all.filter(x=>(x.floor||"Ground floor")===f).map(x=>'<article class="zh-room"><strong>'+esc(x.number)+'</strong>'+pill(x.status)+'<small>'+money(x.rent)+'/month</small></article>').join("")+'</div></details>').join(""):empty("rooms"))+'</section>';
 }
 function residents(data){
- return '<section class="zh-panel"><div class="zh-panel-heading"><div><h3>Connected residents</h3><p>Only residents linked to this property are shown.</p></div>'+action("residents",null,"Manage invitations")+'</div>'+
+ return '<section class="zh-panel"><div class="zh-panel-heading"><div><h3>Connected residents</h3><p>Only residents linked to this property are shown.</p></div>'+action("residents",data.property.id,"Manage invitations")+'</div>'+
  '<div class="zh-list">'+list(data.residents||[],x=>'<article><div><strong>'+esc(x.name)+'</strong><small>'+esc(x.unit||"Unit not assigned")+' · Rent starts '+dt(x.rentStart)+'</small></div>'+pill(x.status)+'</article>',"connected residents")+'</div></section>';
 }
 function maintenance(data){
