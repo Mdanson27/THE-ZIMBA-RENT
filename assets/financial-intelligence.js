@@ -57,7 +57,16 @@ function render(data,host,propertyId){
 async function load(host,propertyId){
  const seq=++request;host.innerHTML='<p class="zfi-loading" role="status">Loading financial records securely…</p>';
  try{
-  const data=await window.ZimbaAuth.propertyFinancialReport(propertyId);
+  let data;
+  for(let attempt=0;attempt<4;attempt++){
+   if(seq!==request||!host.isConnected||!host.closest("#zh-tab-panel"))return;
+   try{data=await window.ZimbaAuth.propertyFinancialReport(propertyId);break}
+   catch(err){
+    if(err?.code!=="PGRST202"||attempt===3)throw err;
+    host.innerHTML='<p class="zfi-loading" role="status">Connecting to verified financial records…</p>';
+    await new Promise(resolve=>setTimeout(resolve,[600,1500,3000][attempt]));
+   }
+  }
   if(seq!==request||!host.isConnected||!host.closest("#zh-tab-panel"))return;
   if(!data||data.currency!=="UGX"||data.verifiedPaymentsOnly!==true)throw Error("Invalid financial report response");
   render(data,host,propertyId);
