@@ -23,7 +23,7 @@ assert.equal(nav.groupFor("intelligence"),"intelligence");
 assert.equal(nav.groupFor("security"),"account");
 assert.equal(typeof nav.toggle,"function");
 
-const links=[["home","Overview","◫"],["properties","Properties","⌂"],["building","Building studio","▦"],["residents","Residents","♙"],["finance","Financials","▤"],["intelligence","ZIMBA Intelligence","✧"]];
+const links=[["home","Overview","layout-dashboard"],["properties","Properties","house"],["building","Building studio","building-2"],["residents","Residents","users-round"],["finance","Financials","wallet"],["intelligence","ZIMBA Intelligence","brain-circuit"]];
 let output=nav.build(links,"finance");
 assert.ok(output.includes("zv-nav-standalone"));
 assert.ok(output.includes("data-zv-group=\"property\""));
@@ -35,7 +35,7 @@ assert.ok(output.includes("aria-expanded=\"true\""));
 assert.ok(output.includes("zv-section-links"));
 assert.ok(output.includes("zv-nav-label"));
 assert.ok(!output.includes("zv-nav-group"),"flat ungrouped headings should not appear");
-const bad=nav.build([["properties",'<img src=x onerror=alert(1)>',"P"]],"properties");
+const bad=nav.build([["properties",'<img src=x onerror=alert(1)>',"house"]],"properties");
 assert.ok(!bad.includes("<img src=x"),"Navigation titles must be escaped");
 assert.ok(bad.includes("&lt;img"));
 assert.ok(!nav.initialCollapsed());
@@ -44,10 +44,40 @@ assert.ok(workspace.includes("window.ZimbaNavigation.initialCollapsed()"));
 assert.ok(workspace.includes("window.ZimbaNavigation.build(nav,section)"));
 assert.ok(workspace.includes("zv-sidebar-backdrop"));
 assert.ok(workspace.includes("zv-sidebar-pin"));
-assert.ok(workspace.includes('["home","Overview","◫"]'));
+assert.ok(workspace.includes('["home","Overview","layout-dashboard"]'));
 assert.ok(workspace.includes('["intelligence","ZIMBA Intelligence"'));
 assert.ok(html.includes("navigation-system.css"));
 assert.ok(html.includes("navigation-system.js"));
+
+
+// V5: iconography is semantic, safe, consistent and needs no external library.
+assert.ok(nav.icon("layout-dashboard").includes("<svg"));
+for(const key of ["house","panels-top-left","building-2","users-round","message-circle","wrench",
+ "wallet","file-text","map-pinned","receipt-text","hand-coins","brain-circuit",
+ "briefcase-business","bell","credit-card","shield-check","settings","store","log-out"]){
+ const svg=nav.icon(key);
+ assert.ok(svg.includes("stroke="),key+" must be a consistent stroke icon");
+ assert.ok(svg.includes("<svg")&&svg.includes("</svg>"),key+" must be a complete vector icon");
+ assert.ok(!svg.includes("<script"),key+" must not embed scripts");
+}
+assert.ok(nav.overlayMarkup().includes('id="zv-rail-flyout"'));
+assert.ok(nav.overlayMarkup().includes('id="zv-rail-tooltip"'));
+for(const group of ["property","care","finances","intelligence","enterprise","account"]){
+ assert.ok(nav.meta[group]?.label&&nav.meta[group]?.description);
+}
+assert.ok(output.includes('data-zv-tooltip="Properties"'),"Links must have meaningful hover labels");
+assert.ok(output.includes('data-zv-subtitle="View and manage your portfolio"'),"Links must explain their destination");
+assert.ok(output.includes('data-zv-tooltip="Rent &amp; Finances"'),"Section headers need tooltips");
+assert.ok(output.includes('zv-group-active'),"Active module needs a visible parent group");
+assert.ok(workspace.includes('window.ZimbaNavigation.overlayMarkup()'),"Overlay must live outside the scrolling sidebar");
+assert.ok(workspace.includes('window.ZimbaNavigation.icon("log-out")'),"Sign out icon must be semantic");
+assert.ok(workspace.includes('window.ZimbaNavigation.icon("store")'),"Marketplace icon must be semantic");
+assert.ok(workspace.includes('data-zv-tooltip="Your account"'),"Account rail needs a hover label");
+const navCSS=fs.readFileSync("assets/navigation-system.css","utf8");
+for(const rule of [".zv-nav-link.selected", ".zv-group-active", ".zv-rail-flyout", ".zv-rail-tooltip", ".zv-nav-standalone", ".zv-sidebar-collapsed", "prefers-reduced-motion", "max-width:800px"]){
+ assert.ok(navCSS.includes(rule),"Navigation styling missing "+rule);
+}
+assert.equal(navCSS.split("{").length,navCSS.split("}").length,"Navigation CSS braces mismatch");
 
 const studioContext={window:{},document:{querySelector:()=>null},navigator:{},console};
 vm.runInNewContext(studio,studioContext);
