@@ -289,3 +289,20 @@ Database inspection confirmed `my_onboarding()`, `my_properties()`, and `my_subs
 - Updated GitHub Pages asset query version `20261110-authsync2`. Static JavaScript syntax checks and guards passed; full authenticated browser/console and Pages deployment confirmation remain outstanding.
 
 **Security note:** Database function permissions and server-enforced role checks remain in place. Any persistent 403 must be investigated at the Neon Auth/Data API JWT configuration and trusted request logs; the UI must not bypass security restrictions to hide an error.
+
+## 11 November 2026 — Research implementation phase 1: Connected operational overview
+
+Based on the user-provided research *Building the Best Property Management Dashboard for Landlords and Managers*, this release strengthens existing live operational workflows rather than replacing Neon data with demo figures.
+
+**Delivered:**
+- **Customisable overview widgets**: property count, open maintenance, resident count, rent receivables, operational priorities and recent maintenance. Managers can show/hide each widget, rearrange its order with accessible arrow controls, and restore defaults. At least one widget must remain visible. Settings are stored per authenticated account **in the current browser only**, and are not synced across devices.
+- **Screen privacy toggle**: the dashboard header has **Hide amounts / Show amounts** to mask displayed UGX amounts. It persists per authenticated account within the browser session, follows new content during live refresh, and restores the latest displayed values when turned off. This is **shoulder-surfing presentation protection only**: it is not a data-permission control, encrypted mode or substitute for logouts and server authorization. It does not alter or write to PostgreSQL.
+- **Live connected quick actions** in the manager overview for properties, rooms, residents, rental agreements, invoices and repairs; all links point to existing sections.
+- Component-scoped accessible CSS for dashboard preferences and a privacy toggle in light and dark modes.
+- Regression assertions for the six widgets, required assets, JavaScript syntax, and privacy masking after text mutations.
+
+**Code**: `assets/dashboard-personalization.js`, `assets/dashboard-personalization.css`, `assets/privacy-mode.js`, updated `assets/operations.js`, `index.html`, and `.github/workflows/validate-ui.yml`.
+
+**Next phase (not yet implemented in this release)**: unify the property detail hub with the units/residents/maintenance/rent records; permission-scoped staff and owner workflows; better mobile test coverage; legally compliant deposit and real payment processing; proper transaction reconciliation; documents; AI assistance after audit and privacy safeguards.
+
+**Acceptance gates**: verify authenticated browser behavior with two different accounts; widget preference isolation; hide/reveal amounts during live refresh; live navigation and mobile usability; dark/light contrast; Pages workflow status; and no regression to financial or account authorization.
