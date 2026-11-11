@@ -359,7 +359,7 @@ window.addEventListener("online",()=>{const el=$(".zv-live");if(el)el.innerHTML=
 window.addEventListener("offline",()=>{const el=$(".zv-live");if(el)el.innerHTML="<i></i> Offline · Signed in"});
 window.ZimbaWorkspace={render:function(path){render(String(path||"workspace/home").split("/").slice(1).join("/")||"home")},
  refreshResidents:async function(){if(managed()&&$("#zv-manager-requests"))await Promise.all([loadManagerRequests(),loadConnectedResidentProfiles()])},
- clear:function(){document.body.classList.remove("zv-workspace-on")}};
+ clear:function(){document.body.classList.remove("zv-workspace-on","zv-nav-mobile-open")}};
 window.addEventListener("zimba-auth-change",()=>{
  bootstrapGeneration++;
  if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null}reconnectFailures=0;
