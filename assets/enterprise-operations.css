@@ -1,0 +1,34 @@
+/* ZIMBA Phase 4A enterprise centre: scoped, responsive and accessible. */
+.zen-page{display:grid;gap:18px;max-width:1640px;width:100%;margin-inline:auto;color:var(--z-ui-text,#193b2a);font:400 14px/1.55 Inter,Manrope,system-ui,sans-serif}
+.zen-page *{box-sizing:border-box}
+.zen-header,.zen-card-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.zen-header h1{font:750 clamp(26px,3vw,36px)/1.2 Inter,Manrope,system-ui,sans-serif!important;margin:8px 0;color:inherit}
+.zen-header p,.zen-muted,.zen-note p{margin:5px 0;color:var(--z-ui-muted,#607667);font-size:13px}
+.zen-kicker,.zen-hero span:first-child{font-size:10px;letter-spacing:.15em;font-weight:800;color:#3b956a}
+.zen-btn{min-height:43px;padding:10px 15px;background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce6de);border-radius:9px;color:var(--z-ui-text,#254d38);font-size:12px;font-weight:750;cursor:pointer;text-decoration:none;display:inline-flex;justify-content:center;align-items:center}
+.zen-btn:hover{border-color:#3c9063}.zen-btn:disabled{opacity:.55;cursor:not-allowed}
+.zen-btn-primary{background:#245e45;color:white;border-color:#245e45}.zen-btn-primary:hover{background:#1b4734;color:white}
+.zen-btn-quiet{background:transparent;font-size:11px}
+.zen-page :is(button,input,select,textarea,a):focus-visible{outline:3px solid #70c88e;outline-offset:2px}
+.zen-tabbar{display:flex;flex-wrap:wrap;gap:7px;padding-bottom:12px;border-bottom:1px solid var(--z-ui-line,#dce6de)}
+.zen-tabbar button{border:1px solid transparent;background:transparent;color:var(--z-ui-muted,#617665);padding:11px 13px;border-radius:8px;font:750 12px Inter,Manrope,system-ui,sans-serif;cursor:pointer}
+.zen-tabbar button[aria-selected=true]{background:var(--z-ui-card,#fff);border-color:var(--z-ui-line,#dce6de);color:var(--z-ui-text,#173c2b);box-shadow:0 2px 9px #0000000a}
+.zen-hero{background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce6de);border-radius:16px;padding:22px 25px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.zen-hero h2{font:750 23px/1.25 Inter,Manrope,system-ui,sans-serif!important;margin:6px 0;color:inherit}.zen-hero p{margin:0;color:var(--z-ui-muted,#607667)}
+.zen-status,.zen-chip{display:inline-block;border:1px solid var(--z-ui-line,#dce6de);border-radius:99px;padding:5px 10px;font-weight:750;font-size:11px}
+.zen-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-block:14px}
+.zen-metric{min-width:0;background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce6de);border-radius:13px;padding:17px;display:flex;flex-direction:column;gap:8px}
+.zen-metric span{font-size:12px;font-weight:700}.zen-metric strong{font-size:clamp(17px,2vw,25px);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.zen-metric small{font-size:11px;color:var(--z-ui-muted,#607667)}
+.zen-card{background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce6de);border-radius:14px;padding:22px;min-width:0}
+.zen-card h3{font:760 18px/1.3 Inter,Manrope,system-ui,sans-serif!important;margin:0;color:inherit}
+.zen-properties,.zen-actions{display:flex;flex-direction:column;gap:9px}.zen-properties article{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 2px;border-bottom:1px solid var(--z-ui-line,#dce6de);flex-wrap:wrap}.zen-properties article>div:first-child{display:flex;flex-direction:column;gap:3px}.zen-properties small,.zen-document small{font-size:11px;color:var(--z-ui-muted,#607667)}.zen-properties .zen-actions{flex-direction:row;flex-wrap:wrap}
+.zen-columns{display:grid;grid-template-columns:minmax(270px,2fr) minmax(300px,3fr);gap:15px}
+.zen-form{display:grid;gap:11px;margin-top:20px}.zen-form label,.zen-statement-filter{display:grid;gap:5px;font-size:12px;font-weight:750}.zen-form :is(input,select,textarea),.zen-statement-filter select{width:100%;padding:12px;border:1px solid var(--z-ui-line,#cddbd0);border-radius:9px;background:var(--z-ui-card,#fff);color:var(--z-ui-text,#153a27);font:400 13px Inter,system-ui,sans-serif}.zen-form textarea{min-height:80px;resize:vertical}
+.zen-document{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:15px 0;border-bottom:1px solid var(--z-ui-line,#dce6de)}.zen-document>div{display:grid;gap:4px}.zen-document p{font-size:12px;margin:5px 0;color:var(--z-ui-muted,#607667)}
+.zen-note,.zen-disclaimer,.zen-empty{font-size:12px;line-height:1.65;color:var(--z-ui-muted,#607667);margin:16px 0 0}.zen-note{border-top:1px solid var(--z-ui-line,#dce6de);padding-top:16px}
+.zen-tablewrap{overflow-x:auto;max-width:100%;margin-top:15px}.zen-tablewrap table{min-width:600px;width:100%;border-collapse:collapse}.zen-tablewrap :is(th,td){padding:13px 12px;border-bottom:1px solid var(--z-ui-line,#dce6de);text-align:left;vertical-align:top;font-size:12px;overflow-wrap:anywhere}.zen-tablewrap th{font-size:11px;color:var(--z-ui-muted,#607667);background:var(--z-ui-bg,#f3f7f3)}
+.zen-statement-filter{max-width:400px;margin-top:17px}.zen-alert,.zen-alert-error{font-size:12px;padding:13px;border-radius:9px;background:var(--z-ui-card,#fff);border:1px solid var(--z-ui-line,#dce6de)}.zen-alert:empty{display:none}.zen-alert-error{color:#c4513b}.zen-loading,.zen-error{text-align:center;padding:35px;border:1px solid var(--z-ui-line,#dce6de);border-radius:14px;background:var(--z-ui-card,#fff)}.zen-error p{font-size:12px}.zen-page .zen-btn:hover{transform:none}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zen-page{--z-ui-text:#eef8f0;--z-ui-muted:#c3d4c7;--z-ui-card:#1e3028;--z-ui-line:#466552;--z-ui-bg:#293e32}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zen-btn-primary{background:#347452;color:#fff;border-color:#43835f}
+@media(max-width:1100px){.zen-columns{grid-template-columns:1fr}}@media(max-width:800px){.zen-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.zen-header{align-items:flex-start}}@media(max-width:480px){.zen-metrics{grid-template-columns:1fr}.zen-card{padding:15px}.zen-hero{padding:17px}.zen-tabbar button{padding:9px}}
+@media print{.zen-tabbar,.zen-header button,.zen-btn{display:none!important}.zen-card,.zen-metric{break-inside:avoid}}
