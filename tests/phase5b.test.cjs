@@ -34,6 +34,15 @@ assert.ok(output.includes("aria-controls=\"zv-links-finances\""));
 assert.ok(output.includes("aria-expanded=\"true\""));
 assert.ok(output.includes("zv-section-links"));
 assert.ok(output.includes("zv-nav-label"));
+// V6 grouping: only the current category opens, even when a V4 profile had all groups expanded.
+assert.equal((output.match(/data-expanded="true"/g)||[]).length,1,"Only the current group should open by default");
+assert.ok(output.includes('data-zv-group="finances" data-expanded="true"'));
+assert.ok(output.includes('data-zv-group="property" data-expanded="false"'));
+localStorage.setItem("zimba-nav-v4:user-1",JSON.stringify({collapsed:true,groups:{property:true,care:true,finances:true,intelligence:true,enterprise:true,account:true}}));
+assert.equal(nav.initialCollapsed(),true,"Preserve compact mode from V4 preferences");
+const tidy=nav.build(links,"finance");
+assert.equal((tidy.match(/data-expanded="true"/g)||[]).length,1,"Migrate away from legacy multi-open sections");
+assert.ok(tidy.includes('data-zv-group="property" data-expanded="false"'));
 assert.ok(!output.includes("zv-nav-group"),"flat ungrouped headings should not appear");
 const bad=nav.build([["properties",'<img src=x onerror=alert(1)>',"house"]],"properties");
 assert.ok(!bad.includes("<img src=x"),"Navigation titles must be escaped");
@@ -78,6 +87,12 @@ for(const rule of [".zv-nav-link.selected", ".zv-group-active", ".zv-rail-flyout
  assert.ok(navCSS.includes(rule),"Navigation styling missing "+rule);
 }
 assert.equal(navCSS.split("{").length,navCSS.split("}").length,"Navigation CSS braces mismatch");
+assert.ok(navCSS.includes("Navigation V6"),"Compact organisation refinements should load");
+assert.ok(navCSS.includes("--zv-nav-wide:258px"),"Sidebar should be narrower and better balanced");
+assert.ok(navCSS.includes("min-height:37px"),"Links should no longer be oversized");
+assert.ok(navCSS.includes("min-height:31px"),"Section headings should be compact");
+assert.ok(navCSS.includes("min-height:44px"),"Mobile links must preserve touch-friendly hit targets");
+assert.ok(navCSS.includes("border-left:1px solid var(--zv-nav-rule)"),"Child links need a subtle grouped indent");
 
 const studioContext={window:{},document:{querySelector:()=>null},navigator:{},console};
 vm.runInNewContext(studio,studioContext);
