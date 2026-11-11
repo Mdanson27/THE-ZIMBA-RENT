@@ -328,3 +328,23 @@ Phase 2 now has a property-centric operational hub at `#/workspace/property?prop
 **Repair:** invoked Neon Data API's explicit configuration/schema refresh, restoring the complete original settings: `db_schemas=['public']`, `db_anon_role=anonymous`, `db_max_rows=200`, `db_aggregates_enabled=true`, JWT role claim `.role`, OpenAPI disabled, and the GitHub Pages CORS origin. The Data API reports `active` afterwards. Frontend avoids negative-caching this operation's transient PGRST202 and retries schema propagation with bounded delays before a nontechnical error. Login is never cleared by this failure.
 
 **Release:** refreshed assets `20261111-phase2c`. The main HTML, auth.js and property-hub.js returned public HTTP 200 with updated content from GitHub Pages; JavaScript syntax and CI source checks passed. **An authenticated data API request is still necessary to conclusively validate the fix for the affected account.** No JWT or user credentials were retrieved.
+
+## 11 November 2026 — Phase 3A: Financial intelligence and reconciliation
+
+Phase 3 introduces a **Financial intelligence** tab inside the authenticated, per-property workspace. All figures are live Neon records, not generated examples.
+
+**Database** — `public.zimba_property_financial_report(p_property uuid)` (migration `db/0019_property_financial_report.sql`) enforces manager organisation membership and ownership of the requested property before reading any financial data. `authenticated` has execute permission; `anonymous` is denied. This is a read-only `STABLE SECURITY DEFINER` function with a fixed public search path.
+
+**Reports:**
+- **Rent roll:** configured unit, floor, vacancy/occupancy, verified connected resident, current agreement rent and rent commencement date.
+- **Invoices and reconciliation:** non-void invoiced totals, independently verified payment evidence, per-invoice remaining balance (clamped at zero), overdue amounts by due date and warning for evidence over the invoiced amount. Unverified transactions never count as received rent.
+- **Expenses:** property expense register and total; recording expenses is handled by the existing manager finance workflow, not this read-only report.
+- **Security deposits:** required amount, verified held balance, refunded and deducted amounts. These are **refundable obligations, not revenue** and are excluded from verified rental payments.
+- **Verified receipt references:** only records backed by `zimba_payment_evidence`, including receipt number, provider/bank reconciliation source, transaction reference and verified timestamp. The report does not create false receipts or silently mark invoices as paid.
+- **CSV exports** for rent roll, invoices, expenses and verified receipt references. User-controlled cells are escaped and formula-like leading characters are prefixed to reduce spreadsheet injection risk.
+
+**Frontend** — `assets/financial-intelligence.js` and `assets/financial-intelligence.css`. Loaded on demand from the property hub, with responsive tables, dark/light support, keyboard-visible controls, and full compatibility with the privacy toggle. Temporary Neon schema cache `PGRST202` errors are retried without clearing a signed-in session, and the financial RPC is not negatively cached.
+
+**Important limitations:** No real payment initiation, wallet custody, bank account balance, provider webhook ingestion, direct withdrawals, automatic bank reconciliation, official tax-compliant receipt issuance, accounting ledger journal posting, or audited profit statements are implemented by this Phase 3A dashboard. These require verified integrations, double-entry accounting and legal/regulatory review before production launch.
+
+**Verification:** SQL function exists with secure grants and property/organisation filters. JavaScript syntax checked on the connected Windows computer. Authenticated per-user browser tests, invoice-evidence reconciliation with actual verified transactions, data-export security review and GitHub Pages workflow completion remain required.
