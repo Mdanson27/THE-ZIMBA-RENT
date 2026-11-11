@@ -7,7 +7,7 @@ const amountPattern=/\bUGX[\s\u00a0]*\d[\d,]*(?:\.\d+)?\b/g;
 let scheduled=false;
 function active(){try{return sessionStorage.getItem(userKey())==="true"}catch{return false}}
 function restore(){
- for(const [node,value] of originals){if(node.isConnected)node.nodeValue=value;originals.delete(node)}
+ for(const [node,value] of originals){if(node.isConnected)node.nodeValue=(node.nodeValue===value.masked?value.original:node.nodeValue);originals.delete(node)}
 }
 function scan(){
  scheduled=false;
@@ -17,13 +17,16 @@ function scan(){
  const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);
  let text;
  while((text=walker.nextNode())){
-  if(originals.has(text)||!amountPattern.test(text.nodeValue||"")){amountPattern.lastIndex=0;continue}
+  const existing=originals.get(text);
+  if(existing&&text.nodeValue===existing.masked)continue;
+  if(existing)originals.delete(text);
+  if(!amountPattern.test(text.nodeValue||"")){amountPattern.lastIndex=0;continue}
   amountPattern.lastIndex=0;
   const parent=text.parentElement;
   if(!parent||parent.closest("textarea,input,select,option,script,style,[contenteditable],.z-privacy-control,[aria-hidden='true']"))continue;
   const value=text.nodeValue;
   const masked=value.replace(amountPattern,"UGX •••••");
-  if(masked!==value){originals.set(text,value);text.nodeValue=masked}
+  if(masked!==value){originals.set(text,{original:value,masked});text.nodeValue=masked}
  }
  updateButton();
 }
@@ -52,7 +55,7 @@ const observer=new MutationObserver(()=>{
  if(!document.querySelector(".zv-layout")){if(originals.size)restore();return}
  mount();
 });
-observer.observe(document.documentElement,{subtree:true,childList:true});
+observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
 document.addEventListener("DOMContentLoaded",mount);
 window.addEventListener("zimba-auth-change",()=>{restore();schedule()});
 if(document.readyState!=="loading")mount();
