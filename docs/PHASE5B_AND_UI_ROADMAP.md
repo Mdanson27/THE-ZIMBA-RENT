@@ -18,6 +18,18 @@ Updated 11 November 2026. This is an engineering plan and status record, not a d
 - Thin scrollbars apply to sidebar navigation, main browser scroll, tables and modal content. On desktop, branding, account identity and footer remain in position while links scroll internally.
 - Navigation uses buttons with aria-expanded/aria-controls, visible focus, descriptive icon titles, Escape for mobile drawer and reduced-motion CSS.
 
+### Sidebar UX V5 — implementation update, 11 November 2026
+- Replaced every symbolic manager/tenant navigation glyph with a consistent, locally defined set of stroke-based SVG icons (dashboard, property, floor/studio, residents, messages, repairs, money, agreements, land, invoices, deposits, intelligence, enterprise, notifications, plans, security and settings).
+- Overview remains standalone; all other sections are grouped according to the task flow. The default expanded group is the currently active section; multiple groups may stay expanded by user choice.
+- Expanded sidebar features compact section headings, clear chevrons, proper text truncation, subtle dividers, a green active indicator, and concise explanatory native hover titles.
+- The compact sidebar is a **real navigation rail**, not a compressed list: each category has a meaningful SVG, highlights the active group, and opens an accessible floating menu of its actual destinations on hover, focus or click. Flyouts render outside the scroll container so they cannot be clipped. Overview and footer icons show separate name + purpose tooltips.
+- Keyboard users can Tab to category triggers and destination links. Clicking a trigger focuses its first destination, Escape closes the flyout, focus outlines are visible, and reduced-motion preferences are respected.
+- Main navigation alone scrolls, with slim hover-visible scrollbars; branding and account identity remain fixed above the list and subscription/marketplace/sign-out remain fixed below it. Desktop uses a full-height 278px panel or a 76px compact rail.
+- The desktop topbar toggle is intentionally hidden to avoid the duplicate icon shown in the supplied screenshots. The sidebar header toggle remains; mobile instead uses the topbar button and backdrop drawer.
+- Mobile uses a fully labelled sliding drawer, closes on outside click or Escape, and never shows a cramped compact rail. Existing role-scoped links and server permissions are unchanged.
+- Navigation preference is stored **per signed-in user** and contains only group and collapsed state, not financial or account data.
+- The existing static regression suite now covers SVG icon names, escaped labels, section descriptions, hover/flyout containers, active group, dark theme, and accessibility hooks. Live signed-in browser acceptance testing remains necessary.
+
 ### Intelligence and Phase 5B
 - Phase 5A rule-based, read-only, organisation-scoped snapshot remains the source of truth.
 - New **AI Studio** tab separates model-backed Q&A, document metadata review and human-edited reminder drafts.
