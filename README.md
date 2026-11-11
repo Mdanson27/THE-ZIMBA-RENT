@@ -306,3 +306,15 @@ Based on the user-provided research *Building the Best Property Management Dashb
 **Next phase (not yet implemented in this release)**: unify the property detail hub with the units/residents/maintenance/rent records; permission-scoped staff and owner workflows; better mobile test coverage; legally compliant deposit and real payment processing; proper transaction reconciliation; documents; AI assistance after audit and privacy safeguards.
 
 **Acceptance gates**: verify authenticated browser behavior with two different accounts; widget preference isolation; hide/reveal amounts during live refresh; live navigation and mobile usability; dark/light contrast; Pages workflow status; and no regression to financial or account authorization.
+
+## 11 November 2026 — Phase 2A: Unified property workspace
+
+Phase 2 now has a property-centric operational hub at `#/workspace/property?property=<UUID>`. A **Manage property** action on each portfolio card and a manager-only sidebar link open the hub.
+
+**Delivered:** Six tabs—Overview, Rooms & Floors, Residents, Maintenance, Agreements, and Rent & Invoices—powered by live, property-scoped Neon data. Overview displays property metrics, occupancy, open requests, active residents, unpaid invoices and rent receivables (not verified cash), plus links to the existing secure editing modules. Building Studio and the resident invitation form preserve property selection when opened from the hub. The hub is read-only for accounting and avoids duplicating payment and agreement writes.
+
+**Backend:** `public.zimba_property_hub(p_property uuid)` is a `STABLE SECURITY DEFINER` RPC. Before reading, it calls `zimba_my_manager_org()` and verifies the requested property belongs to that organisation. Unit, resident, maintenance, agreement and invoice records are also filtered by the same organisation and property ID. Results have bounded lists. Anonymous execution is revoked; the authenticated role receives EXECUTE only. The function is versioned in `db/0018_property_hub.sql`.
+
+**Frontend:** `assets/property-hub.js`, `assets/property-hub.css`, and updates to `assets/workspace-v3.js`, `assets/auth.js`, `index.html`. Tabs support keyboard arrow, Home and End navigation. CSS supports light/dark mode, small viewports, high-visibility focus styles and reduced motion. No simulated financial transactions or fabricated property data.
+
+**Acceptance criteria still outstanding:** signed-in live browser tests on two organisations for isolation, keyboard/screen reader verification, mobile device checks, GitHub Pages deployment status, and error-free network/console validation. Phase 2B will carry property context into additional editing modules and extend the property hub to expense reporting, deposits and documents only after checking the backend fields and controls.
