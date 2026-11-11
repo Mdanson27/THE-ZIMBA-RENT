@@ -9,7 +9,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const ugx=v=>"UGX "+Number(v||0).toLocaleString("en-UG",{maximumFractionDigits:0});
 const number=v=>Number(v||0).toLocaleString("en-UG");
 const day=v=>v?String(v).slice(0,10):"—";
-const tabs=[["pulse","Portfolio pulse"],["priorities","Recommended actions"],["assistant","Ask ZIMBA"],["readiness","Data readiness"]];
+const tabs=[["pulse","Portfolio pulse"],["priorities","Recommended actions"],["assistant","Ask ZIMBA"],["model","AI Studio"],["readiness","Data readiness"]];
 const questions=[
  "What needs attention today?","How much rent is overdue?","Which properties have vacancies?",
  "What repairs need attention?","Which documents expire soon?","Can you predict next month's rent?"
@@ -142,7 +142,8 @@ function readiness(d){
 function render(){
  const r=root(),p=r?.querySelector("#zai-panel");if(!r||!p||!report)return;
  r.querySelectorAll("[data-zai-tab]").forEach(b=>{b.setAttribute("aria-selected",String(active===b.dataset.zaiTab));b.tabIndex=active===b.dataset.zaiTab?0:-1;});
- p.innerHTML=active==="pulse"?pulse(report):active==="priorities"?priorities(report):active==="assistant"?assistant(report):readiness(report);
+ p.innerHTML=active==="pulse"?pulse(report):active==="priorities"?priorities(report):active==="assistant"?assistant(report):active==="model"?window.ZimbaAIStudio.page(report,scope):readiness(report);
+ if(active==="model")window.ZimbaAIStudio.bind(report,scope);
  p.querySelectorAll("#zai-see-all,#zai-view-priorities").forEach(b=>b.addEventListener("click",()=>switchTab("priorities")));
  p.querySelector("#zai-question-form")?.addEventListener("submit",e=>{e.preventDefault();submitQuestion(new FormData(e.target).get("question"));});
  p.querySelectorAll("[data-zai-question]").forEach(b=>b.addEventListener("click",()=>submitQuestion(questions[Number(b.dataset.zaiQuestion)])));
