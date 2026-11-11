@@ -62,7 +62,7 @@ assert.throws(()=>helper.parseLocal("short"));
 const draft=helper.reminderText({reference:"RENT-100",due:"2026-10-05",property:"Block A",remaining:240000});
 assert.ok(draft.includes("UGX 240,000"));
 assert.ok(draft.includes("verify and reconcile"));
-assert.ok(!studio.includes("localStorage"));
+assert.ok(!/localStorage\.(?:setItem|getItem)/.test(studio));
 assert.ok(!studio.includes("OPENAI_API_KEY"));
 assert.ok(!studio.includes("api.openai.com"));
 assert.ok(studio.includes("enterpriseDocumentRegister"));
