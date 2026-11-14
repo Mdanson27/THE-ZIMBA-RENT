@@ -126,7 +126,7 @@ function proposalBox(i,r,p){
  '<label>Confirmation / explanation<textarea name="note" rows="2" maxlength="1000" placeholder="Optional confirmation note, or explain missing payment"></textarea></label>'+
  '<div class="zds-actions"><button type="submit" name="decision" value="confirm" class="zds-button primary">Confirm settlement received</button>'+
  '<button type="submit" name="decision" value="dispute" class="zds-button ghost">I did not receive this / amount incorrect</button></div></form>':"")+
- (p.status==="confirmed"?'<p class="zds-completed"><b>Tenant-confirmed settlement.</b> This confirms the tenant's report of receipt, not independent bank verification.</p>':"")+
+ (p.status==="confirmed"?'<p class="zds-completed"><b>Tenant-confirmed settlement.</b> This confirms the tenant report of receipt, not independent bank verification.</p>':"")+
  (p.status==="payout_disputed"?'<p class="zds-warning">Payout disputed. The property team must resolve this with payment evidence. The disputed transfer cannot automatically be reported again.</p>':"")+
  '</article>';
 }
