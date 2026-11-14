@@ -30,6 +30,9 @@ assert.ok(js.includes("deductReason")&&js.includes("deductEvidence"));
 assert.ok(js.includes("dispute")&&js.includes("accept"));
 assert.ok(js.includes("confirmDepositPayout"));
 assert.ok(js.includes("startDepositRefund"));
+assert.ok(js.includes("data-zds-end"),"Manager must be able to close a completed term before refund requests");
+assert.ok(js.includes("api().endLease("),"End-tenancy action must call existing audited backend RPC");
+
 assert.ok(js.includes("proposeDepositRefund"));
 assert.ok(js.includes("reportDepositPayout"));
 assert.ok(js.includes("respondDepositReceipt"));
@@ -77,8 +80,11 @@ assert.ok(!sql.includes("UPDATE public.zimba_deposit_ledger"),"Never rewrite ban
 assert.ok(sql.includes("AND c.resident_auth_user_id=v_uid"),"Tenant actions must be scoped to linked resident");
 assert.ok(sql.includes("status='ended'"),"Only ended tenancy may request refund");
 assert.ok(sql.includes("v_previous.status<>'disputed'"),"Disputed payout should not be silently recycled");
+assert.ok(sql.includes("Proposed deductions UGX"),"Proposal notification must explain deduction amount");
+assert.ok(sql.includes("Reasons: "), "Private notification must summarize deduction reasons");
+assert.ok(sql.includes("Manager reported return UGX"),"Payout notification must show return amount");
+
 assert.ok(sql.includes("p_confirm IS DISTINCT FROM true"),"Explicit response intent is required");
-assert.ok(sql.includes("RADI")===false||true);
 assert.ok(finance.includes('kind==="deposits"&&window.ZimbaDepositStudio'));
 assert.ok(html.includes("assets/deposit-studio.js"));
 assert.ok(html.includes("assets/deposit-studio.css"));
