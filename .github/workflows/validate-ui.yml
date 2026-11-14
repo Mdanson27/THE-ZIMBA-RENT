@@ -26,6 +26,7 @@ jobs:
           node --check assets/notifications.js
           node --check assets/live-refresh.js
           node --check assets/lease-finance.js
+          node --check assets/rental-contracts.js
           node --check assets/land-leases.js
           node --check assets/accessibility-theme.js
           node --check assets/dashboard-personalization.js
@@ -43,6 +44,8 @@ jobs:
           node --check api/admin.mjs
       - name: Test Intelligence rules and privacy boundaries
         run: node tests/intelligence.test.cjs
+      - name: Test professional lease documents and signed-copy lifecycle
+        run: node tests/rental-contracts.test.cjs
       - name: Test Phase 5B navigation, AI consent and review boundaries
         run: node tests/phase5b.test.cjs
       - name: Assert protected routes and required assets
