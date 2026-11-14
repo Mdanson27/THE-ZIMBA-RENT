@@ -164,6 +164,8 @@ BEGIN
   WHERE lease_id=p_lease ORDER BY revision DESC LIMIT 1 FOR UPDATE;
  IF v_current.id IS DISTINCT FROM p_scan OR v_current.sha256 IS DISTINCT FROM lower(p_sha256) THEN
    RAISE EXCEPTION 'The signed PDF version has changed; download and review it again' USING ERRCODE='42501'; END IF;
+ IF v_current.uploaded_by=v_uid THEN
+   RAISE EXCEPTION 'A different authenticated tenant account must confirm the uploaded PDF' USING ERRCODE='42501'; END IF;
  IF v_current.tenant_confirmed_at IS NOT NULL THEN
    RETURN jsonb_build_object('success',true,'status','signed','sha256',v_current.sha256); END IF;
  UPDATE public.zimba_lease_signed_scans
