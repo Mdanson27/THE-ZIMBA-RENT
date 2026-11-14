@@ -169,6 +169,11 @@ function record(i){
  return '<article class="zds-record"><div class="zds-record-top"><div><span class="zds-label">'+esc(i.property)+(i.unit?" · Unit "+esc(i.unit):"")+'</span>'+
  '<h2>'+esc(i.tenant)+'</h2><span class="zds-small">Lease status: '+esc(i.leaseStatus)+' · Deposit conditions recorded in rental agreement</span></div>'+
  '<div class="zds-agreed"><small>Agreed security deposit</small><strong>'+money(i.required)+'</strong></div></div>'+
+ (state.manager&&i.leaseStatus==="acknowledged"&&i.end&&dat(i.end)<=today()?
+ '<form class="zds-action-form zds-end-lease" data-zds-end="'+esc(i.leaseId)+'">'+
+ '<h4>Record the completed tenancy as ended</h4><p>The recorded lease term has passed. Confirm that handover is documented before enabling the tenant’s deposit refund request.</p>'+
+ '<label>Written reason / handover record<textarea name="reason" minlength="12" maxlength="500" rows="2" required placeholder="Reference the completed term, handover and agreed end date"></textarea></label>'+
+ '<button class="zds-button primary" type="submit">Mark tenancy ended and notify tenant</button></form>':"")+
  phases(i)+
  '<div class="zds-positions"><div><span>Manager-reported receipts</span><b>'+money(i.reportedReceived)+'</b></div>'+
  '<div><span>Tenant-acknowledged receipts</span><b>'+money(i.acknowledgedReceived)+'</b></div>'+
@@ -227,6 +232,9 @@ function bind(){
   if(!accept&&note.trim().length<15){message("Explain the receipt discrepancy in at least 15 characters.",true);return;}
   perform(f,()=>api().respondDepositReceipt(f.dataset.zdsReceipt,accept,note));
  }));
+ r.querySelectorAll("[data-zds-end]").forEach(f=>f.onsubmit=e=>{
+  e.preventDefault();perform(f,d=>api().endLease(f.dataset.zdsEnd,d.get("reason")));
+ });
  r.querySelectorAll("[data-zds-request]").forEach(f=>f.onsubmit=e=>{e.preventDefault();perform(f,d=>api().startDepositRefund(f.dataset.zdsRequest,Number(d.get("amount")),d.get("reason")));});
  r.querySelectorAll("[data-zds-propose]").forEach(f=>{
   f.querySelector("#zds-add-deduction")?.addEventListener("click",()=>{const box=f.querySelector("#zds-deduction-lines");if(box.children.length<12)box.insertAdjacentHTML("beforeend",deductionInput());});
