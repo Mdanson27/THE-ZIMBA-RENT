@@ -92,6 +92,7 @@ function shareText(i,intent){
  const intro=intent==="reminder"?"This is a reminder about your outstanding rent invoice.":"Your rent invoice is available in ZIMBA RENT.";
  return [opening,"",intro,
   "Property: "+i.property+(i.unit?" · Unit "+i.unit:""),
+  "Address: "+[i.propertyAddress,i.city,i.country].filter(Boolean).join(", "),
   "Invoice: "+i.reference,
   "Billing period: "+month(i.periodStart)+" ("+niceDate(i.periodStart)+"–"+niceDate(i.periodEnd)+")",
   "Invoice amount: "+total,
