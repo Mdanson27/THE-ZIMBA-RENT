@@ -199,6 +199,12 @@ const api = {
       const contentType=response.headers.get("content-type")||"";
       data=contentType.includes("json")?await response.json():null;
       if(response.ok)break;
+      // Fresh SQL RPCs can briefly be absent from the PostgREST schema cache.
+      // A read-only retry is safe; never repeat invoice issuance or delivery writes.
+      if(readOnly&&response.status===404&&data?.code==="PGRST202"&&attempt<2){
+        await pause(attempt===0?400:1000);
+        continue;
+      }
       if(([401,403].includes(response.status)||(readOnly&&[429,502,503,504].includes(response.status)))&&attempt<2){
         clearSignedToken();
         await pause(attempt===0?300:900);
