@@ -151,6 +151,33 @@ async function load(manager){
   draw();
  }catch(err){
   if(run!==state.requestId||!host.isConnected)return;
+  if(err?.code==="PGRST202"){
+   try{
+    // Keep existing invoices accessible while a newly deployed document RPC
+    // awaits the Data API's schema refresh. No unverified balance is inferred.
+    const older=manager?await auth().managerInvoices():await auth().tenantInvoices();
+    if(run!==state.requestId||!host.isConnected)return;
+    const list=Array.isArray(older)?older:[];
+    host.querySelector("#ziv-content").innerHTML=
+     '<section class="ziv-card ziv-fallback" data-ziv-fallback="schema-cache"><h2>Invoice records are available</h2>'+
+     '<p>The detailed invoice-document service is reconnecting after an API schema update. The original saved billing records are shown below. Printing, sharing and verified balance calculations are temporarily paused to avoid displaying incomplete information.</p>'+
+     '<button type="button" id="ziv-retry" class="ziv-button primary">Retry complete invoice view</button></section>'+
+     '<section class="ziv-card"><h2>Saved billing records</h2><div class="ziv-list">'+
+     (list.length?list.map(i=>{
+      const invoiceRef=i.reference||i.invoiceRef||"Invoice";
+      const period=i.period||i.periodStart;
+      return '<article class="ziv-invoice ziv-basic-record"><div class="ziv-invoice-main">'+
+       '<strong>'+esc(invoiceRef)+'</strong><p>'+esc(i.tenant||"")+' · '+esc(i.property||"")+'</p>'+
+       '<div class="ziv-facts"><span><small>Invoice amount</small><b>'+money(i.amount)+'</b></span>'+
+       '<span><small>Due date</small><b>'+niceDate(i.due)+'</b></span>'+
+       '<span><small>Billing period</small><b>'+esc(month(period))+'</b></span></div></div></article>';
+     }).join(""):'<p class="ziv-empty">No saved invoice records were returned.</p>')+'</div></section>';
+    host.querySelector("#ziv-retry")?.addEventListener("click",()=>load(manager));
+    return;
+   }catch(_){
+    // Original error below remains available if even legacy reads fail.
+   }
+  }
   host.querySelector("#ziv-content").innerHTML='<div class="ziv-card ziv-empty"><h2>Unable to load invoices</h2><p>'+esc(err.message)+'</p><button type="button" id="ziv-retry" class="ziv-button subtle">Retry secure connection</button></div>';
   host.querySelector("#ziv-retry")?.addEventListener("click",()=>load(manager));
  }
