@@ -76,6 +76,12 @@ assert.ok(script.includes('"https://wa.me/"'),"WhatsApp should open direct compo
 assert.ok(script.includes("has not sent or verified"),"External channels must disclose delivery limitations");
 assert.ok(script.includes("deliverInvoiceInApp("),"In-app delivery must use authenticated RPC");
 assert.ok(script.includes("Copy message"),"Manual sharing fallback should exist");
+assert.ok(script.includes('err?.code==="PGRST202"'),"Recover a stale document RPC without clearing a live session");
+assert.ok(script.includes('data-ziv-fallback="schema-cache"'),"Show the old invoice register during a schema-cache outage");
+assert.ok(script.includes("Printing, sharing and verified balance calculations are temporarily paused"),"Degraded display must not present unverified balances");
+assert.ok(script.includes("await auth().managerInvoices()"),"Fallback must reuse existing authorised invoice records");
+assert.ok(script.includes("await auth().tenantInvoices()"),"Tenant fallback must preserve user-scoped billing");
+
 assert.ok(script.includes("Print / Save as PDF"),"Invoice must be printable");
 assert.ok(route.includes('if(kind==="invoices"&&window.ZimbaInvoiceStudio)'));
 assert.ok(html.includes("assets/invoice-studio.js"));
