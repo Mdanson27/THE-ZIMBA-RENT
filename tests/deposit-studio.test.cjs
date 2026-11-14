@@ -80,6 +80,11 @@ assert.ok(!sql.includes("UPDATE public.zimba_deposit_ledger"),"Never rewrite ban
 assert.ok(sql.includes("AND c.resident_auth_user_id=v_uid"),"Tenant actions must be scoped to linked resident");
 assert.ok(sql.includes("status='ended'"),"Only ended tenancy may request refund");
 assert.ok(sql.includes("v_previous.status<>'disputed'"),"Disputed payout should not be silently recycled");
+assert.ok(sql.includes("v_r.reported_by=v_uid"),"Receipt reporter must not self-acknowledge as tenant");
+assert.ok(sql.includes("v_s.proposed_by=v_uid"),"Manager must not self-accept a deduction proposal as tenant");
+assert.ok(sql.includes("v_s.payout_reported_by=v_uid"),"Payout reporter must not self-confirm as tenant");
+assert.ok(sql.includes("payout_reported_by=auth.uid()"),"Persist payout reporter identity for two-party approval");
+
 assert.ok(sql.includes("Proposed deductions UGX"),"Proposal notification must explain deduction amount");
 assert.ok(sql.includes("Reasons: "), "Private notification must summarize deduction reasons");
 assert.ok(sql.includes("Manager reported return UGX"),"Payout notification must show return amount");
