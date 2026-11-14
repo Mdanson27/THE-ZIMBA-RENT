@@ -61,6 +61,7 @@ assert.ok(sql.includes("v_current.sha256 IS DISTINCT FROM lower(p_sha256)"),"Ten
 assert.ok(sql.includes("WHERE c.resident_auth_user_id=auth.uid()"),"Tenant list must be scoped");
 assert.ok(sql.includes("c.resident_auth_user_id=v_uid"),"Download/confirmation must be tenant-scoped");
 assert.ok(sql.includes("manager_attested_at"),"Manager attestation required");
+assert.ok(sql.includes("v_current.uploaded_by=v_uid"),"Uploader must not self-confirm as tenant");
 assert.ok(sql.includes("'status','signed'"),"Signed state only after tenant confirmation");
 assert.ok(sql.includes("signed_lease_tenant_confirmed"),"Signature confirmations must be audited");
 assert.ok(sql.includes("sha256"),"Signed file integrity must be recorded");
