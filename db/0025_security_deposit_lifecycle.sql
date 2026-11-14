@@ -83,8 +83,7 @@ BEGIN
  END IF;
  RETURN NEW;
 END $f$;
-DROP TRIGGER IF EXISTS zimba_deposit_agreement_notice_trg ON public.zimba_lease_records;
-CREATE TRIGGER zimba_deposit_agreement_notice_trg
+CREATE OR REPLACE TRIGGER zimba_deposit_agreement_notice_trg
 AFTER INSERT OR UPDATE OF status,deposit_required_ugx ON public.zimba_lease_records
 FOR EACH ROW EXECUTE FUNCTION public.zimba_deposit_agreement_notice();
 
@@ -275,7 +274,7 @@ BEGIN
  IF v_deduct>v_r.amount_ugx THEN RAISE EXCEPTION 'Deductions exceed the requested amount' USING ERRCODE='22023';END IF;
  SELECT * INTO v_previous FROM public.zimba_deposit_settlement_proposals
  WHERE request_id=p_request ORDER BY revision DESC LIMIT 1 FOR UPDATE;
- IF v_previous.id IS NOT NULL AND v_previous.status NOT IN ('disputed','payout_disputed') THEN
+ IF v_previous.id IS NOT NULL AND v_previous.status<>'disputed' THEN
  RAISE EXCEPTION 'Current settlement must be answered before a revised proposal' USING ERRCODE='42501';END IF;
  v_rev:=coalesce(v_previous.revision,0)+1;
  IF v_rev>12 THEN RAISE EXCEPTION 'Maximum proposal revisions reached' USING ERRCODE='22023';END IF;
