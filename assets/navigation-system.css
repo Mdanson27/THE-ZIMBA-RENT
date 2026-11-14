@@ -480,3 +480,57 @@ body.zv-workspace-on .zv-flyout-link{
  body.zv-workspace-on .zv-sidebar-bottom>a:not(.zv-tier),
  body.zv-workspace-on .zv-sidebar-bottom button{min-height:44px}
 }
+
+
+/* Navigation V7 — repair inherited icon-span styling leaking into text labels.
+ * Legacy workspace-v3.css assigns nav a span a fixed 20px width,
+ * 18px font and centered text. These overrides target TEXT only.
+ * Keep the compact rail's icon-only layout completely unchanged.
+ */
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar nav .zv-nav-link{
+ justify-content:flex-start!important;text-align:left!important;
+ align-items:center;min-height:36px;max-width:100%;
+ gap:9px;padding-block:7px;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar nav .zv-nav-link > .zv-nav-label{
+ display:block!important;flex:1 1 auto!important;min-width:0!important;
+ width:auto!important;max-width:100%!important;
+ text-align:left!important;white-space:normal!important;
+ overflow:visible!important;text-overflow:clip!important;
+ overflow-wrap:break-word!important;word-break:normal!important;
+ font:700 10.9px/1.37 Manrope,system-ui,sans-serif!important;
+ letter-spacing:-.012em!important;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar nav .zv-nav-link > .zv-nav-symbol{
+ display:flex!important;justify-content:center;align-items:center;
+ flex:0 0 17px!important;min-width:17px!important;width:17px!important;
+ height:18px!important;font-size:0!important;text-align:center!important;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-links{
+ min-width:0;max-width:100%;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-links > .zv-nav-link{
+ padding-left:7px!important;padding-right:6px!important;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-toggle{
+ text-align:left!important;justify-content:flex-start;gap:7px;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-title{
+ text-align:left!important;font:800 9px/1.35 Manrope,system-ui,sans-serif!important;
+ letter-spacing:.02em!important;white-space:normal!important;
+ overflow:visible!important;text-overflow:clip!important;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-symbol{
+ width:16px!important;flex:0 0 16px!important;
+}
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-section-chevron{
+ margin-left:auto;
+}
+@media(max-width:800px){
+ body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar nav .zv-nav-link{
+  min-height:44px;gap:10px;padding:9px 10px;
+ }
+ body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar nav .zv-nav-link > .zv-nav-label{
+  font-size:11.5px!important;line-height:1.45!important;
+ }
+}
