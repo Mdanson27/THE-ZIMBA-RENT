@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS public.zimba_deposit_settlement_proposals(
  proposed_by uuid NOT NULL, proposed_at timestamptz NOT NULL DEFAULT now(),
  tenant_responded_at timestamptz,tenant_response text,
  transfer_reference text,transfer_reported_at timestamptz,transfer_date date,
+ payout_reported_by uuid,
  confirmed_by uuid,confirmed_at timestamptz,
  CHECK(gross_ugx=deducted_ugx+refund_ugx),
  UNIQUE(request_id,revision)
@@ -207,6 +208,8 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'Receipt not available or already answered' USING ERRCODE='42501';END IF;
  IF p_accept IS DISTINCT FROM true AND length(btrim(coalesce(p_note,'')))<15 THEN
  RAISE EXCEPTION 'Explain the disputed receipt in at least 15 characters' USING ERRCODE='22023';END IF;
+ IF v_r.reported_by=v_uid THEN
+ RAISE EXCEPTION 'The receipt reporter cannot also acknowledge it as the tenant' USING ERRCODE='42501';END IF;
  v_status:=CASE WHEN p_accept THEN 'tenant_acknowledged' ELSE 'disputed' END;
  UPDATE public.zimba_deposit_receipt_attestations SET status=v_status,
  tenant_responded_at=now(),tenant_note=left(btrim(coalesce(p_note,'')),1000) WHERE id=p_receipt;
@@ -314,6 +317,8 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'Settlement proposal unavailable' USING ERRCODE='42501';END IF;
  IF p_accept IS DISTINCT FROM true AND length(btrim(coalesce(p_note,''))) NOT BETWEEN 15 AND 1000 THEN
  RAISE EXCEPTION 'Explain the dispute in 15–1000 characters' USING ERRCODE='22023';END IF;
+ IF v_s.proposed_by=v_uid THEN
+ RAISE EXCEPTION 'The settlement proposer cannot approve their own proposal as tenant' USING ERRCODE='42501';END IF;
  v_status:=CASE WHEN p_accept THEN 'accepted' ELSE 'disputed' END;
  UPDATE public.zimba_deposit_settlement_proposals SET status=v_status,
  tenant_responded_at=now(),tenant_response=left(btrim(coalesce(p_note,'')),1000) WHERE id=p_proposal;
@@ -359,7 +364,8 @@ BEGIN
  WHERE transfer_reference=btrim(p_reference) AND id<>p_proposal) THEN
  RAISE EXCEPTION 'Payout reference already used' USING ERRCODE='22023';END IF;
  UPDATE public.zimba_deposit_settlement_proposals SET status='awaiting_confirmation',
- transfer_reference=btrim(p_reference),transfer_date=p_transfer_date,transfer_reported_at=now()
+ transfer_reference=btrim(p_reference),transfer_date=p_transfer_date,transfer_reported_at=now(),
+ payout_reported_by=auth.uid()
  WHERE id=p_proposal;
  UPDATE public.zimba_deposit_refund_requests SET status='approved_pending_payout',
  reviewed_by=auth.uid(),reviewed_at=now(),decision_note=v_s.decision_note WHERE id=v_s.request_id;
@@ -384,8 +390,8 @@ BEGIN
  JOIN public.resident_connections c ON c.id=l.connection_id AND c.organization_id=l.organization_id
  WHERE s.id=p_proposal AND c.resident_auth_user_id=v_uid AND s.status='awaiting_confirmation'
  FOR UPDATE OF s;
- IF NOT FOUND OR v_s.proposed_by=v_uid THEN
- RAISE EXCEPTION 'Payout awaiting this tenant account not found' USING ERRCODE='42501';END IF;
+ IF NOT FOUND OR v_s.proposed_by=v_uid OR v_s.payout_reported_by=v_uid THEN
+ RAISE EXCEPTION 'Payout must be confirmed by a different tenant account from the manager' USING ERRCODE='42501';END IF;
  IF p_confirm IS DISTINCT FROM true AND length(btrim(coalesce(p_note,''))) NOT BETWEEN 15 AND 1000 THEN
  RAISE EXCEPTION 'Explain the missing or incorrect refund in 15–1000 characters' USING ERRCODE='22023';END IF;
  v_status:=CASE WHEN p_confirm THEN 'confirmed' ELSE 'payout_disputed' END;
