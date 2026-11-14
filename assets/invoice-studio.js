@@ -6,7 +6,7 @@
 (()=>{
 "use strict";
 const auth=()=>window.ZimbaAuth;
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;':"&quot;","'":"&#39;"}[c]));
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=v=>"UGX "+Number(v||0).toLocaleString("en-UG",{maximumFractionDigits:0});
 const shortDate=v=>String(v||"").slice(0,10)||"Not specified";
 const niceDate=v=>{const d=String(v||"").slice(0,10);if(!/^\d{4}-\d\d-\d\d$/.test(d))return shortDate(v);return new Date(d+"T12:00:00Z").toLocaleDateString("en-UG",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});};
