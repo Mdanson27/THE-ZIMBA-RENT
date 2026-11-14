@@ -65,12 +65,12 @@ function agenda(){
 }
 function header(){
  const m=state.metrics||{};
- const count=n=>Number(n||0).toLocaleString("en-UG");
+ const count=n=>state.metrics?Number(n||0).toLocaleString("en-UG"):"—";
  return '<div class="zoc-overview-row">'+
  '<div class="zoc-overview-hero"><div><span class="zoc-overline">YOUR PORTFOLIO SCHEDULE</span><h2>Calendar & priorities</h2><p>Every date is linked to a real agreement, invoice, repair or financial record.</p></div>'+
  '<span class="zoc-live-dot">Live records</span></div>'+
  '<div class="zoc-alerts">'+
- '<a href="#/workspace/invoices" class="zoc-alert zoc-alert-overdue"><span>Overdue invoices</span><b>'+count(m.overdueCount)+'</b><small>'+money(m.overdueAmount)+'</small></a>'+
+ '<a href="#/workspace/invoices" class="zoc-alert zoc-alert-overdue"><span>Overdue invoices</span><b>'+count(m.overdueCount)+'</b><small>'+(state.metrics?money(m.overdueAmount):"Awaiting financial records")+'</small></a>'+
  '<a href="#/workspace/invoices" class="zoc-alert"><span>Due within 7 days</span><b>'+count(m.dueSoonCount)+'</b><small>Unpaid or partly paid</small></a>'+
  '<a href="#/workspace/maintenance" class="zoc-alert"><span>Open repairs</span><b>'+count(m.openMaintenance)+'</b><small>'+count(m.urgentMaintenance)+' urgent</small></a>'+
  '<a href="#/workspace/deposits" class="zoc-alert"><span>Refund requests</span><b>'+count(m.pendingDepositRequests)+'</b><small>Pending review</small></a>'+
@@ -120,7 +120,11 @@ function paint(){
  const value=document.querySelector("#zo-invoice-outstanding");
  if(value){value.textContent=state.metrics?money(state.metrics.outstanding):"Unavailable";}
  const hint=document.querySelector("#zo-invoice-outstanding-help");
- if(hint&&state.metrics)hint.textContent=Number(state.metrics.overdueCount||0)+" overdue · invoiced rent less verified payments";
+ if(hint)hint.textContent=state.metrics?Number(state.metrics.overdueCount||0)+" overdue · actual invoices less verified payments":"Financial data temporarily unavailable";
+ const overdue=document.querySelector("#zo-overdue-priority");
+ if(overdue)overdue.textContent=state.metrics?Number(state.metrics.overdueCount||0)+" overdue rent invoices · "+money(state.metrics.overdueAmount):"Invoice status unavailable";
+ const refunds=document.querySelector("#zo-refund-priority");
+ if(refunds)refunds.textContent=state.metrics?Number(state.metrics.pendingDepositRequests||0)+" tenant deposit refund requests pending":"Refund request status unavailable";
 }
 function bind(){
  const host=document.querySelector("#zoc-shell");if(!host)return;
