@@ -35,10 +35,11 @@ function overview(data,record){
  '<div class="zo-cards">'+card("⌂","Properties",num(data.properties),"Managed portfolio","properties")+
  card("⚒","Open maintenance",num(data.maintenanceOpen),"Issues requiring attention","maintenance")+
  card("♙","Connected residents",num(data.residents),"Verified property connections","residents")+
- card("▤","Rent receivables",money(data.rentDue),"Charges due or partially paid","receivables")+'</div>'+
- '<div class="zo-two">'+panel("Operational priorities",'<div class="zo-priority"><div><span class="zo-priority-dot"></span><strong>'+num(data.maintenanceUrgent)+' urgent maintenance cases</strong><a href="#/workspace/maintenance">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+num(data.properties)+' properties on record</strong><a href="#/workspace/properties">View ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+money(data.recordedExpenses)+' recorded expenses</strong><a href="#/workspace/finance">Open ↗</a></div></div>','YOUR NEXT ACTIONS','priorities')+
+ card("▤","Rent receivables",'<span id="zo-invoice-outstanding">Checking…</span>','<span id="zo-invoice-outstanding-help">Actual invoices minus verified payments</span>',"receivables")+'</div>'+
+ '<div id="zo-overview-calendar" aria-label="Live portfolio calendar"></div>'+
+ '<div class="zo-two">'+panel("Operational priorities",'<div class="zo-priority"><div><span class="zo-priority-dot"></span><strong>'+num(data.maintenanceUrgent)+' urgent maintenance cases</strong><a href="#/workspace/maintenance">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong id="zo-overdue-priority">Checking overdue invoices…</strong><a href="#/workspace/invoices">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong id="zo-refund-priority">Checking deposit requests…</strong><a href="#/workspace/deposits">Review ↗</a></div><div><span class="zo-priority-dot calm"></span><strong>'+money(data.recordedExpenses)+' recorded expenses</strong><a href="#/workspace/finance">Open ↗</a></div></div>','YOUR NEXT ACTIONS','priorities')+
  panel("Recent maintenance",recent.length?'<div class="zo-activity">'+recent.map(x=>'<article><strong>'+esc(x.issue)+'</strong><small>'+esc(x.property)+' · '+esc(x.priority)+' · '+esc(x.status.replaceAll("_"," "))+'</small></article>').join("")+'</div>':statNote("No maintenance cases recorded yet."),"LIVE ACTIVITY","recent")+'</div>'+
- panel("Quick actions",'<div class="zo-quick-actions"><a href="#/workspace/properties">Manage properties ↗</a><a href="#/workspace/building">Configure rooms ↗</a><a href="#/workspace/residents">Manage residents ↗</a><a href="#/workspace/lease">Rental agreements ↗</a><a href="#/workspace/invoices">Issue invoices ↗</a><a href="#/workspace/maintenance">Track repairs ↗</a></div>','MANAGE YOUR PROPERTY')+
+ panel("Quick actions",'<div class="zo-quick-actions"><a href="#/workspace/properties">Manage properties ↗</a><a href="#/workspace/building">Configure rooms ↗</a><a href="#/workspace/residents">Manage residents ↗</a><a href="#/workspace/lease">Rental agreements ↗</a><a href="#/workspace/invoices">Issue invoices ↗</a><a href="#/workspace/maintenance">Track repairs ↗</a><a href="#/workspace/deposits">Review security deposits ↗</a><a href="#/workspace/finance">Financial records ↗</a></div>','MANAGE YOUR PROPERTY')+
  notice("The figures above come from your authenticated organisation records. Financial receivables are not proof of payment received.");
 }
 function maintenance(data,record){
@@ -76,7 +77,7 @@ function activate(section,record){
  loader().then(data=>{
   if(id!==version||!host.isConnected)return;
   host.innerHTML=section==="home"?overview(data,record):section==="maintenance"?maintenance(data,record):section==="finance"?financial(data,record):settings(data);
-  if(section==="home")window.ZimbaDashboard?.activate();
+  if(section==="home"){window.ZimbaDashboard?.activate();window.ZimbaOverviewCalendar?.mount();}
   if(section==="maintenance")bindMaintenance(record);
   if(section==="finance")bindFinancial(record);
   if(section==="settings")bindSettings(record);
