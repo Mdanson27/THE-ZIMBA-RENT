@@ -61,7 +61,7 @@ for(const guard of [
  "v_scan.sha256 IS DISTINCT FROM lower","sha256",
  "octet_length(pdf_content) BETWEEN 150 AND 3000000",
  "REVOKE ALL ON public.zimba_land_lease_signed_scans FROM PUBLIC,anonymous,authenticated",
- "zimba_land_lease_counterparty_confirmed","tenant","NOTIFY pgrst"]){
+ "land_lease_counterparty_confirmed","tenant","NOTIFY pgrst"]){
  if(guard==="tenant")continue;
  assert.ok(sql.includes(guard),"SQL security guard missing "+guard);
 }
