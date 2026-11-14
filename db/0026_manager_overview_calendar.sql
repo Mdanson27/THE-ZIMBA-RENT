@@ -43,7 +43,7 @@ BEGIN
  ) INTO v_metrics FROM invoice_balances;
 
  WITH dates AS (
-  SELECT i.id id,i.due_date day,'rent'::text kind,
+  SELECT i.id AS id,i.due_date AS event_date,'rent'::text kind,
    ('Invoice '||i.invoice_reference)::text title,p.title::text property,
    CASE WHEN remaining.balance=0 THEN 'paid'
         WHEN i.due_date<v_today THEN 'overdue'
@@ -123,13 +123,13 @@ BEGIN
   WHERE e.organization_id=v_org AND e.expense_date BETWEEN p_start AND p_end
  ),
  limited AS (
-  SELECT id,day,kind,title,property,status,amount,link,detail
-  FROM dates ORDER BY day,CASE WHEN status='overdue' THEN 0 ELSE 1 END,kind,id LIMIT 350
+  SELECT id,event_date,kind,title,property,status,amount,link,detail
+  FROM dates ORDER BY event_date,CASE WHEN status='overdue' THEN 0 ELSE 1 END,kind,id LIMIT 350
  )
  SELECT coalesce(jsonb_agg(jsonb_build_object(
-  'id',id,'date',day,'kind',kind,'title',title,'property',property,
+  'id',id,'date',event_date,'kind',kind,'title',title,'property',property,
   'status',status,'amount',amount,'link',link,'detail',detail
- ) ORDER BY day,kind,id),'[]'::jsonb) INTO v_events FROM limited;
+ ) ORDER BY event_date,kind,id),'[]'::jsonb) INTO v_events FROM limited;
 
  RETURN jsonb_build_object('events',v_events,'metrics',v_metrics,
   'start',p_start,'end',p_end,'today',v_today,
