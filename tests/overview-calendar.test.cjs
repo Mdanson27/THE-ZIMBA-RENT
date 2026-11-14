@@ -24,7 +24,7 @@ assert.ok(calendar.page().includes("Portfolio activity calendar"));
 for(const marker of [
  'data-zoc-shift="-1"','data-zoc-shift="1"',
  'data-zoc-today="1"','data-zoc-date','data-zoc-filter','aria-pressed',
- "zoc-day-events","zoc-overdue-day","zoc-agenda","zoc-legend",
+ "zoc-day-events","zoc-overdue-day","zoc-agenda","zoc-legend","zoc-upcoming","zoc-next-events",
  "managerOverviewCalendar","state.events.filter(visible)",
  "todayKampala","zoc-event-link","zoc-invoice"
 ]){
