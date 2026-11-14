@@ -252,6 +252,7 @@ AS $f$
 DECLARE v_org uuid:=public.zimba_my_manager_org();v_r public.zimba_deposit_refund_requests%ROWTYPE;
  v_l public.zimba_lease_records%ROWTYPE;v_item jsonb;v_deduct bigint:=0;
  v_amt bigint;v_rev integer;v_id uuid;v_previous public.zimba_deposit_settlement_proposals%ROWTYPE;
+ v_reasons text;
 BEGIN
  SELECT r.* INTO v_r FROM public.zimba_deposit_refund_requests r
  JOIN public.zimba_lease_records l ON l.id=r.lease_id
@@ -287,8 +288,11 @@ BEGIN
  VALUES(p_request,v_r.lease_id,v_org,v_rev,v_r.amount_ugx,p_deductions,
  v_deduct,v_r.amount_ugx-v_deduct,btrim(p_note),auth.uid())
  RETURNING id INTO v_id;
+ SELECT coalesce(string_agg(left(value->>'reason',75),'; '),'No deductions proposed') INTO v_reasons
+ FROM jsonb_array_elements(p_deductions);
  PERFORM public.zimba_deposit_notify_parties(v_r.lease_id,'Deposit refund decision proposed',
- 'The property manager proposed a deposit settlement. Review every deduction, reason and evidence reference before agreeing or disputing.',v_id);
+ 'Proposed deductions UGX '||v_deduct||'; amount to return UGX '||(v_r.amount_ugx-v_deduct)
+ ||'. Reasons: '||left(v_reasons,155)||'. Review evidence and respond in ZIMBA.',v_id);
  INSERT INTO public.zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details)
  VALUES(auth.uid(),v_org,'deposit_settlement_proposed','deposit_refund',p_request,
  jsonb_build_object('proposalId',v_id,'deductions',p_deductions,'gross',v_r.amount_ugx,
@@ -360,7 +364,8 @@ BEGIN
  UPDATE public.zimba_deposit_refund_requests SET status='approved_pending_payout',
  reviewed_by=auth.uid(),reviewed_at=now(),decision_note=v_s.decision_note WHERE id=v_s.request_id;
  PERFORM public.zimba_deposit_notify_parties(v_s.lease_id,'Deposit payout reported by manager',
- 'The manager reported an external refund or deduction settlement. Tenant: confirm actual receipt or report that money was not received.',p_proposal);
+ 'Manager reported return UGX '||v_s.refund_ugx||' and deductions UGX '||v_s.deducted_ugx
+ ||'. Reference: '||left(btrim(p_reference),80)||'. Tenant: confirm actual receipt or dispute it. This is not bank-verified.',p_proposal);
  INSERT INTO public.zimba_security_audit(actor_auth_id,organization_id,action,resource,resource_id,details)
  VALUES(auth.uid(),v_org,'deposit_payout_reported','deposit_refund',v_s.request_id,
  jsonb_build_object('proposalId',p_proposal,'reference',p_reference,'refund',v_s.refund_ugx,
