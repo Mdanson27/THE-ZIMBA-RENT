@@ -57,11 +57,16 @@ function eventCard(e){
 function agenda(){
  const day=state.selected||todayKampala();
  const entries=state.events.filter(e=>e.date===day&&visible(e));
+ const upcoming=state.events.filter(e=>e.date>=todayKampala()&&e.date!==day&&visible(e))
+  .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
  return '<section class="zoc-agenda" aria-label="Selected day agenda">'+
  '<div class="zoc-agenda-head"><div><span class="zoc-overline">SELECTED DAY</span><h3>'+esc(longDay(day))+'</h3></div><span class="zoc-agenda-total">'+entries.length+' event'+(entries.length===1?"":"s")+'</span></div>'+
  (entries.length?'<div class="zoc-day-events">'+entries.map(eventCard).join("")+'</div>':
  '<div class="zoc-agenda-empty"><b>No recorded events on this day.</b><p>Choose another highlighted date or adjust the filters.</p></div>')+
- '</section>';
+ '<div class="zoc-upcoming"><div class="zoc-agenda-head"><div><span class="zoc-overline">NEXT ON YOUR CALENDAR</span><h3>Upcoming activities</h3></div></div>'+
+ (upcoming.length?'<div class="zoc-next-events">'+upcoming.map(e=>'<div class="zoc-next-day"><span>'+esc(longDay(e.date))+'</span>'+eventCard(e)+'</div>').join("")+'</div>':
+ '<p class="zoc-agenda-no-next">No other upcoming events are recorded in the displayed weeks.</p>')+
+ '</div></section>';
 }
 function header(){
  const m=state.metrics||{};
