@@ -1,0 +1,24 @@
+/* Land lease instrument V2 — use the same polished visual language as rental contracts. */
+.zl-page .zl-body{min-width:0}.zl-page .zl-workspace{grid-template-columns:minmax(340px,1.15fr) minmax(340px,1fr)}
+.zl-page .zl-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 13px}
+.zl-page .zl-builder .zrl-step{padding:17px 18px}
+.zl-page .zl-builder .zrl-step:last-of-type{margin-bottom:8px}
+.zl-page .zl-builder .zrl-form label>input,.zl-page .zl-builder .zrl-form label>textarea,
+.zl-page .zl-builder .zrl-form label>select{min-width:0;max-width:100%;color:var(--zrl-fg)}
+.zl-page .zl-register .zrl-record{padding:16px;gap:11px}
+.zl-page .zl-parties{font-size:11px;color:var(--zrl-sub);font-weight:650;margin:4px 0!important}
+.zl-page .zl-success{padding:13px;border-radius:9px;border:1px solid #afcfb7;background:#ebf7ed;color:#236343;font-size:11px}
+.zl-page .zrl-record details{border-top:1px solid var(--zrl-line);margin-top:12px;padding-top:9px}
+.zl-page .zrl-record details summary{font-size:11px;font-weight:800;color:var(--zrl-fg);cursor:pointer}
+.zl-page .zrl-record details h4{font:800 12px Manrope,system-ui,sans-serif!important;margin:10px 0 5px}
+.zl-page .zrl-record details p{white-space:pre-wrap;line-height:1.7}
+.zl-page .zrl-record .zrl-confirm{margin-top:11px}
+.zl-page .zrl-record .zrl-confirm h3{font-size:13px!important;margin:0 0 6px}
+.zl-page .zrl-record .zrl-confirm p{font-size:11px;line-height:1.7}
+.zl-page .zrl-record-actions .zrl-button{min-height:36px}
+.zl-page .zrl-workflow span{padding:7px 11px}
+.zl-page .zrl-panel-header{gap:10px}
+.zl-page .zrl-associated{overflow-wrap:anywhere}
+html[data-zimba-theme="dark"] body.zv-workspace-on .zl-page .zl-success{background:#29553a;color:#d4f5db;border-color:#478159}
+@media(max-width:1190px){.zl-page .zl-workspace{grid-template-columns:1fr}}
+@media(max-width:620px){.zl-page .zl-two{grid-template-columns:1fr}.zl-page .zl-builder .zrl-step{padding:12px}.zl-page .zrl-workflow{gap:5px}.zl-page .zrl-workflow span{font-size:9.5px}.zl-page .zrl-panel{padding:15px}}
