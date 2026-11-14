@@ -61,14 +61,14 @@ BEGIN
   ) remaining
   WHERE i.status<>'void' AND i.due_date BETWEEN p_start AND p_end
   UNION ALL
-  SELECT m.id,m.created_at::date,'maintenance',
+  SELECT m.id,(m.created_at AT TIME ZONE 'Africa/Kampala')::date,'maintenance',
     left('Repair reported: '||m.issue,130),p.title,
     CASE WHEN m.status='completed' THEN 'completed' ELSE m.priority END,
     NULL::bigint,'#/workspace/maintenance',
-    ('Reported '||m.created_at::date::text||' · '||m.status)
+    ('Reported '||(m.created_at AT TIME ZONE 'Africa/Kampala')::date::text||' · '||m.status)
   FROM public.maintenance_requests m
   JOIN public.properties p ON p.id=m.property_id AND p.organization_id=v_org
-  WHERE m.organization_id=v_org AND m.created_at::date BETWEEN p_start AND p_end
+  WHERE m.organization_id=v_org AND (m.created_at AT TIME ZONE 'Africa/Kampala')::date BETWEEN p_start AND p_end
   UNION ALL
   SELECT m.id,m.expected_completion,'maintenance',
     left('Repair target: '||m.issue,130),p.title,
@@ -106,14 +106,14 @@ BEGIN
   LEFT JOIN public.properties pr ON pr.id=d.property_id AND pr.organization_id=v_org
   WHERE d.organization_id=v_org AND d.end_date BETWEEN p_start AND p_end
   UNION ALL
-  SELECT r.id,r.requested_at::date,'deposit','Deposit refund requested',
+  SELECT r.id,(r.requested_at AT TIME ZONE 'Africa/Kampala')::date,'deposit','Deposit refund requested',
     p.title,r.status,r.amount_ugx,'#/workspace/deposits',
     'Refund requested · review deductions and approval'
   FROM public.zimba_deposit_refund_requests r
   JOIN public.zimba_lease_records l ON l.id=r.lease_id AND l.organization_id=v_org
   JOIN public.resident_connections rc ON rc.id=l.connection_id AND rc.organization_id=v_org
   JOIN public.properties p ON p.id=rc.property_id AND p.organization_id=v_org
-  WHERE r.requested_at::date BETWEEN p_start AND p_end
+  WHERE (r.requested_at AT TIME ZONE 'Africa/Kampala')::date BETWEEN p_start AND p_end
   UNION ALL
   SELECT e.id,e.expense_date,'expense',left('Expense: '||e.description,130),
     coalesce(pr.title,'Organisation-wide'),'recorded',
