@@ -90,3 +90,13 @@ html[data-zimba-theme="dark"] body.zv-workspace-on .zoc-event-link{color:#b5e6c5
 @media(max-width:600px){.zoc-main{gap:10px}.zoc-month,.zoc-agenda{padding:13px}.zoc-alert{min-height:75px;padding:10px}.zoc-day{min-height:47px;padding:5px}.zoc-day-number{font-size:10px;width:20px;height:20px}.zoc-day.today .zoc-day-number{width:20px;height:20px}.zoc-filters{gap:5px}.zoc-filter{font-size:9px;padding:6px 8px}.zoc-overview-hero h2{font-size:20px!important}.zoc-agenda-head h3{font-size:15px!important}}
 @media(max-width:370px){.zoc-day{min-height:43px;padding:4px}.zoc-dots{gap:2px}.zoc-dot{width:5px;height:5px}}
 @media(prefers-reduced-motion:reduce){.zoc-shell *{transition:none!important;animation:none!important}}
+
+
+.zoc-upcoming{border-top:1px solid var(--zoc-border);padding-top:16px;margin-top:2px;display:grid;gap:10px}
+.zoc-upcoming .zoc-agenda-head{padding:0 0 8px;margin:0}
+.zoc-upcoming .zoc-agenda-head h3{font-size:13.5px!important}
+.zoc-next-events{display:grid;gap:10px;max-height:380px;overflow-y:auto;scrollbar-width:thin}
+.zoc-next-day{display:grid;gap:6px}
+.zoc-next-day>span{color:var(--zoc-sub);font-size:9px;font-weight:850;letter-spacing:.02em}
+.zoc-next-day .zoc-event{padding:10px}
+.zoc-agenda-no-next{color:var(--zoc-sub);font-size:10.5px;margin:2px 0 5px;line-height:1.6}
