@@ -21,7 +21,7 @@ function page(record){
  const selected=new URLSearchParams((location.hash.split("?")[1]||"")).get("property");
  scope=propertyOptions.some(p=>p.id===selected)?selected||"":"";
  active="pulse";report=null;reply=null;
- return '<section class="zai-page" id="zai-root"><div class="zai-head"><div><span class="zai-kicker">ZIMBA / INTELLIGENCE</span><h1>Your properties. <em>Clearer decisions.</em></h1><p>Signals grounded in your organisation’s records, with explanations you can inspect.</p></div><button type="button" class="zai-btn" id="zai-refresh">Refresh intelligence</button></div>'+
+ return '<section class="zai-page" id="zai-root"><div class="zai-head"><div><span class="zai-kicker">ZIMBA RENT / INTELLIGENCE</span><h1>Your properties. <em>Clearer decisions.</em></h1><p>Signals grounded in your organisation’s records, with explanations you can inspect.</p></div><button type="button" class="zai-btn" id="zai-refresh">Refresh intelligence</button></div>'+
  '<div class="zai-toolbar"><label for="zai-property">Analysis scope</label><select id="zai-property"><option value="">All managed properties</option>'+propertyOptions.map(p=>'<option value="'+esc(p.id)+'" '+(scope===p.id?"selected":"")+'>'+esc(p.name)+'</option>').join("")+'</select><span class="zai-readonly">Read-only analysis</span></div>'+
  '<div class="zai-tabs" role="tablist" aria-label="Intelligence sections">'+tabs.map(([k,n])=>'<button type="button" role="tab" data-zai-tab="'+k+'" aria-selected="'+String(k===active)+'">'+esc(n)+'</button>').join("")+'</div>'+
  '<div id="zai-status" aria-live="polite"></div><div id="zai-panel" role="tabpanel" tabindex="0"><div class="zai-loading" role="status">Loading verified operational signals…</div></div></section>';
