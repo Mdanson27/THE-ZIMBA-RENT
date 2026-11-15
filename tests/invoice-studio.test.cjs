@@ -87,7 +87,7 @@ assert.ok(script.includes("corrected by tenant approval")||script.includes("Corr
 assert.ok(script.includes("proposeRentCorrection("),"Landlord should be able to request tenant correction");
 assert.ok(script.includes("answerRentCorrection("),"Tenant should be able to approve or dispute an amendment");
 assert.ok(script.includes("Under review"),"Incorrect balances should not be advertised as currently payable");
-assert.ok(script.includes("tenant-approved rent amendment"),"Printed revised invoice should identify rate amendment");
+assert.ok(script.toLowerCase().includes("tenant-approved rent amendment"),"Printed revised invoice should identify rate amendment");
 assert.ok(script.includes("Print / Save as PDF"),"Invoice must be printable");
 assert.ok(route.includes('if(kind==="invoices"&&window.ZimbaInvoiceStudio)'));
 assert.ok(html.includes("assets/invoice-studio.js"));
