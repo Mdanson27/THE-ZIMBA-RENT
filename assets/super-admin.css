@@ -7,3 +7,8 @@
 @media(max-width:1000px){.zc-app{grid-template-columns:225px 1fr}.zc-side{padding:20px 11px}.zc-topbar{padding:0 22px}.zc-two-col{grid-template-columns:1fr}.zc-main{padding:28px 20px 80px}.zc-pricing{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.zc-app{grid-template-columns:1fr}.zc-side{position:fixed;transform:translateX(-103%);transition:transform .25s;width:270px;box-shadow:20px 0 60px #061e1533}.zc-app.zc-menu-open .zc-side{transform:translateX(0)}.zc-top-left button{display:inline-block}.zc-topbar{height:65px}.zc-env{display:none}.zc-top-right{gap:9px}.zc-main{padding:24px 17px 90px}.zc-heading{align-items:start}.zc-heading h1{font-size:39px}.zc-heading .zc-btn{padding:10px}.zc-metrics{gap:10px}.zc-metric{padding:17px;min-height:165px}.zc-metric>strong{font-size:28px}.zc-panel{padding:18px}.zc-toolbar{flex-wrap:wrap}}
 @media(max-width:460px){.zc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.zc-metric-top small{display:none}.zc-price-card{padding:16px}.zc-price-card>strong{font-size:14px}.zc-price-card h2{font-size:17px}.zc-pricing{gap:9px}.zc-heading{display:block}.zc-heading .zc-btn{margin-top:18px}.zc-admin-tag{font-size:8px}.zc-breadcrumb{font-size:9px}}
+
+
+/* Full brand appears consistently in the administration interface. */
+.zc-brand{letter-spacing:-.06em!important}
+.zc-brand span{font-size:.63em!important;letter-spacing:0}
