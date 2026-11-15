@@ -17,7 +17,10 @@ const statusMap={
  paid:["Paid · verified","paid"],partial:["Partially paid","partial"],
  overdue:["Overdue","overdue"],unpaid:["Unpaid","unpaid"],void:["Void","void"]
 };
-const state={manager:false,invoices:[],leases:[],filter:"all",search:"",compose:null,requestId:0};
+const state={manager:false,invoices:[],leases:[],integrity:[],filter:"all",search:"",compose:null,requestId:0};
+const rateOf=leaseId=>state.integrity.find(x=>x.leaseId===leaseId);
+const rateMismatch=i=>Boolean(rateOf(i.leaseId)?.mismatch);
+const mismatchedLeases=()=>state.integrity.filter(x=>x.mismatch&&x.leaseStatus==="acknowledged");
 const find=id=>state.invoices.find(v=>v.id===id);
 const statusLabel=x=>statusMap[x.status]||statusMap.unpaid;
 const pill=x=>{const [label,tone]=statusLabel(x);return '<span class="ziv-pill '+tone+'">'+esc(label)+'</span>';};
@@ -33,19 +36,20 @@ function notice(message,bad=false){
  box.textContent=message||"";box.className="ziv-notice"+(bad?" error":"");
 }
 function totals(){
- const invoices=state.invoices.filter(i=>i.status!=="void");
+ const disputed=state.invoices.filter(i=>i.status!=="void"&&rateMismatch(i));
+ const invoices=state.invoices.filter(i=>i.status!=="void"&&!rateMismatch(i));
  const billed=invoices.reduce((a,i)=>a+Number(i.amount||0),0);
  const verified=invoices.reduce((a,i)=>a+Math.min(Number(i.amount||0),Number(i.verifiedPaid||0)),0);
  const due=invoices.reduce((a,i)=>a+Math.max(Number(i.balance||0),0),0);
  const late=invoices.filter(i=>i.status==="overdue").length;
- return '<div class="ziv-kpis">'+[
+ return (disputed.length?'<div class="ziv-billing-hold" role="alert"><b>'+disputed.length+' incorrect rent invoice'+(disputed.length===1?" is":"s are")+' on hold.</b> The inaccurate amounts are excluded from the payable summary until the tenant approves an auditable correction. Do not pay, print or share these invoices.</div>':"")+'<div class="ziv-kpis">'+[
   ["Total invoiced",money(billed),"Excludes void invoices"],
   ["Verified payments",money(verified),"Only reconciled payment evidence"],
   ["Outstanding balance",money(due),late?late+" overdue invoice"+(late===1?"":"s"):"Across active invoices"]
  ].map(([label,value,caption])=>'<article class="ziv-kpi"><small>'+esc(label)+'</small><strong>'+esc(value)+'</strong><span>'+esc(caption)+'</span></article>').join("")+'</div>';
 }
 function approvedLeases(){
- return state.leases.filter(l=>l.status==="acknowledged");
+ return state.leases.filter(l=>l.status==="acknowledged"&&!rateOf(l.id)?.mismatch);
 }
 function issuePanel(){
  const leases=approvedLeases();
@@ -55,7 +59,7 @@ function issuePanel(){
  '<form id="ziv-issue-form"><div class="ziv-form-grid">'+
  '<label>Approved rental agreement<select name="lease" required>'+leases.map(l=>'<option value="'+esc(l.id)+'">'+esc(l.tenant)+' · '+esc(l.property)+'</option>').join("")+'</select></label>'+
  '<label>Billing month<input name="period" type="month" required value="'+esc(monthValue)+'"></label></div>'+
- '<p class="ziv-explainer">The rent amount, billable days and due date come from the saved agreement. Duplicate invoices for the same billing period are blocked. Issuing an invoice automatically notifies the tenant in ZIMBA.</p>'+
+ '<p class="ziv-explainer">ZIMBA RENT checks the acknowledged agreement against the assigned unit rate before issuing an invoice. Mismatches require correction and tenant approval. Duplicate billing periods are blocked.</p>'+
  '<button class="ziv-button primary" type="submit">Issue invoice</button></form>')+
  '</section>';
 }
@@ -132,7 +136,7 @@ function sharePanel(){
 }
 function draw(){
  const dest=root()?.querySelector("#ziv-content");if(!dest)return;
- dest.innerHTML=totals()+(state.manager?issuePanel():"")+records()+sharePanel()+
+ dest.innerHTML=correctionPanel()+totals()+(state.manager?issuePanel():"")+records()+sharePanel()+
  '<p class="ziv-disclaimer"><b>Billing document, not proof of payment.</b> Invoices are generated for the landlord or authorised property manager through ZIMBA RENT. Verified receipts only appear after reconciled payment evidence is recorded. This is not a URA EFRIS fiscal receipt.</p>';
  bind();window.ZimbaPrivacy?.refresh();
 }
@@ -140,13 +144,15 @@ async function load(manager){
  const host=root();if(!host)return;
  const run=++state.requestId;state.manager=!!manager;
  try{
-  const [items,leases]=await Promise.all([
+  const [items,leases,integrity]=await Promise.all([
    manager?auth().managerInvoiceDocuments():auth().tenantInvoiceDocuments(),
-   manager?auth().managerLeases():Promise.resolve([])
+   manager?auth().managerLeases():Promise.resolve([]),
+   auth().rentIntegrity(manager?"manager":"tenant")
   ]);
   if(run!==state.requestId||!host.isConnected)return;
   state.invoices=Array.isArray(items)?items:[];
   state.leases=Array.isArray(leases)?leases:[];
+  state.integrity=Array.isArray(integrity)?integrity:[];
   if(state.compose&&!find(state.compose.id))state.compose=null;
   draw();
  }catch(err){
@@ -209,12 +215,13 @@ function printHTML(i){
 }
 function print(id){
  const i=find(id);if(!i)return;
+ if(rateMismatch(i)){notice("Incorrect rent: this invoice is on hold until the tenant approves the correction.",true);return;}
  const w=window.open("","_blank","width=1000,height=920");
  if(!w){notice("Enable pop-ups to preview and print this invoice.",true);return;}
  w.document.open();w.document.write(printHTML(i));w.document.close();w.focus();
 }
 function showShare(id){
- const inv=find(id);if(!inv||inv.status==="void")return;
+ const inv=find(id);if(!inv||inv.status==="void"||rateMismatch(inv))return;
  state.compose={id,channel:"in_app",intent:"invoice",phone:inv.tenantPhone||"",
   message:shareText(inv,"invoice")};
  draw();
@@ -242,6 +249,7 @@ async function share(){
  const c=state.compose;if(!c)return;
  saveDraft();const i=find(c.id),msg=c.message.trim();
  if(!i){notice("The invoice could not be found. Refresh the register.",true);return;}
+ if(rateMismatch(i)){notice("Sharing an inaccurate rent invoice is blocked until the tenant approves the correction.",true);return;}
  if(msg.length<10||msg.length>700){notice("Keep the message between 10 and 700 characters.",true);return;}
  if(c.intent==="reminder"&&Number(i.balance)<=0){notice("You cannot send a payment reminder for an invoice with no balance due.",true);return;}
  if(c.channel==="in_app"){
@@ -273,7 +281,8 @@ async function issue(e){
  e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type="submit"]');
  const v=new FormData(form),lease=v.get("lease"),period=v.get("period");
  if(!lease||!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(period||""))){notice("Select an approved rental agreement and a valid billing month.",true);return;}
- btn.disabled=true;notice("Issuing your invoice and notifying the tenant in ZIMBA…");
+ if(rateOf(lease)?.mismatch){notice("Lease rent differs from the unit rate. Correct it with the tenant before invoicing.",true);return;}
+ btn.disabled=true;notice("Issuing your invoice and notifying the tenant in ZIMBA RENT…");
  try{
   const result=await auth().issueRentInvoice(lease,period+"-01");
   await load(true);
