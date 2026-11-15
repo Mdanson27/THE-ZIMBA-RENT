@@ -30,7 +30,7 @@ const fixture={
  receipts:[{reference:"ZRCP-VERIFIED",amount:200000,source:"reconciled_bank",verifiedAt:"2026-11-12T12:00:00Z"}]
 };
 const printed=studio.printHTML(fixture);
-for(const marker of ["RENT INVOICE","zimba","Issued by","Billed to","ZI-SAMPLE123",
+for(const marker of ["RENT INVOICE","ZIMBA RENT","Issued by","Billed to","ZI-SAMPLE123",
  "Nyumba Property Company","Kampala","B-03","UGX 500,000","UGX 200,000",
  "UGX 300,000","ZRCP-VERIFIED","Payment instructions",
  "not a receipt","EFRIS","@page{size:A4","window.print()"]){
@@ -82,6 +82,12 @@ assert.ok(script.includes("Printing, sharing and verified balance calculations a
 assert.ok(script.includes("await auth().managerInvoices()"),"Fallback must reuse existing authorised invoice records");
 assert.ok(script.includes("await auth().tenantInvoices()"),"Tenant fallback must preserve user-scoped billing");
 
+assert.ok(script.includes("rateMismatch(i)"),"Incorrect rent invoices must be quarantined");
+assert.ok(script.includes("corrected by tenant approval")||script.includes("Corrected by tenant approval"),"Revised amounts must be labelled");
+assert.ok(script.includes("proposeRentCorrection("),"Landlord should be able to request tenant correction");
+assert.ok(script.includes("answerRentCorrection("),"Tenant should be able to approve or dispute an amendment");
+assert.ok(script.includes("Under review"),"Incorrect balances should not be advertised as currently payable");
+assert.ok(script.includes("tenant-approved rent amendment"),"Printed revised invoice should identify rate amendment");
 assert.ok(script.includes("Print / Save as PDF"),"Invoice must be printable");
 assert.ok(route.includes('if(kind==="invoices"&&window.ZimbaInvoiceStudio)'));
 assert.ok(html.includes("assets/invoice-studio.js"));
