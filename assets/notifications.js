@@ -34,7 +34,7 @@ function renderList(container,items,compact){
   await refresh();
  });
 }
-function page(){return '<div class="zn-page"><div class="zn-page-head"><span>ZIMBA / UPDATES</span><h1>Notifications</h1><p>Follow repairs, messages and important account events in one place.</p><button type="button" id="zn-refresh">↻ Refresh notifications</button></div><section id="zn-page-list" class="zn-page-list">Loading notifications…</section></div>'}
+function page(){return '<div class="zn-page"><div class="zn-page-head"><span>ZIMBA RENT / UPDATES</span><h1>Notifications</h1><p>Follow repairs, messages and important account events in one place.</p><button type="button" id="zn-refresh">↻ Refresh notifications</button></div><section id="zn-page-list" class="zn-page-list">Loading notifications…</section></div>'}
 function activatePage(){document.querySelector("#zn-refresh")?.addEventListener("click",refresh);if(feed)renderList(document.querySelector("#zn-page-list"),feed.items||[],false);refresh()}
 window.ZimbaNotify={mount,refresh,page,activatePage};
 })();
