@@ -48,7 +48,8 @@ function eventCard(e){
  '<div class="zoc-event-info"><div class="zoc-event-meta">'+chip(e)+
  (e.status==="overdue"?'<span class="zoc-status overdue">Overdue</span>':
  e.status==="paid"?'<span class="zoc-status done">Verified paid</span>':
- e.status==="completed"?'<span class="zoc-status done">Completed</span>':"")+'</div>'+
+ e.status==="completed"?'<span class="zoc-status done">Completed</span>':
+ e.status==="under_review"?'<span class="zoc-status overdue">Billing on hold</span>':"")+'</div>'+
  '<strong>'+esc(e.title)+'</strong><p>'+esc(e.property||"Organisation")+'</p>'+
  (e.detail?'<small>'+esc(e.detail)+'</small>':"")+
  (e.amount!=null?'<span class="zoc-event-amount">'+money(e.amount)+(e.kind==="rent"?" outstanding":" recorded")+'</span>':"")+
@@ -79,7 +80,10 @@ function header(){
  '<a href="#/workspace/invoices" class="zoc-alert"><span>Due within 7 days</span><b>'+count(m.dueSoonCount)+'</b><small>Unpaid or partly paid</small></a>'+
  '<a href="#/workspace/maintenance" class="zoc-alert"><span>Open repairs</span><b>'+count(m.openMaintenance)+'</b><small>'+count(m.urgentMaintenance)+' urgent</small></a>'+
  '<a href="#/workspace/deposits" class="zoc-alert"><span>Refund requests</span><b>'+count(m.pendingDepositRequests)+'</b><small>Pending review</small></a>'+
- '</div></div>';
+ '</div></div>'+
+ (state.metrics&&Number(m.onHoldCount)>0?'<a href="#/workspace/invoices" class="zoc-hold-alert" role="status"><b>'+
+ Number(m.onHoldCount)+' rent invoice(s) require correction</b><span>'+money(m.onHoldOriginalAmount)+
+ ' is excluded from collectible rent until tenant-approved adjustment. Review the mismatch ↗</span></a>':"");
 }
 function calendar(){
  const {year:y,month:m}=state,range=gridRange(y,m),current=todayKampala();
@@ -120,7 +124,7 @@ function statusArea(){
 function paint(){
  const target=document.querySelector("#zoc-shell");if(!target)return;
  target.innerHTML=header()+calendar()+statusArea()+
- '<p class="zoc-disclaimer">Dates are based on saved ZIMBA records. Overdue status follows Kampala calendar dates. An invoice balance uses only verified reconciled payments; draft bills and unrecorded future rent are not invented.</p>';
+ '<p class="zoc-disclaimer">Dates are based on saved ZIMBA RENT records. Overdue status follows Kampala calendar dates. Invoices whose agreement rate differs from the assigned room are on hold and excluded from payable totals until the tenant approves a correction. No unrecorded future rent or payment is invented.</p>';
  bind();
  const value=document.querySelector("#zo-invoice-outstanding");
  if(value){value.textContent=state.metrics?money(state.metrics.outstanding):"Unavailable";}
