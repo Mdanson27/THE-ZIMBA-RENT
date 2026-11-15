@@ -108,6 +108,9 @@ BEGIN
   WHERE lease_id=p_lease AND status='pending_tenant') THEN
   RAISE EXCEPTION 'Tenant review is already pending' USING ERRCODE='22023';END IF;
  IF EXISTS(SELECT 1 FROM public.zimba_rent_invoices i
+  WHERE i.lease_id=p_lease AND i.status='paid') THEN
+  RAISE EXCEPTION 'A paid invoice requires manual reconciliation and cannot be automatically amended' USING ERRCODE='42501';END IF;
+ IF EXISTS(SELECT 1 FROM public.zimba_rent_invoices i
   WHERE i.lease_id=p_lease AND i.status<>'void' AND
   EXISTS(SELECT 1 FROM public.zimba_payment_evidence ev WHERE ev.invoice_id=i.id)) THEN
   RAISE EXCEPTION 'Existing verified payments require financial reconciliation before changing invoice values' USING ERRCODE='42501';END IF;
@@ -174,6 +177,9 @@ BEGIN
   RAISE EXCEPTION 'Assigned property rate or tenant has changed; refresh correction proposal' USING ERRCODE='42501';END IF;
  IF EXISTS(SELECT 1 FROM public.zimba_lease_signed_scans WHERE lease_id=v_l.id) THEN
   RAISE EXCEPTION 'Signed document exists; both parties must execute a new amendment' USING ERRCODE='42501';END IF;
+ IF EXISTS(SELECT 1 FROM public.zimba_rent_invoices i
+  WHERE i.lease_id=v_l.id AND i.status='paid') THEN
+  RAISE EXCEPTION 'Previously paid invoices require independent accounting review' USING ERRCODE='42501';END IF;
  IF EXISTS(SELECT 1 FROM public.zimba_rent_invoices i
   WHERE i.lease_id=v_l.id AND i.status<>'void' AND
    EXISTS(SELECT 1 FROM public.zimba_payment_evidence ev WHERE ev.invoice_id=i.id)) THEN
