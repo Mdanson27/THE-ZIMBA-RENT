@@ -325,6 +325,24 @@ async function issue(e){
 }
 function bind(){
  const r=root();if(!r)return;
+ r.querySelectorAll("[data-ziv-propose]").forEach(form=>form.addEventListener("submit",async e=>{
+  e.preventDefault();const button=form.querySelector('[type="submit"]'),reason=String(new FormData(form).get("reason")||"").trim();
+  if(reason.length<20){notice("Explain the original rent error in writing.",true);return;}
+  button.disabled=true;notice("Submitting the rate correction for tenant review…");
+  try{await auth().proposeRentCorrection(form.dataset.zivPropose,reason);await load(true);
+   notice("The tenant has been notified. Inaccurate invoices remain on hold until they approve the correction.");}
+  catch(err){notice("Correction request failed: "+err.message,true);button.disabled=false;}
+ }));
+ r.querySelectorAll("[data-ziv-answer]").forEach(form=>form.addEventListener("submit",async e=>{
+  e.preventDefault();const accepted=e.submitter?.value==="approve",note=String(new FormData(form).get("note")||"").trim();
+  if(!accepted&&note.length<15){notice("Explain why you disagree in at least 15 characters.",true);return;}
+  if(accepted&&!window.confirm("Approve this corrected monthly rent? The acknowledged agreement and unpaid invoices will be updated and the original amounts preserved in the audit history."))return;
+  const buttons=[...form.querySelectorAll("button")];buttons.forEach(b=>b.disabled=true);
+  notice(accepted?"Applying the tenant-approved correction…":"Recording your dispute…");
+  try{await auth().answerRentCorrection(form.dataset.zivAnswer,accepted,note);await load(false);
+   notice(accepted?"The corrected monthly rent and unpaid invoices were saved. Review the revised documents and arrange a formally signed amendment.":"Your objection was recorded and management notified.");}
+  catch(err){notice("Could not record response: "+err.message,true);buttons.forEach(b=>b.disabled=false);}
+ }));
  r.querySelector("#ziv-issue-form")?.addEventListener("submit",issue);
  r.querySelector("#ziv-search")?.addEventListener("input",e=>{state.search=e.target.value;const focus=e.target.selectionStart;draw();const input=root()?.querySelector("#ziv-search");input?.focus();if(typeof focus==="number")input?.setSelectionRange(focus,focus);});
  r.querySelector("#ziv-filter")?.addEventListener("change",e=>{state.filter=e.target.value;draw();});
