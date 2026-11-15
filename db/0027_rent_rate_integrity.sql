@@ -246,15 +246,36 @@ BEGIN
    USING ERRCODE='22023';END IF;
  RETURN NEW;
 END $f$;
-DROP TRIGGER IF EXISTS zimba_invoice_rate_guard_trg ON public.zimba_rent_invoices;
-CREATE TRIGGER zimba_invoice_rate_guard_trg
+CREATE OR REPLACE TRIGGER zimba_invoice_rate_guard_trg
  BEFORE INSERT ON public.zimba_rent_invoices
  FOR EACH ROW EXECUTE FUNCTION public.zimba_rent_invoice_rate_guard();
+
+
+-- Block fresh issued or acknowledged leases whose specified rent does not
+-- match the assigned unit, so another UGX 5m vs 550k discrepancy cannot begin.
+CREATE OR REPLACE FUNCTION public.zimba_lease_rate_guard()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public','pg_temp' AS $f$
+DECLARE v_unit bigint;
+BEGIN
+ IF NEW.status NOT IN ('issued','acknowledged') THEN RETURN NEW;END IF;
+ SELECT u.monthly_rent_ugx INTO v_unit FROM public.resident_connections c
+ JOIN public.units u ON u.id=c.unit_id AND u.organization_id=NEW.organization_id
+ WHERE c.id=NEW.connection_id AND c.organization_id=NEW.organization_id;
+ IF v_unit IS NULL OR v_unit<1 OR NEW.monthly_rent_ugx<>v_unit THEN
+  RAISE EXCEPTION 'Agreement cannot be issued: entered monthly rent differs from the assigned room rate. Review the unit and draft amounts first.'
+  USING ERRCODE='22023';END IF;
+ RETURN NEW;
+END $f$;
+CREATE OR REPLACE TRIGGER zimba_lease_rate_guard_trg
+ BEFORE INSERT OR UPDATE OF monthly_rent_ugx,status ON public.zimba_lease_records
+ FOR EACH ROW EXECUTE FUNCTION public.zimba_lease_rate_guard();
 
 REVOKE ALL ON FUNCTION public.zimba_rent_integrity(text) FROM PUBLIC,anonymous;
 REVOKE ALL ON FUNCTION public.zimba_manager_propose_rent_correction(uuid,text) FROM PUBLIC,anonymous;
 REVOKE ALL ON FUNCTION public.zimba_tenant_answer_rent_correction(uuid,boolean,text) FROM PUBLIC,anonymous;
 REVOKE ALL ON FUNCTION public.zimba_rent_invoice_rate_guard() FROM PUBLIC,anonymous,authenticated;
+REVOKE ALL ON FUNCTION public.zimba_lease_rate_guard() FROM PUBLIC,anonymous,authenticated;
 GRANT EXECUTE ON FUNCTION public.zimba_rent_integrity(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.zimba_manager_propose_rent_correction(uuid,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.zimba_tenant_answer_rent_correction(uuid,boolean,text) TO authenticated;
