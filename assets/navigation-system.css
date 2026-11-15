@@ -534,3 +534,8 @@ body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-secti
   font-size:11.5px!important;line-height:1.45!important;
  }
 }
+
+
+/* Full brand fits the expanded sidebar without covering its collapse control. */
+body.zv-workspace-on .zv-layout:not(.zv-sidebar-collapsed) .zv-sidebar .zv-brand-section .zv-logo{font-size:24px!important;letter-spacing:-.045em!important}
+body.zv-workspace-on .zv-sidebar .zv-brand-section .zv-logo span{font-size:.61em!important;letter-spacing:-.01em!important}
