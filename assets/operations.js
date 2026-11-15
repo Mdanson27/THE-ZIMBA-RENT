@@ -11,7 +11,7 @@ let version=0;
 function shell(section){
  const titles={home:["Your portfolio, clearly.","A complete overview of what matters today."],maintenance:["Maintenance centre","Keep every repair visible, assigned and progressing."],finance:["Finance & reports","Accurate records and clearer financial decisions."],settings:["Workspace settings","Shape Zimba around how your organisation works."]};
  const t=titles[section]||titles.home;
- return '<div class="zo-page"><div class="zo-head"><div><span class="zo-eyebrow">ZIMBA · YOUR MANAGEMENT SPACE</span><h1>'+t[0]+'</h1><p>'+t[1]+'</p></div><button class="zo-btn secondary" id="zo-reload" type="button">↻ Refresh</button></div><div id="zo-body"><div class="zo-loading"><span class="zo-spinner"></span><strong>Loading your secure records…</strong></div></div></div>';
+ return '<div class="zo-page"><div class="zo-head"><div><span class="zo-eyebrow">ZIMBA RENT · YOUR MANAGEMENT SPACE</span><h1>'+t[0]+'</h1><p>'+t[1]+'</p></div><button class="zo-btn secondary" id="zo-reload" type="button">↻ Refresh</button></div><div id="zo-body"><div class="zo-loading"><span class="zo-spinner"></span><strong>Loading your secure records…</strong></div></div></div>';
 }
 function notice(text){return '<div class="zo-notice"><span>ⓘ</span><p>'+text+'</p></div>'}
 function card(ico,label,value,desc,widget=""){return '<article class="zo-card" '+(widget?'data-z-widget="'+widget+'"':'')+'><span class="zo-card-icon">'+ico+'</span><strong>'+value+'</strong><b>'+label+'</b><small>'+desc+'</small></article>'}
