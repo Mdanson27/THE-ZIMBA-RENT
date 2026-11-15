@@ -25,12 +25,13 @@ function metric(name,value,detail){
 function render(data,host,propertyId){
  const s=data.summary||{},r=data.rentRoll||[],i=data.invoices||[],e=data.expenses||[],d=data.deposits||[],p=data.receipts||[];
  const columns={
-  roll:{head:["Room","Floor","Status","Resident","Configured rent UGX","Agreement rent UGX","Rent start"],rows:r.map(x=>[x.room,x.floor,x.status,x.resident,x.configuredRent,x.agreementRent,x.rentStart])},
-  invoices:{head:["Invoice","Resident","Invoiced UGX","Verified UGX","Remaining UGX","Due","Status"],rows:i.map(x=>[x.reference,x.resident,x.invoiced,x.verifiedPaid,x.remaining,x.due,x.status])},
+  roll:{head:["Room","Floor","Status","Resident","Configured rent UGX","Agreement rent UGX","Rate check","Rent start"],rows:r.map(x=>[x.room,x.floor,x.status,x.resident,x.configuredRent,x.agreementRent,x.rateMismatch?"ON HOLD · amounts disagree":"Matching",x.rentStart])},
+  invoices:{head:["Invoice","Resident","Original invoice UGX","Verified UGX","Payable UGX","Due","Status"],rows:i.map(x=>[x.reference,x.resident,x.invoiced,x.verifiedPaid,x.billingHold?"ON HOLD":x.remaining,x.due,x.status])},
   expenses:{head:["Date","Category","Description","Amount UGX"],rows:e.map(x=>[x.date,x.category,x.description,x.amount])},
   receipts:{head:["Receipt reference","Invoice","Verified UGX","Source","Date"],rows:p.map(x=>[x.receipt,x.invoice,x.amount,x.source,x.verifiedAt])}
  };
  const discrepancies=i.filter(x=>x.overpaymentFlag);
+ const held=i.filter(x=>x.billingHold&&x.status!=="void");
  host.innerHTML='<div class="zfi-page"><header class="zfi-heading"><div><span>PROPERTY / FINANCIAL INTELLIGENCE</span><h3>Rent, costs and deposits</h3><p>Verified records and financial obligations for this property.</p></div><button type="button" class="zfi-button" id="zfi-refresh">Refresh report</button></header>'+
  '<div class="zfi-metrics">'+
  metric("Outstanding rent",s.outstanding,"Invoiced less verified payments")+
@@ -38,11 +39,12 @@ function render(data,host,propertyId){
  metric("Verified rent",s.totalVerified,"Evidence capped to invoice amounts")+
  metric("Recorded expenses",s.recordedExpenses,"Recorded property expenditure")+
  metric("Refundable deposits held",s.depositHeld,"Separate tenant liability")+
- metric("Rent invoiced",s.totalInvoiced,"Excludes void invoices")+'</div>'+
+ metric("Rent invoiced",s.totalInvoiced,"Excludes void and rate-disputed invoices")+'</div>'+
+ (Number(s.onHoldInvoices)>0?'<div class="zfi-warning" role="alert"><b>'+Number(s.onHoldInvoices)+' disputed invoice(s) on hold.</b> Original records total '+ugx(s.onHoldOriginalAmount)+', excluded from collectible balances because the assigned unit rent conflicts with the agreement. Review and request tenant approval in <a href="#/workspace/invoices">Rent invoices ↗</a>.</div>':"")+
  '<p class="zfi-note">These are recorded and verified figures, not an audited profit statement or bank balance. Refundable security deposits are not rental income.</p>'+
  (discrepancies.length?'<div class="zfi-warning" role="status">'+discrepancies.length+' invoice(s) have verified evidence exceeding the invoiced amount. Review reconciliation.</div>':'')+
- section("Rent roll","Current configured rooms and associated resident agreements.",table(columns.roll.head,r,x=>[x.room,x.floor,x.status,x.resident||"Not assigned",ugx(x.configuredRent),x.agreementRent==null?"—":ugx(x.agreementRent),dt(x.rentStart)]),"roll")+
- section("Invoice reconciliation","Partial payments are subtracted using verified payment evidence.",table(columns.invoices.head,i,x=>[x.reference,x.resident||"—",ugx(x.invoiced),ugx(x.verifiedPaid),ugx(x.remaining),dt(x.due),x.status]),"invoices")+
+ section("Rent roll","Current configured rooms and associated resident agreements. Conflicts are held for tenant review.",table(columns.roll.head,r,x=>[x.room,x.floor,x.status,x.resident||"Not assigned",ugx(x.configuredRent),x.agreementRent==null?"—":ugx(x.agreementRent),x.rateMismatch?"ON HOLD · Review":x.agreementRent==null?"—":"Matching",dt(x.rentStart)]),"roll")+
+ section("Invoice reconciliation","Verified payments are reconciled; disputed rental rates have no approved payable total until tenant approval.",table(columns.invoices.head,i,x=>[x.reference,x.resident||"—",ugx(x.invoiced),ugx(x.verifiedPaid),x.billingHold?"ON HOLD":ugx(x.remaining),dt(x.due),x.status]),"invoices")+
  section("Property expenses","Expenses recorded for this property.",table(columns.expenses.head,e,x=>[dt(x.date),x.category,x.description,ugx(x.amount)]),"expenses")+
  section("Security deposit obligations","Verified refundable deposit holdings, deductions and refunds.",table(["Resident","Required","Verified held","Refunded","Deducted","Status"],d,x=>[x.resident||"—",ugx(x.required),ugx(x.verifiedHeld),ugx(x.refunded),ugx(x.deducted),x.status]),null)+
  section("Verified payment references","No receipts are generated without verified payment evidence.",table(columns.receipts.head,p,x=>[x.receipt||"Not assigned",x.invoice,ugx(x.amount),x.source,dt(x.verifiedAt)]),"receipts")+
