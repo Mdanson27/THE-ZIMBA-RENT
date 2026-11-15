@@ -1,0 +1,33 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const sql=fs.readFileSync("db/0028_financial_integrity_hold.sql","utf8");
+const delivery=fs.readFileSync("db/0029_disputed_invoice_delivery_guard.sql","utf8");
+const calendar=fs.readFileSync("assets/overview-calendar.js","utf8");
+const finance=fs.readFileSync("assets/financial-intelligence.js","utf8");
+const style=fs.readFileSync("assets/overview-calendar.css","utf8");
+const html=fs.readFileSync("index.html","utf8");
+assert.ok(sql.includes("CREATE OR REPLACE FUNCTION public.zimba_manager_overview_calendar"));
+assert.ok(sql.includes("CREATE OR REPLACE FUNCTION public.zimba_property_financial_report"));
+assert.ok(sql.includes("onHoldCount")&&sql.includes("onHoldOriginalAmount"));
+assert.ok(sql.includes("onHoldInvoices")&&sql.includes("billingHold"));
+assert.ok(sql.includes("under_review"));
+assert.ok(sql.includes("IS DISTINCT FROM l.monthly_rent_ugx")&&sql.includes("IS NOT DISTINCT FROM l.monthly_rent_ugx"));
+assert.ok(sql.includes("CASE WHEN i.status='void' OR u.monthly_rent_ugx IS DISTINCT FROM i.lease_rate"));
+assert.ok(sql.includes("THEN NULL::bigint ELSE remaining.balance::bigint END amount"));
+assert.ok(sql.includes("'invoiced',i.amount_ugx"),"Preserve original figure for historical records");
+assert.ok(!sql.includes("INSERT INTO"),"Reporting must be read-only");
+assert.ok(!sql.includes("UPDATE public."),"Reporting must be read-only");
+assert.ok(!sql.includes("DELETE FROM"),"Reporting must never delete billing evidence");
+for(const name of ["zimba_manager_deliver_invoice_in_app","zimba_manager_send_rent_reminder"]){
+ assert.ok(delivery.includes("CREATE OR REPLACE FUNCTION public."+name));
+}
+assert.ok(delivery.split("Invoice is on hold:").length===3,"Block both legacy and current invoice reminder channels");
+assert.ok(delivery.includes("u.monthly_rent_ugx IS DISTINCT FROM lease.monthly_rent_ugx"));
+assert.ok(calendar.includes("zoc-hold-alert")&&calendar.includes("onHoldCount"));
+assert.ok(calendar.includes("under_review")&&calendar.includes("Billing on hold"));
+assert.ok(finance.includes("onHoldInvoices")&&finance.includes("onHoldOriginalAmount"));
+assert.ok(finance.includes("rateMismatch")&&finance.includes("ON HOLD"));
+assert.ok(style.includes(".zoc-hold-alert"));
+assert.ok(html.includes("assets/overview-calendar.js"));
+assert.ok(html.includes("assets/financial-intelligence.js"));
+console.log("Rent hold reporting: no disputed invoice counted as collectible; old amount preserved, reminders blocked, UI explicitly labels disputed rate.");
