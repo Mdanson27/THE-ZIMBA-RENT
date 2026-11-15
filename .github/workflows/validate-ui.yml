@@ -51,6 +51,8 @@ jobs:
         run: node tests/overview-calendar.test.cjs
       - name: Test security deposits, deductions and verified refund lifecycle
         run: node tests/deposit-studio.test.cjs
+      - name: Test audited rental rate amendments and full ZIMBA RENT branding
+        run: node tests/rent-rate-integrity.test.cjs
       - name: Test rent invoice design and in-app/email/WhatsApp delivery boundaries
         run: node tests/invoice-studio.test.cjs
       - name: Test professional land agreements and counterparty execution
