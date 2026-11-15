@@ -63,20 +63,52 @@ function issuePanel(){
  '<button class="ziv-button primary" type="submit">Issue invoice</button></form>')+
  '</section>';
 }
+function correctionPanel(){
+ const issues=mismatchedLeases();
+ const pending=state.integrity.filter(x=>x.lastCorrection&&!x.mismatch);
+ const notices=issues.map(x=>{
+  const req=x.activeRequest;
+  return '<section class="ziv-card ziv-correction" data-ziv-rate-correction="'+esc(x.leaseId)+'">'+
+   '<div class="ziv-record-title"><div><span class="ziv-overline">BILLING INTEGRITY · ACTION REQUIRED</span>'+
+   '<h2>Incorrect monthly rent: '+esc(x.property)+' · '+esc(x.unit)+'</h2>'+
+   '<p>The acknowledged agreement differs from the assigned room. Existing inaccurate invoices are under review.</p></div>'+
+   '<span class="ziv-result">Needs review</span></div>'+
+   '<div class="ziv-correction-facts"><div><small>Recorded agreement</small><strong class="ziv-wrong-amount">'+money(x.leaseRent)+'</strong></div>'+
+   '<div><small>Assigned room monthly rent</small><strong>'+money(x.unitRent)+'</strong></div></div>'+
+   (state.manager?
+    req?'<p class="ziv-correction-pending">Correction submitted. Awaiting tenant approval; no contract or invoice amount has been overwritten.</p>':
+    '<form class="ziv-correction-form" data-ziv-propose="'+esc(x.leaseId)+'"><label>Explain the error and request tenant consent<textarea name="reason" rows="3" minlength="20" maxlength="1000" required>The assigned room '+esc(x.unit)+' has a monthly rent of '+money(x.unitRent)+', but the acknowledged agreement incorrectly records '+money(x.leaseRent)+'. Please approve correction of this error and the related unpaid invoice.</textarea></label>'+
+    '<button class="ziv-button primary" type="submit">Request tenant approval</button></form>':
+    req?'<div class="ziv-correction-pending"><strong>Your landlord requests your approval.</strong><p>'+esc(req.reason)+'</p>'+
+    '<form class="ziv-correction-form" data-ziv-answer="'+esc(req.id)+'">'+
+    '<label>Response / reason for disagreement<textarea name="note" rows="2" maxlength="1000" placeholder="Optional if approving, required if disputing"></textarea></label>'+
+    '<div class="ziv-share-bottom"><button class="ziv-button primary" type="submit" name="decision" value="approve">Approve '+money(x.unitRent)+' monthly</button>'+
+    '<button class="ziv-button subtle" type="submit" name="decision" value="dispute">Dispute correction</button></div></form></div>':
+    '<p class="ziv-correction-pending">Awaiting a correction proposal from the landlord. This invoice is on hold; do not pay the incorrect amount.</p>')+
+   '</section>';
+ }).join("");
+ const corrected=pending.map(x=>'<div class="ziv-correction-success">Tenant-approved rent correction recorded for '+esc(x.property)+' · '+esc(x.unit)+'. Previous invoice amounts remain in the audit history.</div>').join("");
+ return notices+corrected;
+}
+
 function invoiceCard(i){
- const isVoid=i.status==="void";
- return '<article class="ziv-invoice"><div class="ziv-invoice-main"><div class="ziv-invoice-ref"><span>'+esc(i.reference)+'</span>'+pill(i)+'</div>'+
+ const isVoid=i.status==="void",held=rateMismatch(i),corrected=rateOf(i.leaseId)?.lastCorrection;
+ return '<article class="ziv-invoice"><div class="ziv-invoice-main"><div class="ziv-invoice-ref"><span>'+esc(i.reference)+'</span>'+(held?'<span class="ziv-pill overdue">Incorrect rate · on hold</span>':pill(i))+'</div>'+
  '<h3>'+esc(i.tenant||"Tenant")+'</h3>'+
  '<p>'+esc(i.property||"Property")+(i.unit?' · Unit '+esc(i.unit):"")+' · '+esc(month(i.periodStart))+'</p>'+
- '<div class="ziv-facts"><span><small>Invoice amount</small><b>'+money(i.amount)+'</b></span>'+
+ (held?'<div class="ziv-billing-hold"><strong>Incorrect invoice · do not pay.</strong> The lease records '+money(rateOf(i.leaseId)?.leaseRent)+', but the assigned room is '+money(rateOf(i.leaseId)?.unitRent)+' monthly. Printing and sharing are suspended pending the tenant’s review.</div>':"")+
+ (corrected&&!held?'<div class="ziv-correction-success">Corrected by tenant approval: previous '+money(corrected.original)+' → revised '+money(corrected.revised)+'. The earlier amount remains in the audit history.</div>':"")+
+ '<div class="ziv-facts"><span><small>Invoice amount'+(held?" · disputed":"")+'</small><b>'+money(i.amount)+'</b></span>'+
  '<span><small>Verified paid</small><b>'+money(i.verifiedPaid)+'</b></span>'+
- '<span><small>Balance due</small><b class="ziv-balance">'+money(i.balance)+'</b></span>'+
+ '<span><small>Balance due</small><b class="ziv-balance">'+(held?"Under review":money(i.balance))+'</b></span>'+
  '<span><small>Due date</small><b>'+niceDate(i.due)+'</b></span></div>'+
  (i.lastInAppAt?'<small class="ziv-delivered">Last in-app '+esc(i.lastInAppKind||"invoice")+' · '+niceDate(i.lastInAppAt)+'</small>':"")+
- '</div><div class="ziv-invoice-actions"><button type="button" class="ziv-button subtle" data-ziv-print="'+esc(i.id)+'">View / Print invoice</button>'+
- (state.manager&&!isVoid?'<button type="button" class="ziv-button primary" data-ziv-share="'+esc(i.id)+'">Share invoice</button>':"")+
+ '</div><div class="ziv-invoice-actions">'+
+ (!held?'<button type="button" class="ziv-button subtle" data-ziv-print="'+esc(i.id)+'">View / Print invoice</button>':"")+
+ (state.manager&&!isVoid&&!held?'<button type="button" class="ziv-button primary" data-ziv-share="'+esc(i.id)+'">Share invoice</button>':"")+
  '</div></article>';
 }
+
 function records(){
  const list=state.invoices.filter(i=>{
   const needle=(i.reference+" "+i.tenant+" "+i.property+" "+i.unit).toLowerCase();
