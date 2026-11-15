@@ -25,7 +25,7 @@ const find=id=>state.invoices.find(v=>v.id===id);
 const statusLabel=x=>statusMap[x.status]||statusMap.unpaid;
 const pill=x=>{const [label,tone]=statusLabel(x);return '<span class="ziv-pill '+tone+'">'+esc(label)+'</span>';};
 function page(manager){
- return '<section class="ziv-page" id="ziv-root"><div class="ziv-head"><div><span class="ziv-overline">ZIMBA / RENT & FINANCES</span><h1>'+ (manager?"Rent invoices":"My rent invoices")+'</h1><p>'+
+ return '<section class="ziv-page" id="ziv-root"><div class="ziv-head"><div><span class="ziv-overline">ZIMBA RENT / RENT & FINANCES</span><h1>'+ (manager?"Rent invoices":"My rent invoices")+'</h1><p>'+
  (manager?"Issue property-specific rent invoices, print professional documents and choose how to share them with tenants.":"Review authentic rent invoices from your property manager, print them and view verified payment records.")+
  '</p></div><span class="ziv-head-tag">Secure billing · UGX</span></div>'+
  '<div class="ziv-notice" id="ziv-notice" role="status" aria-live="polite"></div>'+
