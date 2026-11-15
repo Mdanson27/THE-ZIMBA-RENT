@@ -61,3 +61,8 @@
 .alertbar .zimba-banner-copy b{font-weight:800;color:#e0f3b3}
 @keyframes zimbaBannerLights{0%{transform:translateX(-18%) scale(.85);opacity:.55}45%{transform:translateX(180%) scale(1.1);opacity:1}100%{transform:translateX(320%) scale(.95);opacity:.7}}
 @media(prefers-reduced-motion:reduce){.alertbar::before,.alertbar::after{animation:none!important;opacity:.28;transform:none}}
+
+
+/* ZIMBA RENT wordmark: full brand name instead of the abbreviated ZIMBA mark. */
+.wordmark{letter-spacing:-.045em!important}
+.wordmark span{font-size:.62em!important;letter-spacing:-.02em!important;vertical-align:baseline}
