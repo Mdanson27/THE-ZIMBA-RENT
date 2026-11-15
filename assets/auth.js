@@ -161,7 +161,7 @@ const api = {
       "zimba_tenant_service_requests","zimba_notification_feed",
       "zimba_manager_maintenance_list","zimba_tenant_maintenance_progress",
       "zimba_resident_profiles_v2","zimba_manager_lease_list","zimba_tenant_lease",
-      "zimba_manager_invoice_list","zimba_tenant_billing","zimba_manager_invoice_documents","zimba_tenant_invoice_documents",
+      "zimba_manager_invoice_list","zimba_tenant_billing","zimba_manager_invoice_documents","zimba_tenant_invoice_documents","zimba_rent_integrity",
       "zimba_manager_deposit_summary","zimba_tenant_deposit_summary","zimba_deposit_workspace",
       "zimba_manager_land_lease_drafts","zimba_manager_land_lease_contracts","zimba_my_land_lease_signing_requests","zimba_land_lease_private_pdf","zimba_property_hub","zimba_property_financial_report",
       "zimba_enterprise_overview","zimba_enterprise_documents_list","zimba_intelligence_snapshot",
@@ -220,7 +220,7 @@ const api = {
         error.httpStatus=404;error.operation=name;error.code=data?.code||"ROUTE_NOT_FOUND";
         error.details=data?.details||null;error.hint=data?.hint||null;
         if(error.code==="PGRST202" && !["zimba_property_hub","zimba_property_financial_report","zimba_enterprise_overview","zimba_enterprise_documents_list","zimba_intelligence_snapshot",
-      "zimba_manager_lease_contracts","zimba_tenant_lease_contracts","zimba_private_lease_pdf","zimba_manager_invoice_documents","zimba_tenant_invoice_documents","zimba_manager_overview_calendar","zimba_deposit_workspace","zimba_manager_land_lease_contracts","zimba_my_land_lease_signing_requests","zimba_land_lease_private_pdf"].includes(name))missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
+      "zimba_manager_lease_contracts","zimba_tenant_lease_contracts","zimba_private_lease_pdf","zimba_manager_invoice_documents","zimba_tenant_invoice_documents","zimba_rent_integrity","zimba_manager_propose_rent_correction","zimba_tenant_answer_rent_correction","zimba_manager_overview_calendar","zimba_deposit_workspace","zimba_manager_land_lease_contracts","zimba_my_land_lease_signing_requests","zimba_land_lease_private_pdf"].includes(name))missingRpcCache.set(name,{when:Date.now(),message:error.message,code:error.code});
         throw error;
       }
       const error=new Error(response?.status===403?"Zimba cannot access "+name+" (HTTP 403). Your account session is preserved.":response?.status===401?"The database declined this access token (HTTP 401). Your account remains signed in.":detail);
@@ -297,6 +297,9 @@ const api = {
   async prepareLease(connection,start,end,rent,deposit,terms,depositTerms,issue){return api.rpc("zimba_manager_prepare_lease",{p_connection:connection,p_start:start,p_end:end||null,p_rent:rent,p_deposit:deposit,p_terms:terms,p_deposit_terms:depositTerms,p_issue:issue});},
   async tenantLeases(){return api.rpc("zimba_tenant_lease");},
   async acknowledgeLease(id){return api.rpc("zimba_tenant_acknowledge_lease",{p_lease:id});},
+  async rentIntegrity(mode){return api.rpc("zimba_rent_integrity",{p_mode:mode});},
+  async proposeRentCorrection(lease,reason){return api.rpc("zimba_manager_propose_rent_correction",{p_lease:lease,p_reason:reason});},
+  async answerRentCorrection(request,accept,note){return api.rpc("zimba_tenant_answer_rent_correction",{p_request:request,p_accept:accept,p_note:note});},
   async managerInvoiceDocuments(){return api.rpc("zimba_manager_invoice_documents");},
   async tenantInvoiceDocuments(){return api.rpc("zimba_tenant_invoice_documents");},
   async deliverInvoiceInApp(id,intent,message){return api.rpc("zimba_manager_deliver_invoice_in_app",{p_invoice:id,p_intent:intent,p_message:message});},
