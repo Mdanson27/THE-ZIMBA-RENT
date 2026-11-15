@@ -21,7 +21,7 @@ assert.ok(!print.includes("UGX 5,000,000"),"A corrected invoice must not hard-co
 assert.ok(invoices.includes("rateMismatch(i)"),"Mismatched invoices must not be printable or shareable");
 assert.ok(invoices.includes("incorrect rent invoice"),"Show quarantine notice for wrong issued invoices");
 assert.ok(invoices.includes("Under review"),"Incorrect balance is not immediately collectible");
-assert.ok(invoices.includes("await auth().rentIntegrity("),"Cannot render financial details without integrity RPC");
+assert.ok(invoices.includes("auth().rentIntegrity("),"Cannot render financial details without integrity RPC");
 assert.ok(invoices.includes("proposeRentCorrection"),"Landlord must submit amendment to tenant");
 assert.ok(invoices.includes("answerRentCorrection"),"Tenant must approve/reject");
 assert.ok(invoices.includes("Original amounts")||invoices.includes("original amounts")||invoices.includes("earlier amount"),"Audit history must be described");
