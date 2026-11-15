@@ -4,14 +4,14 @@ const $=s=>document.querySelector(s),auth=()=>window.ZimbaAuth;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ugx=v=>"UGX "+Number(v||0).toLocaleString("en-UG");
 const date=v=>v?new Date(String(v).length===10?v+"T12:00:00":v).toLocaleDateString("en-UG",{day:"numeric",month:"short",year:"numeric"}):"Not set";
-const title=(name,sub)=>'<header class="zt-heading"><span>YOUR ZIMBA RESIDENT SPACE</span><h1>'+name+'</h1><p>'+sub+'</p></header>';
+const title=(name,sub)=>'<header class="zt-heading"><span>YOUR ZIMBA RENT RESIDENT SPACE</span><h1>'+name+'</h1><p>'+sub+'</p></header>';
 const panel=(heading,html)=>'<section class="zt-panel"><h2>'+heading+'</h2>'+html+'</section>';
 const empty=()=>panel("Connect to your home",'<p>Your assigned property will appear once you approve your landlord’s invitation.</p><a class="zt-button" href="#/workspace/connection">View invitations ↗</a>');
 const house=h=>'<article class="zt-house"><span class="zt-eyebrow">YOUR APPROVED HOME</span><h2>⌂ '+esc(h.property)+'</h2><p>'+esc(h.address||h.city||"Uganda")+'</p><div class="zt-facts">'+[['PROPERTY MANAGER',h.manager],['ROOM / UNIT',h.room||"Property-wide"],['MONTHLY RENT',h.monthlyRent==null?"Not set":ugx(h.monthlyRent)],['RENT START',date(h.rentStart)],['MONTH-END DUE',date(h.nextDue)]].map(([a,b])=>'<div><small>'+a+'</small><strong>'+esc(b)+'</strong></div>').join("")+'</div><a class="zt-button" href="#/workspace/messages">Message manager ↗</a> <a class="zt-button light" href="#/workspace/maintenance">Report issue</a></article>';
 const selectHomes=list=>'<label>Connected home<select name="connection" id="zt-connection">'+list.map(h=>'<option value="'+esc(h.connectionId)+'">'+esc(h.property)+' · '+esc(h.room||"Property-wide")+'</option>').join("")+'</select></label>';
 let seq=0;
 function entry(section){
- const t={home:["Your home","Your property, manager and monthly rent together."],messages:["Resident messages","Talk directly to your connected property manager."],payments:["Rent & wallet","Your month-end rent schedule and verified balance."],maintenance:["Maintenance & requests","Report problems and follow their progress."]}[section]||["Resident space","Your private Zimba account"];
+ const t={home:["Your home","Your property, manager and monthly rent together."],messages:["Resident messages","Talk directly to your connected property manager."],payments:["Rent & wallet","Your month-end rent schedule and verified balance."],maintenance:["Maintenance & requests","Report problems and follow their progress."]}[section]||["Resident space","Your private ZIMBA RENT account"];
  return title(t[0],t[1])+'<div id="zt-content"><div class="zt-loading">Loading your secure information…</div></div>';
 }
 async function load(section){
@@ -29,9 +29,9 @@ function home(list){
 }
 function monthCard(h){return '<div class="zt-rent"><div><strong>'+esc(h.property)+'</strong><span>'+esc(h.room||"Property-wide")+'</span></div><div><strong>'+ (h.monthlyRent==null?"Rent not set":ugx(h.monthlyRent))+'</strong><span>Start '+date(h.rentStart)+' · Month-end '+date(h.nextDue)+'</span></div></div>'}
 function payments(list,w){
- $("#zt-content").innerHTML='<div class="zt-wallet"><div class="zt-wallet-top"><span>ZIMBA WALLET</span><span>NO LIVE DEPOSITS</span></div><small>VERIFIED BALANCE</small><strong>'+ugx(w.verifiedBalance)+'</strong><div class="zt-wallet-ref"><div><small>PERSONAL WALLET REFERENCE</small><b>'+esc(w.reference)+'</b></div><button type="button" id="zt-copy">Copy</button></div></div>'+
+ $("#zt-content").innerHTML='<div class="zt-wallet"><div class="zt-wallet-top"><span>ZIMBA RENT WALLET</span><span>NO LIVE DEPOSITS</span></div><small>VERIFIED BALANCE</small><strong>'+ugx(w.verifiedBalance)+'</strong><div class="zt-wallet-ref"><div><small>PERSONAL WALLET REFERENCE</small><b>'+esc(w.reference)+'</b></div><button type="button" id="zt-copy">Copy</button></div></div>'+
  panel("Month-end rent schedule",list.length?list.map(monthCard).join(""):'<p>No assigned rooms yet.</p>')+
- panel("Deposit example · SAMPLE ONLY",'<div class="zt-demo"><span>Illustrative deposit</span><strong>+ UGX 250,000</strong><small>SAMPLE · NOT DEPOSITED · NOT SPENDABLE</small></div><p>This is a preview, not an actual transaction.</p>')+
+
  panel("Verified transaction history",(w.entries||[]).length?w.entries.map(e=>'<div class="zt-rent"><strong>'+ugx(e.amount)+'</strong><span>'+esc(e.reference)+' · '+date(e.date)+'</span></div>').join(""):'<p>There are no verified transactions.</p>')+
  '<div class="zt-note">ⓘ Your wallet reference is an internal identifier, not a bank or mobile money account. Funding and automated rent deductions are disabled until payment-provider verification and bank reconciliation are available.</div>';
  $("#zt-copy")?.addEventListener("click",()=>navigator.clipboard?.writeText(w.reference).then(()=>{$("#zt-copy").textContent="Copied ✓"}));
