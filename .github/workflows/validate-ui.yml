@@ -53,6 +53,8 @@ jobs:
         run: node tests/deposit-studio.test.cjs
       - name: Test disputed invoice financial reporting and payment-reminder safeguards
         run: node tests/rent-hold-reports.test.cjs
+      - name: Test authenticated RPC allowlist completeness for rental agreements and invoice workflows
+        run: node tests/api-operation-allowlist.test.cjs
       - name: Test audited rental rate amendments and full ZIMBA RENT branding
         run: node tests/rent-rate-integrity.test.cjs
       - name: Test rent invoice design and in-app/email/WhatsApp delivery boundaries
