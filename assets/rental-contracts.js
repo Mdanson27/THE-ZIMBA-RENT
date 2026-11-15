@@ -12,7 +12,9 @@ const templates={
  terms:"The landlord lets the residential premises identified in this agreement to the tenant for the agreed term. Rent is payable on the agreed date and in the agreed manner. The parties shall record meter readings and agree upon payment of applicable utilities, lawful access and inspection, care and maintenance obligations, permitted occupancy, notices and termination procedures. Changes to rent and any other material terms shall comply with applicable law and any written agreement between the parties. The premises must be fit for habitation at commencement.",
  deposit:"The security deposit is separate from rent and is refundable subject to lawful deductions. The deposit shall not exceed the permitted statutory limit. The landlord shall provide a written receipt for any deposit actually received. Any withholding must be explained in writing and supported by actual lawful obligations or damage beyond ordinary wear and tear. Any refundable balance shall be returned in accordance with applicable law and the agreed terms."
 };
-let state={manager:false,items:[],people:[],active:null,reviewed:null,busy:false,formChoice:"",requestId:0};
+let state={manager:false,items:[],people:[],integrity:[],active:null,reviewed:null,busy:false,formChoice:"",requestId:0};
+const rentIssue=id=>state.integrity.find(x=>x.leaseId===id&&x.mismatch);
+const rateAmendment=id=>state.integrity.find(x=>x.leaseId===id)?.lastCorrection;
 const root=()=>document.querySelector("#zrl-root");
 const statusData=l=>l.docStatus==="signed"?["Signed · both confirmed","signed"]:
  l.docStatus==="pending_tenant_confirmation"?["Awaiting tenant confirmation","pending"]:
@@ -70,10 +72,12 @@ function register(){
  return '<article class="zrl-record"><div class="zrl-record-info"><div class="zrl-record-top"><span>ZR-'+uuid(l.id)+'</span>'+pill(l)+'</div>'+
  '<h3>'+esc(l.tenant)+'</h3><p>'+esc(l.property)+(l.room?' · Unit '+esc(l.room):"")+'</p>'+
  '<div class="zrl-small-facts"><span>'+money(l.rent)+' / month</span><span>From '+date(l.start)+'</span><span>Deposit '+money(l.deposit)+'</span></div>'+
+ (rentIssue(l.id)?'<p class="zrl-notice"><b>Incorrect rent recorded: do not sign or use this document.</b> The assigned room is '+money(rentIssue(l.id).unitRent)+' monthly, while this agreement says '+money(l.rent)+'. <a href="#/workspace/invoices">Review tenant-approved correction</a>.</p>':"")+
+ (rateAmendment(l.id)?'<p class="zrl-notice"><b>Amended rental amount recorded.</b> Updated documents require both signatures before being treated as executed.</p>':"")+
  (l.scanHash?'<small class="zrl-hash">Stored signed copy: v'+Number(l.scanRevision)+' · SHA-256 '+esc(l.scanHash.slice(0,12))+'…</small>':'')+
  '</div><div class="zrl-record-actions">'+
  (editable?'<button class="zrl-button secondary" data-zrl-edit="'+esc(l.connectionId)+'" type="button">Edit draft</button>':"")+
- '<button class="zrl-button secondary" data-zrl-print="'+esc(l.id)+'" type="button">Print / Save PDF</button>'+
+ (rentIssue(l.id)?'<span class="zrl-subtle">Printing paused until incorrect rent is resolved</span>':'<button class="zrl-button secondary" data-zrl-print="'+esc(l.id)+'" type="button">Print / Save PDF</button>')+
  (l.scanId?'<button class="zrl-button secondary" data-zrl-view="'+esc(l.scanId)+'" type="button">Download signed PDF</button>':"")+
  (!signedDoc&&!editable?'<button class="zrl-button primary" data-zrl-upload="'+esc(l.id)+'" type="button">Upload signed copy</button>':"")+
  '</div></article>';
@@ -123,12 +127,14 @@ async function load(manager){
  const host=root();if(!host)return;
  const seq=++state.requestId;state.manager=!!manager;message("");
  try{
-  const [leases,people]=await Promise.all([
+  const [leases,people,integrity]=await Promise.all([
    manager?api().managerLeaseContracts():api().tenantLeaseContracts(),
-   manager?api().managerThreads():Promise.resolve([])
+   manager?api().managerThreads():Promise.resolve([]),
+   api().rentIntegrity(manager?"manager":"tenant")
   ]);
   if(seq!==state.requestId||!host.isConnected)return;
   state.items=Array.isArray(leases)?leases:[];state.people=Array.isArray(people)?people:[];
+  state.integrity=Array.isArray(integrity)?integrity:[];
   if(!selectEntries().some(p=>p.id===state.formChoice))state.formChoice="";
   sync();
  }catch(e){
@@ -160,10 +166,12 @@ function legalDocument(lease){
  const title="RESIDENTIAL TENANCY AGREEMENT";
  const location=[lease.propertyAddress,lease.city,lease.country||"Uganda"].filter(Boolean).join(", ");
  const isSigned=lease.docStatus==="signed",ref="ZR-"+uuid(lease.id);
+ const amended=rateAmendment(lease.id);
  const paragraph=v=>esc(v||"").replace(/\n/g,"<br>");
  const html='<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(ref)+' · Rental agreement</title>'+
  '<style>@page{size:A4;margin:16mm 17mm}*{box-sizing:border-box}body{font:11pt/1.55 Arial,Helvetica,sans-serif;color:#1b2923;background:#fff;margin:0}.controls{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#f2f7f3;padding:12px 15px;margin-bottom:18px;border:1px solid #dce8dd}.controls button{background:#20533d;color:#fff;border:0;border-radius:6px;padding:9px 18px;cursor:pointer}.page{max-width:850px;margin:0 auto}.lettermark{font-size:19pt;font-weight:800;color:#194d37}.lettermark span{color:#76aa73}.eyebrow{font-size:8pt;letter-spacing:.15em;color:#5f7667}.dochead{border-bottom:2px solid #20533d;padding-bottom:14px;margin:0 0 18px}h1{font-size:17pt;letter-spacing:.02em;color:#173d2b;margin:14px 0 6px}h2{font-size:10.5pt;color:#1c4934;margin:21px 0 7px;text-transform:uppercase;letter-spacing:.05em}.sub{font-size:9pt;color:#536a5b}.details{width:100%;border-collapse:collapse;margin:15px 0}.details td{padding:9px 12px;border:1px solid #ccd8d0;vertical-align:top;width:50%}.details span{display:block;font-size:8pt;color:#607668;text-transform:uppercase;letter-spacing:.03em}.details b{font-size:10pt}.clause{white-space:normal;border-left:2px solid #c6d8ca;padding-left:11px;overflow-wrap:break-word}.signs{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:30px 0 15px}.sig{border:1px solid #d9e4dc;padding:16px;break-inside:avoid}.sig b{display:block;margin-bottom:26px}.rule{border-bottom:1px solid #25372e;height:17px}.sig small{display:block;font-size:8pt;color:#667f6f;margin:5px 0 14px}.notice{font-size:8.7pt;border-top:1px solid #d6e4d9;padding-top:11px;margin-top:23px;color:#667e6e}.stamp{font-size:8pt;padding:6px 9px;border:1px solid #ccd9cf;display:inline-block;color:#567a5f}.footer{margin-top:25px;font-size:8pt;color:#667c6c;display:flex;justify-content:space-between}.break{page-break-before:always}@media print{.controls{display:none}.page{max-width:none}.sig{break-inside:avoid}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
  '<div class="controls"><strong>Agreement preview · '+esc(ref)+'</strong><button onclick="window.print()">Print / Save as PDF</button></div><div class="page"><header class="dochead"><div class="lettermark">ZIMBA<span> RENT</span></div><div class="eyebrow">PROPERTY MANAGEMENT · AGREEMENT DOCUMENT</div><h1>'+title+'</h1><div class="sub">Agreement reference '+esc(ref)+' · Uganda</div><p class="stamp">'+(isSigned?"SIGNED RECORD EXISTS — DOWNLOAD ARCHIVED PDF FOR SIGNATURES":lease.status==="draft"?"DRAFT · NOT EXECUTED":"ISSUED COPY · SIGNATURES REQUIRED")+'</p></header>'+
+ (amended?'<p class="notice"><b>RENT RATE AMENDMENT:</b> The monthly rate was corrected after tenant account approval. A prior version recorded '+money(amended.original)+' in an invoice; that invoice is now revised to '+money(amended.revised)+'. Both parties must sign the amended agreement before treating this printed document as executed.</p>':"")+
  '<p>This rental agreement records the terms proposed or agreed between the following landlord (or authorised representative) and tenant in respect of the property below. The printed copy is to be completed, dated and signed by both parties.</p>'+
  '<h2>1. Parties and premises</h2><table class="details"><tr><td><span>Landlord / Managing organisation</span><b>'+esc(lease.landlord||"To be confirmed")+'</b></td><td><span>Tenant</span><b>'+esc(lease.tenant||"To be confirmed")+'</b></td></tr>'+
  '<tr><td><span>Property</span><b>'+esc(lease.property||"")+'</b></td><td><span>Room / Unit</span><b>'+esc(lease.room||"Property-wide — verify")+'</b></td></tr>'+
@@ -183,6 +191,7 @@ function legalDocument(lease){
 }
 function printAgreement(lease){
  if(!lease)return;
+ if(rentIssue(lease.id)){message("Printing blocked: the agreement rent differs from the occupied unit. Complete the correction review in Rent invoices first.",true);return;}
  // A dedicated print window is opened in the direct click handler so it does not
  // get blocked by async calls; no scripts from document input are rendered.
  const win=window.open("","_blank","width=980,height=900");
