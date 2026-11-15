@@ -23,7 +23,7 @@ assert.equal(nav.groupFor("intelligence"),"intelligence");
 assert.equal(nav.groupFor("security"),"account");
 assert.equal(typeof nav.toggle,"function");
 
-const links=[["home","Overview","layout-dashboard"],["properties","Properties","house"],["building","Building studio","building-2"],["residents","Residents","users-round"],["finance","Financials","wallet"],["intelligence","ZIMBA Intelligence","brain-circuit"]];
+const links=[["home","Overview","layout-dashboard"],["properties","Properties","house"],["building","Building studio","building-2"],["residents","Residents","users-round"],["finance","Financials","wallet"],["intelligence","ZIMBA RENT Intelligence","brain-circuit"]];
 let output=nav.build(links,"finance");
 assert.ok(output.includes("zv-nav-standalone"));
 assert.ok(output.includes("data-zv-group=\"property\""));
@@ -55,7 +55,7 @@ assert.ok(workspace.includes("window.ZimbaNavigation.build(nav,section)"));
 assert.ok(workspace.includes("zv-sidebar-backdrop"));
 assert.ok(workspace.includes("zv-sidebar-pin"));
 assert.ok(workspace.includes('["home","Overview","layout-dashboard"]'));
-assert.ok(workspace.includes('["intelligence","ZIMBA Intelligence"'));
+assert.ok(workspace.includes('["intelligence","ZIMBA RENT Intelligence"'));
 assert.ok(html.includes("navigation-system.css"));
 assert.ok(html.includes("navigation-system.js"));
 
