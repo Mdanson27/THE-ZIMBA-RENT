@@ -39,3 +39,8 @@
 
 /* Audited rent start-date editor */
 .zv-rent-overlay{position:fixed;inset:0;z-index:1800;background:#0a2b20ba;backdrop-filter:blur(5px);display:grid;place-items:center;padding:15px}.zv-rent-modal{position:relative;width:min(475px,100%);max-height:95vh;overflow-y:auto;background:white;border-radius:15px;padding:32px;box-shadow:0 22px 75px #09291a44}.zv-rent-modal h2{font:500 33px 'Bodoni Moda',Georgia,serif;color:#143b2b}.zv-rent-modal p{font-size:12px;color:#658269}.zv-rent-close{position:absolute;top:16px;right:16px;border:0;background:#edf4e9;border-radius:8px;width:33px;height:33px;cursor:pointer;font-size:23px;color:#214632}.zv-rent-caution{font-size:11px!important;background:#edf5e9;border:1px solid #e0ebdb;border-radius:8px;padding:12px;line-height:1.65}.zv-rent-modal input,.zv-rent-modal textarea{width:100%;border:1px solid #dce9da;border-radius:8px;padding:12px;background:#f9fcf8;font:12px Manrope,sans-serif}.zv-rent-modal label{display:grid;gap:7px;font-size:11px;font-weight:800;color:#3c6849}.zv-rent-modal .zv-button{justify-content:center}.zv-rent-modal #zv-rent-error{color:#a13a2d}
+
+
+/* Full ZIMBA RENT name in the workspace, including gate and onboarding. */
+.zv-logo{letter-spacing:-.045em!important}
+.zv-logo span{font-size:.61em!important;letter-spacing:-.02em!important}
