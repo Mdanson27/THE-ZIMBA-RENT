@@ -98,7 +98,7 @@ function shell(section,body){
   ["properties","Properties","house"],["property","Property workspace","panels-top-left"],["building","Building studio","building-2"],["residents","Residents","users-round"],
   ["messages","Messages","message-circle"],["maintenance","Maintenance","wrench"],
   ["finance","Financials","wallet"],["lease","Rental agreements","file-text"],["land-leases","Land & long-term leases","map-pinned"],["invoices","Rent invoices","receipt-text"],["deposits","Deposits","hand-coins"],
-  ["intelligence","ZIMBA Intelligence","brain-circuit"],["enterprise","Enterprise Centre","briefcase-business"],
+  ["intelligence","ZIMBA RENT Intelligence","brain-circuit"],["enterprise","Enterprise Centre","briefcase-business"],
   ["notifications","Notifications","bell"],["plans","Plans & billing","credit-card"],["security","Security & activity","shield-check"],["settings","Settings","settings"]]:
  record.role==="tenant"?
  [["home","My home","house"],["connection","Connect to a home","house"],["messages","Messages","message-circle"],["maintenance","Requests","wrench"],
