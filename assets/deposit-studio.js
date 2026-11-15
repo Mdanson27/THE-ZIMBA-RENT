@@ -31,7 +31,7 @@ let state={manager:false,items:[],active:"",openForm:null,seq:0};
 const find=id=>state.items.find(i=>i.leaseId===id);
 function page(manager){
  return '<section id="zds-root" class="zds-page">'+
- '<header class="zds-head"><div><span class="zds-kicker">ZIMBA / RENT & FINANCES</span>'+
+ '<header class="zds-head"><div><span class="zds-kicker">ZIMBA RENT / RENT & FINANCES</span>'+
  '<h1>Security deposits</h1><p>'+(manager
  ?'Track agreed deposits, receipt evidence, tenant requests, justified deductions and confirmed refunds in one private register.'
  :'Track what was agreed and actually recorded, acknowledge deposit receipts, request a refund and review every deduction before confirming repayment.')+
