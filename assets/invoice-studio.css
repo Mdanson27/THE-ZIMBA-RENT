@@ -80,3 +80,26 @@ html[data-zimba-theme="dark"] body.zv-workspace-on .ziv-notice.error{background:
 @media(max-width:400px){.ziv-kpis{grid-template-columns:1fr}.ziv-kpi:last-child{grid-column:auto}.ziv-invoice-ref{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.ziv-page *{transition:none!important}}
 @media print{.ziv-page{display:none!important}}
+
+
+/* Billing integrity — visibly quarantine a rent invoice that conflicts with its unit. */
+.ziv-page .ziv-billing-hold{padding:14px 16px;border:1px solid #e9c4ad;border-radius:10px;background:#fff5ed;color:#763c24;font-size:12px;line-height:1.6;margin:10px 0}
+.ziv-page .ziv-billing-hold b,.ziv-page .ziv-billing-hold strong{color:#823c23}
+.ziv-page .ziv-correction{border-color:#e1c8ae;display:grid;gap:15px}
+.ziv-page .ziv-correction-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ziv-page .ziv-correction-facts>div{display:grid;gap:5px;padding:14px 17px;border:1px solid var(--iv-border);border-radius:10px;background:var(--iv-tint)}
+.ziv-page .ziv-correction-facts small{font-size:10px;color:var(--iv-muted);font-weight:750}
+.ziv-page .ziv-correction-facts strong{font:850 clamp(17px,2vw,23px) Manrope,system-ui,sans-serif;overflow-wrap:anywhere}
+.ziv-page .ziv-wrong-amount{color:#a34b30;text-decoration:line-through;text-decoration-thickness:1px}
+.ziv-page .ziv-correction-form{display:grid;gap:11px}
+.ziv-page .ziv-correction-form textarea{min-height:85px}
+.ziv-page .ziv-correction-form .ziv-button{justify-self:start}
+.ziv-page .ziv-correction-pending,.ziv-page .ziv-correction-success{padding:13px 15px;border:1px solid #b8d8bf;border-radius:9px;background:#ebf6ee;color:#245a3a;line-height:1.65;font-size:11.5px}
+.ziv-page .ziv-correction-pending{border-color:#e7d6ad;background:#fff8e8;color:#765c2b}
+.ziv-page .ziv-correction-pending p{color:inherit}
+.ziv-page .ziv-result{white-space:nowrap}
+html[data-zimba-theme="dark"] body.zv-workspace-on .ziv-billing-hold{background:#4b3028;border-color:#916047;color:#ffe0cf}
+html[data-zimba-theme="dark"] body.zv-workspace-on .ziv-billing-hold b{color:#ffe2ce}
+html[data-zimba-theme="dark"] body.zv-workspace-on .ziv-correction-pending{background:#453c25;color:#f8e3b7;border-color:#766b40}
+html[data-zimba-theme="dark"] body.zv-workspace-on .ziv-correction-success{background:#29543a;border-color:#487953;color:#e1f7e5}
+@media(max-width:650px){.ziv-page .ziv-correction-facts{grid-template-columns:1fr}.ziv-page .ziv-correction-form .ziv-button{width:100%}}
